@@ -5,6 +5,7 @@ import { ViewTransitions } from "next-view-transitions"
 import { ThemeProvider } from "@/components/ui/theme-provider"
 import Navigation from "@/components/ui/navigation"
 import Footer from "@/components/ui/footer"
+import MarketTicker from "@/components/ui/market-ticker"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -32,6 +33,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <Navigation />
+            
             <main className="container">{children}</main>
             <Footer />
           </ThemeProvider>
