@@ -52,7 +52,7 @@ export default async function StocksPage({ params, searchParams }: Props) {
   )
 
   return (
-    <div>
+    <div className="bg-red-500">
       <Card>
         <CardContent className="space-y-10 pt-6 lg:px-40 lg:py-14">
           <Suspense
