@@ -98,6 +98,9 @@ body {
   -webkit-transition: none;
   transition: none;
 }
+::-webkit-scrollbar {
+  display: none;
+}
 
 .marker line {
   pointer-events: none;
