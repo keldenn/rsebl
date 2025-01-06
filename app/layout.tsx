@@ -32,7 +32,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <Navigation />
-            <main className="container">{children}</main>
+            <main className="container bg-danger-500">{children}</main>
             <Footer />
           </ThemeProvider>
         </body>

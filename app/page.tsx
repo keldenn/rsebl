@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import HeroCarousel from "@/components/ui/home-carousel"
 import { DEFAULT_INTERVAL, DEFAULT_RANGE } from "@/lib/yahoo-finance/constants"
 import { Interval } from "@/types/yahoo-finance"
 import { Suspense } from "react"
@@ -137,7 +138,9 @@ export default async function Home({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-4 lg:flex-row">
+       <HeroCarousel></HeroCarousel>
+      <div className="flex flex-col gap-4 lg:flex-row ">
+       
         <div className="w-full lg:w-1/2">
           <Card className="relative flex h-full min-h-[15rem] flex-col justify-between overflow-hidden">
             <CardHeader>
@@ -179,7 +182,7 @@ export default async function Home({
         </div>
       </div>
       <div>
-        <h2 className="py-4 text-xl font-medium">Markets</h2>
+        <h2 className="py-4 text-xl font-medium ">Markets</h2>
         <Card className="flex flex-col gap-4 p-6 lg:flex-row">
           <div className="w-full lg:w-1/2">
             <Suspense fallback={<div>Loading...</div>}>

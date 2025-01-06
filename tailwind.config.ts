@@ -17,11 +17,18 @@ const config = {
         "2xl": "1400px",
       },
     },
+    
     extend: {
       strokeWidth: {
         "1.5": "1.5px",
       },
       colors: {
+        'custom-1': '#382E7A',
+        'custom-2': '#205A8A', 
+        'custom-3': '#7E3BF2', 
+        'custom-4': '#3A2A76', 
+        'green-custom': "#73D13D",
+        'red-custom': "#FF4D4F",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

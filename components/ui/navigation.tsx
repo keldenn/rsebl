@@ -1,5 +1,6 @@
 "use client"
 import { ThemeToggle } from "./theme-toggle"
+
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -22,7 +23,7 @@ const NAVIGATION = [
 
 export default function Navigation() {
   const pathname = usePathname()
-
+  const images = ['\images\banner.png', "\images\banner1.png"];
   return (
     <>
     <MarketTicker></MarketTicker>
@@ -53,7 +54,7 @@ export default function Navigation() {
         </div>
       </div>
     </header>
-    
+ 
     </>
   )
 }
