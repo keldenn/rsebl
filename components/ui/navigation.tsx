@@ -13,6 +13,7 @@ import Link from "next/link"
 import GoBack from "./go-back"
 import { usePathname } from "next/navigation"
 import CommandMenu from "./command-menu"
+import MarketTicker from "./market-ticker"
 
 const NAVIGATION = [
   { title: "Markets", href: "/" },
@@ -23,6 +24,8 @@ export default function Navigation() {
   const pathname = usePathname()
 
   return (
+    <>
+    <MarketTicker></MarketTicker>
     <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container">
         <div className="flex w-full flex-row justify-between py-4">
@@ -50,5 +53,7 @@ export default function Navigation() {
         </div>
       </div>
     </header>
+    
+    </>
   )
 }
