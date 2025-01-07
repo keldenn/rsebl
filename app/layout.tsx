@@ -5,7 +5,7 @@ import { ViewTransitions } from "next-view-transitions"
 import { ThemeProvider } from "@/components/ui/theme-provider"
 import Navigation from "@/components/ui/navigation"
 import Footer from "@/components/ui/footer"
-
+import {NextUIProvider} from "@nextui-org/react";
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -25,6 +25,7 @@ export default function RootLayout({
         <body
           className={`${inter.className} min-h-screen bg-background pb-6 antialiased selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black`}
         >
+              <NextUIProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -32,9 +33,10 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <Navigation />
-            <main className="container bg-danger-500">{children}</main>
+            <main className="container">{children}</main>
             <Footer />
           </ThemeProvider>
+          </NextUIProvider>
         </body>
       </html>
     </ViewTransitions>

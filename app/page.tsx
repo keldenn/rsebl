@@ -20,7 +20,7 @@ import {
   validateRange,
 } from "@/lib/yahoo-finance/fetchChartData"
 import { fetchStockSearch } from "@/lib/yahoo-finance/fetchStockSearch"
-
+import NewsSection from "@/components/ui/news-section"
 function isMarketOpen() {
   const now = new Date()
 
@@ -139,6 +139,7 @@ export default async function Home({
   return (
     <div className="flex flex-col gap-4">
        <HeroCarousel></HeroCarousel>
+   
       <div className="flex flex-col gap-4 lg:flex-row ">
        
         <div className="w-full lg:w-1/2">
@@ -196,6 +197,17 @@ export default async function Home({
           </div>
         </Card>
       </div>
+
+      <div className="flex items-center justify-between py-4">
+  <h2 className="text-xl font-medium">News & Announcements</h2>
+  <a
+    href="/news"
+    className="text-blue-600 hover:underline text-sm font-medium"
+  >
+  View more
+  </a>
+</div>
+<NewsSection />
     </div>
   )
 }
