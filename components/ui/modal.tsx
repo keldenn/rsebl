@@ -21,7 +21,7 @@ const Modal: React.FC<ModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-11/12 max-w-lg relative">
+      <div className="rounded-xl border bg-card text-card-foreground shadow p-6 w-11/12 max-w-lg relative">
         {/* Header with Title and Close Button */}
         <div className="flex justify-between items-center mb-4">
           {/* Title */}
@@ -45,7 +45,7 @@ const Modal: React.FC<ModalProps> = ({
         )}
 
         {/* Description */}
-        <p className="text-gray-700 mb-9">{description}</p>
+        <p className="text-gray-700 dark:text-white mb-9 ">{description}</p>
 
         {/* Download PDF button */}
         {pdfUrl && (
