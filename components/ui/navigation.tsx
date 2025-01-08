@@ -19,6 +19,10 @@ import MarketTicker from "./market-ticker"
 const NAVIGATION = [
   { title: "Markets", href: "/" },
   { title: "Screener", href: "/screener" },
+  { title: "Listed Scripts", href: "/listedscripts" },
+  { title: "Our Services", href: "/ourservices" },
+  { title: "Brokers", href: "/listedscripts" },
+  { title: "FAQs", href: "/FAQs" },
 ]
 
 export default function Navigation() {

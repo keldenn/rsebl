@@ -21,6 +21,7 @@ import {
 } from "@/lib/yahoo-finance/fetchChartData"
 import { fetchStockSearch } from "@/lib/yahoo-finance/fetchStockSearch"
 import NewsSection from "@/components/ui/news-section"
+import StatsSection from "@/components/ui/stats-section"
 function isMarketOpen() {
   const now = new Date()
 
@@ -139,7 +140,7 @@ export default async function Home({
   return (
     <div className="flex flex-col gap-4">
        <HeroCarousel></HeroCarousel>
-   
+        <StatsSection></StatsSection>
       <div className="flex flex-col gap-4 lg:flex-row ">
        
         <div className="w-full lg:w-1/2">
