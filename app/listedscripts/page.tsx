@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import CompanyCards from "./components/CompanyCards";
+//import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Finly: Stock screener",
@@ -13,6 +14,7 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/BBPL.png",
     price: 24.1,
     priceChange: -1.4,
+    link: "/listedscripts/bbpl",
   },
   {
     title: "BCCL",
@@ -20,6 +22,7 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/BCCL.png",
     price: 48.2,
     priceChange: 2.1,
+    link: "/listedscripts/bccl",
   },
   {
     title: "BFAL",
@@ -27,6 +30,7 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/BFAL.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/bfal",
   },
   {
     title: "BIL",
@@ -34,13 +38,15 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/BIL.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/bil",
   },
   {
     title: "BNBL",
     description: "BHUTAN NATIONAL BANK LTD.",
-    image: "https://rsebl.org.bt/online/assets/img/companies/BNB.png",
+    image: "https://bnb.bt/wp-content/uploads/2024/04/BNB-Primary-Logo-no-border-space.svg",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/bnbl",
   },
   {
     title: "BPCL",
@@ -48,6 +54,7 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/BPCL.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/bpcl",
   },
   {
     title: "BTCL",
@@ -55,6 +62,7 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/BTCL.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/btcl",
   },
   {
     title: "DFAL",
@@ -62,6 +70,7 @@ const companyData = [
     image: "	https://rsebl.org.bt/online/assets/img/companies/DFAL.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/dfal",
   },
   {
     title: "DPL",
@@ -69,13 +78,15 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/DPL.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/dpl",
   },
   {
     title: "DPNB",
-    description: "BHUTAN TOURISM CORPORATION LTD.",
+    description: "DRUK PNB BHUTAN",
     image: "https://rsebl.org.bt/online/assets/img/companies/DPNB.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/dpnb",
   },
   {
     title: "DWAL",
@@ -83,6 +94,7 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/DWAL.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/dwal",
   },
   {
     title: "GICB",
@@ -90,6 +102,7 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/GBRL.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/gicb",
   },
   {
     title: "KCL",
@@ -97,6 +110,7 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/KCL.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/kcl",
   },
   {
     title: "PCAL",
@@ -104,6 +118,7 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/PCAL.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/pcal",
   },
   {
     title: "RICBL",
@@ -111,6 +126,7 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/RICB.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/ricbl",
   },
   {
     title: "STCBL",
@@ -118,6 +134,7 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/STCB.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/stcbl",
   },
   {
     title: "SVL",
@@ -125,6 +142,7 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/SVLlogo.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/svl",
   },
   {
     title: "TBL",
@@ -132,6 +150,7 @@ const companyData = [
     image: "https://rsebl.org.bt/online/assets/img/companies/TBL.png",
     price: 31.5,
     priceChange: -0.9,
+    link: "/listedscripts/tbl",
   },
 ];
 
@@ -146,6 +165,7 @@ export default async function ListedScriptsPage() {
           image={company.image}
           price={company.price}
           priceChange={company.priceChange}
+          link={company.link}
         />
       ))}
     </div>
