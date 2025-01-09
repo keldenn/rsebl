@@ -4,7 +4,7 @@ import Link from "next/link"
 
 export default function Footer() {
   return (
-    <footer className="py-16 bg-gray-50" role="contentinfo" aria-label="Site footer">
+    <footer className="py-16 " role="contentinfo" aria-label="Site footer">
     <div className="container mx-auto px-6 flex flex-col space-y-10">
       {/* Navigation Sections */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 text-center sm:text-left">
@@ -44,17 +44,16 @@ export default function Footer() {
             />
           </g>
         </svg>
-
         </a>
       </div>
         {/* Company Section */}
         <div>
           <h2 className="text-lg font-semibold">Company</h2>
           <ul className="mt-4 space-y-2">
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Profile</a></li>
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Organogram</a></li>
-            {/* <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Careers</a></li>
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Partners</a></li> */}
+
+            <li><a href="#" className=" text-gray-600 hover:text-blue-500 "><Link href="/profile">Profile</Link></a></li>
+            <li><a href="#" className=" text-gray-600 hover:text-blue-500 "><Link href="/organogram">Organogram</Link> </a></li>
+
           </ul>
         </div>
 
@@ -76,7 +75,7 @@ export default function Footer() {
             <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Forms</a></li>
             <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Regulations</a></li>
             <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Reports</a></li>
-            {/* <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Terms</a></li> */}
+
           </ul>
         </div>
 
@@ -86,8 +85,7 @@ export default function Footer() {
           <ul className="mt-4 space-y-2">
             <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Press Release</a></li>
             <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Newsletter</a></li>
-            {/* <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Help Articles</a></li>
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Feedback Form</a></li> */}
+         
           </ul>
         </div>
       </div>

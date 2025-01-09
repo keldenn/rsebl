@@ -22,6 +22,7 @@ import {
 import { fetchStockSearch } from "@/lib/yahoo-finance/fetchStockSearch"
 import NewsSection from "@/components/ui/news-section"
 import StatsSection from "@/components/ui/stats-section"
+import StockTabs from "@/components/ui/stocks-tabs"
 function isMarketOpen() {
   const now = new Date()
 
@@ -209,6 +210,7 @@ export default async function Home({
   </a>
 </div>
 <NewsSection />
+<StockTabs></StockTabs>
     </div>
   )
 }
