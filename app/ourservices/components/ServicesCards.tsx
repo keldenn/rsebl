@@ -1,48 +1,44 @@
 import React from "react";
-import Link from "next/link"; // Import the Link component
-import { Card, CardHeader, CardBody, CardFooter, Image } from "@nextui-org/react";
+import Link from "next/link";
+import { Card, CardHeader, CardBody, CardFooter } from "@nextui-org/react";
 
 interface ServicesCardProps {
   description: string;
   image: string;
-  link: string; // Add a link prop for navigation
+  link: string;
 }
 
-const ServicesCards: React.FC<ServicesCardProps> = ({
-  description,
-  image,
-  link, // Destructure the link prop
-}) => {
-
+const ServicesCards: React.FC<ServicesCardProps> = ({ description, image, link }) => {
   return (
-    <Card className="rounded-xl shadow-lg border group relative transition-transform duration-300 hover:scale-105 hover:bg-gray-100 flex-auto min-w-[300px]">
-      <div className="absolute inset-0 bg-transparent transition-colors duration-300 rounded-xl"></div>
-
-      {/* Card content */}
-      <CardHeader className="flex justify-between pb-0 pt-2 px-4 z-10 relative items-center">
-        <div className="flex flex-col flex-1">
-          <small className="text-xs text-default-500 ">
-            {description}
-          </small>
-        </div>
-        <div className="flex flex-col items-end text-right ml-4">
-          <Image
+    <Card
+      isHoverable
+      isPressable
+      className="rounded-lg transition-transform hover:scale-105 group"
+    >
+      {/* Card Header with Consistent Aspect Ratio */}
+      <CardHeader className="p-0">
+        <div className="relative w-full h-40">
+          <img
             src={image}
-            alt={`${description} Logo`}
-            width={130}
-            height={70}
+            alt={description}
+            className="object-contain w-full h-full p-2"
           />
         </div>
       </CardHeader>
 
-      {/* Button below card */}
-      <div className="py-4 px-4 opacity-0 max-h-0 group-hover:opacity-100 group-hover:max-h-fit group-hover:mt-2 transition-all duration-300 z-10 relative">
+      {/* Card Body */}
+      <CardBody className="p-4 space-y-2">
+        <p className="text-sm text-gray-600 text-center">{description}</p>
+      </CardBody>
+
+      {/* Card Footer */}
+      <CardFooter className="p-4">
         <Link href={link} passHref>
           <button className="w-full py-2 px-4 text-sm font-medium text-purple-600 border border-purple-600 rounded-md hover:bg-purple-50">
             Learn More
           </button>
         </Link>
-      </div>
+      </CardFooter>
     </Card>
   );
 };
