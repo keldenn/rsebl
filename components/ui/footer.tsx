@@ -53,7 +53,7 @@ export default function Footer() {
 
             <li><a href="#" className=" text-gray-600 hover:text-blue-500 "><Link href="/profile">Profile</Link></a></li>
             <li><a href="#" className=" text-gray-600 hover:text-blue-500 "><Link href="/organogram">Organogram</Link> </a></li>
-
+            <li><a href="#" className=" text-gray-600 hover:text-blue-500 "><Link href="/timeline">Timeline</Link> </a></li>
           </ul>
         </div>
 
