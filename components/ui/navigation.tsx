@@ -21,7 +21,7 @@ const NAVIGATION = [
   { title: "Screener", href: "/screener" },
   { title: "Listed Scripts", href: "/listedscripts" },
   { title: "Our Services", href: "/ourservices" },
-  { title: "Brokers", href: "/listedscripts" },
+  { title: "Brokers", href: "/brokers" },
   { title: "FAQs", href: "/FAQs" },
 ]
 
