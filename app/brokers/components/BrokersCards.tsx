@@ -1,15 +1,13 @@
 import React from "react";
-import Link from "next/link";
 import { Card, CardHeader, CardBody, CardFooter } from "@nextui-org/react";
 import { Button } from "@/components/ui/button";
 
-interface ServicesCardProps {
+interface BrokersCardProps {
   description: string;
   image: string;
-  link: string;
 }
 
-const ServicesCards: React.FC<ServicesCardProps> = ({ description, image, link }) => {
+const BrokersCards: React.FC<BrokersCardProps> = ({ description, image }) => {
   return (
     <Card
       className="rounded-xl border bg-card text-card-foreground shadow"
@@ -32,14 +30,12 @@ const ServicesCards: React.FC<ServicesCardProps> = ({ description, image, link }
 
       {/* Card Footer */}
       <CardFooter className="p-4">
-        <Link href={link} passHref>
-          <Button variant="outline" >
+          <Button variant="outline" className="w-full">
             Learn More
           </Button>
-        </Link>
       </CardFooter>
     </Card>
   );
 };
-
-export default ServicesCards;
+    
+export default BrokersCards;

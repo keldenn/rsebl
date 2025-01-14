@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
 
 const ServicesIdPage = () => {
   const params = useParams();
@@ -99,6 +101,7 @@ const ServicesIdPage = () => {
                     rel="noopener noreferrer"
                     className="transition-transform transform hover:scale-105"
                   >
+                    
                     <Image
                       src="/images/gpl.png"
                       alt="Google Play Badge"
@@ -107,6 +110,13 @@ const ServicesIdPage = () => {
                     />
                   </a>
                 </div>
+                <p className="text-base font-bold mb-4 mt-6">Scan the QR to download the app</p>
+                <Image
+                  src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGwAAABsCAIAAAAABMCaAAABq0lEQVR42u3aWw7CMAwEwN7/0nACJIK9IY/JJ6pKM5Vqd93nZZXXgwAixCMRn8CqnP/jRX9x/qn7gggR4vGIpQdt4TyjoBXcrn1BhAjxLsRKAUkXhy7cyr4gQoQIsYo4CtTV5EOECBHirojpZhsiRIgQVwkgKhuW4kCECHE2YnpQ9a/fj5r2QYQIMYoY//CnMKRPNPlt+4IIEeKRiJVwtKsxTgytlmi2IUKEuB1iAutfgUWlWA3fJIgQIR6JmB4wJZrtdBGLJ9sQIUJcFjH98p8ICBI3oy2UhQgR4taI6Rf+rg+X0oFFpDpDhAhxa8TKAzu9+fT/Dh8DESLEqxDTDW26mKSvGSJEiOcjpoPYRKgx82UBIkSI9yK2PYADgejM6ywN7yFChLgdYnp1FZOuQVgkgIAIEeIxiOkhd1eTPNwMp5twiBAhHo+YCEoTIWsl6O06HiJEiHchJh7wiWPSxTCe4kCECBFiY/OcHk4tXVggQoS4HWLXUD89yB/eL0SIEK9CTIQIiUFVuuGHCBHivYiJl/lEUUo050tP+yBChDgN0fqxiCGACPGU9QbTOOknjQzo1AAAAABJRU5ErkJggg=="
+                  alt="Mobile App Mockup"
+                  width={150}
+                  height={150}
+                />
               </div>
             </div>
 
@@ -138,9 +148,12 @@ const ServicesIdPage = () => {
                   <option value="firm4">Firm 4</option>
                 </select>
                 <div className="flex justify-center">
-                  <button className="bg-primary text-white hover:bg-primary/90 px-4 py-2 rounded-md mt-4">
-                    Submit
-                  </button>
+                  <Button variant="outline"
+                        size="lg"
+                        className="my-5"
+                  >
+                      Submit
+                  </Button>
                 </div>
               </div>
 
@@ -154,9 +167,12 @@ const ServicesIdPage = () => {
                   type="text"
                 />
                 <div className="flex justify-center">
-                  <button className="bg-primary text-white hover:bg-primary/90 px-4 py-2 rounded-md">
+                  <Button variant="outline"
+                      size="lg"
+                      className="my-5"
+                      >
                     Submit
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -164,28 +180,87 @@ const ServicesIdPage = () => {
         );
 
       case "OnlineShareStmt":
+        const [accountType, setAccountType] = useState(""); // State to track dropdown selection
+
+        const handleAccountTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+          setAccountType(e.target.value); // Update state based on dropdown selection
+        };
         return (
-          <div className="flex flex-col items-center justify-center p-6 md:p-8 rounded-xl border bg-card text-card-foreground shadow max-w-6xl mx-auto">
-            <h1 className="text-4xl font-bold text-[#3B3A73] text-center">Online Share Statement</h1>
-            <p className="text-lg mt-4 text-center">
-              View your share statements online with ease and manage your portfolio effortlessly.
-            </p>
-            <Image
-              src="/images/online-share.png"
-              alt="Online Share Statement"
-              width={400}
-              height={300}
-              className="mt-6 rounded-lg"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
+            {/* Register Section */}
+            <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4">
+              <h2 className="py-4 text-xl font-medium text-center">Online Share Statement</h2>
+              <label className="text-sm font-medium">Account Type</label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base text-muted-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm mt-2 mb-2"
+                aria-describedby="firms-description"
+                aria-invalid="false"
+                name="firms"
+                required
+                value={accountType}
+                onChange={handleAccountTypeChange}
+              >
+                <option value="">Select Account Type</option>
+                <option value="individual">Individual</option>
+                <option value="corporate">Corporate/Association</option>
+              </select>
+      
+              {accountType === "individual" && (
+                <>
+                  <label className="text-sm font-medium">CID</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+                    placeholder="Enter your CID number"
+                    type="number"
+                    required
+                  />
+                </>
+              )}
+      
+              {accountType === "corporate" && (
+                <>
+                  <label className="text-sm font-medium">DISN No</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+                    placeholder="Enter DISN number provided by RSEB"
+                    type="text"
+                    required
+                  />
+                </>
+              )}
+      
+              <div className="flex justify-center">
+                <Button variant="outline" size="lg" className="my-5">
+                  Submit
+                </Button>
+              </div>
+            </div>
           </div>
         );
-
+        
       default:
         return (
-          <div className="text-center p-8">
-            <h1 className="text-4xl font-bold">Service Not Found</h1>
-            <p className="mt-4">The requested service ID is not available.</p>
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
+              <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4">
+                <h2 className="py-4 text-xl font-medium text-center">Online Registration for Bhutanese Living Aboard</h2>
+                <label className="text-sm font-medium">CID</label>
+                <input
+                  className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                  placeholder="Enter your CID number"
+                  type="text"
+                />
+                <div className="flex justify-center">
+                  <Button variant="outline"
+                      size="lg"
+                      className="my-5"
+                      >
+                    Submit
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </>
         );
     }
   };
