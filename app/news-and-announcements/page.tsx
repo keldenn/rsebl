@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import NewsCard from "@/components/ui/news-card";
 import Modal from "@/components/ui/modal";
 import { Button } from "@/components/ui/button"; // Assuming you have a Button component
-import  { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 const articles = [
   {
     title: "Selected Candidates for IT Officer Post",
@@ -50,19 +51,14 @@ const NewsPage: React.FC = () => {
   } | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeTab, setActiveTab] = useState("News"); // Toggle between "News" and "Announcements"
 
   const newsArticles = articles.filter((article) => !article.pdfUrl);
   const announcements = articles.filter((article) => article.pdfUrl);
 
-  const data = activeTab === "News" ? newsArticles : announcements;
+  const totalPages = (data: typeof articles) => Math.ceil(data.length / ITEMS_PER_PAGE);
 
-  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
-
-  const paginatedArticles = data.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const paginatedArticles = (data: typeof articles) =>
+    data.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const openModal = (article: {
     title: string;
@@ -81,70 +77,100 @@ const NewsPage: React.FC = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
-  const handleNext = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  const handleNext = (data: typeof articles) => {
+    if (currentPage < totalPages(data)) setCurrentPage(currentPage + 1);
   };
 
   return (
     <div className="p-6 space-y-6">
       {/* Tabs */}
-      <div className="flex bg-muted/50 w-full lg:w-1/3 p-1 mb-4 lg:mb-0 rounded-lg">
-        {["News", "Announcements"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => {
-              setActiveTab(tab);
-              setCurrentPage(1); // Reset to the first page when switching tabs
-            }}
-            className={cn(
-              "flex-1 py-2 text-sm font-medium text-center rounded-lg transition",
-              activeTab === tab
-                ? "bg-card text-foreground shadow"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      <Tabs defaultValue="news" >
+        <TabsList  className="">
+          <TabsTrigger value="news" onClick={() => setCurrentPage(1)}>
+            News
+          </TabsTrigger>
+          <TabsTrigger value="announcements" onClick={() => setCurrentPage(1)}>
+            Announcements
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Articles */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {paginatedArticles.map((article, index) => (
-          <NewsCard
-            key={index}
-            title={article.title}
-            description={article.description}
-            date={article.date}
-            imageUrl={article.imageUrl}
-            pdfUrl={article.pdfUrl}
-            onMore={() => openModal(article)}
-          />
-        ))}
-      </div>
+        {/* News Tab */}
+        <TabsContent value="news">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {paginatedArticles(newsArticles).map((article, index) => (
+              <NewsCard
+                key={index}
+                title={article.title}
+                description={article.description}
+                date={article.date}
+                imageUrl={article.imageUrl}
+                onMore={() => openModal(article)}
+              />
+            ))}
+          </div>
+          <div className="flex items-center justify-end space-x-4 mt-4">
+          <span className="text-sm font-medium">
+              Page {currentPage} of {totalPages(newsArticles)}
+            </span>
+            <Button
+              onClick={handlePrevious}
+              disabled={currentPage === 1}
+              variant="outline"
+              size="sm"
+            >
+              Previous
+            </Button>
+           
+            <Button
+              onClick={() => handleNext(newsArticles)}
+              disabled={currentPage === totalPages(newsArticles) || totalPages(newsArticles) === 0}
+              variant="outline"
+              size="sm"
+            >
+              Next
+            </Button>
+          </div>
+        </TabsContent>
 
-      {/* Pagination Controls */}
-      <div className="flex items-center justify-start space-x-4 mt-4">
-        <Button
-          onClick={handlePrevious}
-          disabled={currentPage === 1}
-          variant="outline"
-          size="sm"
-        >
-          Previous
-        </Button>
-        <span className="text-sm font-medium">
-          Page {currentPage} of {totalPages}
-        </span>
-        <Button
-          onClick={handleNext}
-          disabled={currentPage === totalPages || totalPages === 0}
-          variant="outline"
-          size="sm"
-        >
-          Next
-        </Button>
-      </div>
+        {/* Announcements Tab */}
+        <TabsContent value="announcements">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {paginatedArticles(announcements).map((article, index) => (
+              <NewsCard
+                key={index}
+                title={article.title}
+                description={article.description}
+                date={article.date}
+                imageUrl={article.imageUrl}
+                pdfUrl={article.pdfUrl}
+                onMore={() => openModal(article)}
+              />
+            ))}
+          </div>
+          <div className="flex items-center justify-end space-x-4 mt-4">
+          <span className="text-sm font-medium">
+              Page {currentPage} of {totalPages(announcements)}
+            </span>
+            <Button
+              onClick={handlePrevious}
+              disabled={currentPage === 1}
+              variant="outline"
+              size="sm"
+            >
+              Previous
+            </Button>
+            
+            <Button
+              onClick={() => handleNext(announcements)}
+              disabled={currentPage === totalPages(announcements) || totalPages(announcements) === 0}
+              variant="outline"
+              size="sm"
+            >
+              Next
+            </Button>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Modal */}
       {selectedArticle && (
