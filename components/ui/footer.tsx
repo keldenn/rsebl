@@ -72,7 +72,7 @@ export default function Footer() {
         <div>
           <h2 className="text-lg font-semibold">Charts & Metrics</h2>
           <ul className="mt-4 space-y-2">
-            <li><Link href="/charts/bhutan-stock-index" className="text-gray-600 hover:text-blue-500">Bhutan Stock Index</Link></li>
+            <li><Link href="/bsi" className="text-gray-600 hover:text-blue-500">Bhutan Stock Index</Link></li>
             <li><Link href="/charts/price-comparison" className="text-gray-600 hover:text-blue-500">Price Comparison</Link></li>
           </ul>
         </div>
