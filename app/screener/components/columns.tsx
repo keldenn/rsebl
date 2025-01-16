@@ -18,7 +18,7 @@ export const columns: ColumnDef<ScreenerQuote>[] = [
         <Link
           prefetch={false}
           href={`/stocks/${symbol}`}
-          className="font-bold text-blue-500 hover:underline"
+          className="font-bold text-custom-1 hover:underline"
         >
           {symbol}
         </Link>
