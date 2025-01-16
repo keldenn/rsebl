@@ -21,8 +21,10 @@ const NAVIGATION = [
   { title: "Screener", href: "/screener" },
   { title: "Listed Scripts", href: "/listedscripts" },
   { title: "Our Services", href: "/ourservices" },
+  { title: "Debt Securities", href: "/brokers" },
+  { title: "Bonds", href: "/brokers" },
   { title: "Brokers", href: "/brokers" },
-  { title: "FAQs", href: "/FAQs" },
+
 ]
 
 export default function Navigation() {

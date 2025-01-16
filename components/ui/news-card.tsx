@@ -19,8 +19,8 @@ interface NewsCardProps {
     pdfUrl,
     onMore,
   }) => {
-    const titleLimit = 37;
-    const descriptionLimit = 45;
+    const titleLimit = 36;
+    const descriptionLimit = 43;
   
     const truncateText = (text: string, limit: number) =>
       text.length > limit ? text.substring(0, limit) + "..." : text;

@@ -67,9 +67,10 @@ export default function YearDownloadTabs() {
 
   return (
     <div className="w-full p-4 max-w-full mx-auto space-y-4">
-        <div className="flex flex-row justify-between items-center w-full">
+        <div className="flex flex-col lg:flex-row justify-between items-center w-full">
                     {/* Tabs Navigation */}
-      <div className="flex max-w-sm bg-muted/50 w-1/2 p-1 rounded-lg ">
+                    
+      <div className="flex bg-muted/50 w-full lg:w-1/3 p-1 mb-4 lg:mb-0 rounded-lg">
         {["Annual_Reports", "Regulations", "Forms"].map((tab) => (
           <button
             key={tab}
@@ -92,17 +93,12 @@ export default function YearDownloadTabs() {
           </button>
         ))}
       </div>
-
-      {/* Search Bar */}
-      <div className="flex items-center justify-between">
         <Input
           placeholder="Search by year..."
           value={searchQuery}
           onChange={handleSearch}
-          className="max-w-sm"
+          className="w-full lg:w-1/3  "
         />
-      </div>
-
 
         </div>
       {/* Table */}

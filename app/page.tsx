@@ -141,6 +141,7 @@ export default async function Home({
   return (
     <div className="flex flex-col gap-4">
        <HeroCarousel></HeroCarousel>
+       <h2 className="text-xl font-medium py-4">Market Pulse</h2>
         <StatsSection></StatsSection>
       <div className="flex flex-col gap-4 lg:flex-row ">
        
@@ -185,7 +186,7 @@ export default async function Home({
         </div>
       </div>
       <div>
-        <h2 className="py-4 text-xl font-medium ">Markets</h2>
+        <h2 className="py-4 text-xl font-medium ">Stocks</h2>
         <Card className="flex flex-col gap-4 p-6 lg:flex-row">
           <div className="w-full lg:w-1/2">
             <Suspense fallback={<div>Loading...</div>}>
@@ -202,14 +203,17 @@ export default async function Home({
 
       <div className="flex items-center justify-between py-4">
   <h2 className="text-xl font-medium">News & Announcements</h2>
-  <a
-    href="/news"
-    className="text-blue-600 hover:underline text-sm font-medium"
-  >
-  View more
-  </a>
+
+<Link className="text-blue-600 hover:underline text-sm font-medium" href="/news-and-announcements">
+    
+View more
+    </Link>
+
+
 </div>
 <NewsSection />
+
+<h2 className="text-xl font-medium py-4">Stock Highlights</h2>
 <StockTabs></StockTabs>
     </div>
   )

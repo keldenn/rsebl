@@ -51,43 +51,43 @@ export default function Footer() {
           <h2 className="text-lg font-semibold">Company</h2>
           <ul className="mt-4 space-y-2">
 
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 "><Link href="/profile">Profile</Link></a></li>
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 "><Link href="/organogram">Organogram</Link> </a></li>
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 "><Link href="/timeline">Timeline</Link> </a></li>
+            <li><a href="#" className=" text-gray-600 hover:text-blue-500 "><Link href="/company/profile">Profile</Link></a></li>
+            <li><a href="#" className=" text-gray-600 hover:text-blue-500 "><Link href="/company/organogram">Organogram</Link> </a></li>
+            <li><a href="#" className=" text-gray-600 hover:text-blue-500 "><Link href="/company/timeline">Timeline</Link> </a></li>
           </ul>
         </div>
 
-        {/* Resources Section */}
+       {/* Resources Section */}
         <div>
           <h2 className="text-lg font-semibold">Resources</h2>
           <ul className="mt-4 space-y-2">
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Debt</a></li>
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Finances</a></li>
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Equity</a></li>
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Indices</a></li>
+            <li><Link href="/resources/debt" className="text-gray-600 hover:text-blue-500">Debt</Link></li>
+            <li><Link href="/resources/finances" className="text-gray-600 hover:text-blue-500">Finances</Link></li>
+            <li><Link href="/resources/equity" className="text-gray-600 hover:text-blue-500">Equity</Link></li>
+            <li><Link href="/resources/indices" className="text-gray-600 hover:text-blue-500">Indices</Link></li>
           </ul>
         </div>
 
-        {/* Account Section */}
+        {/* Charts & Metrics Section */}
         <div>
-          <h2 className="text-lg font-semibold">Downloads</h2>
+          <h2 className="text-lg font-semibold">Charts & Metrics</h2>
           <ul className="mt-4 space-y-2">
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Forms</a></li>
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Regulations</a></li>
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Reports</a></li>
-
+            <li><Link href="/charts/bhutan-stock-index" className="text-gray-600 hover:text-blue-500">Bhutan Stock Index</Link></li>
+            <li><Link href="/charts/price-comparison" className="text-gray-600 hover:text-blue-500">Price Comparison</Link></li>
           </ul>
         </div>
 
-        {/* media */}
+        {/* More Section */}
         <div>
-          <h2 className="text-lg font-semibold">Media</h2>
+          <h2 className="text-lg font-semibold">More</h2>
           <ul className="mt-4 space-y-2">
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Press Release</a></li>
-            <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Newsletter</a></li>
-         
+            <li><Link href="/contact" className="text-gray-600 hover:text-blue-500">Contact Us</Link></li>
+            <li><Link href="/media" className="text-gray-600 hover:text-blue-500">Media</Link></li>
+            <li><Link href="/literacy" className="text-gray-600 hover:text-blue-500">Literacy</Link></li>
+            <li><Link href="/faqs" className="text-gray-600 hover:text-blue-500">FAQs</Link></li>
           </ul>
         </div>
+
       </div>
 
       {/* Divider */}
@@ -100,7 +100,7 @@ export default function Footer() {
         </p>
         <ul className="flex space-x-4 mt-4 sm:mt-0">
           <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Privacy Policy</a></li>
-          <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Terms of Service</a></li>
+          {/* <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Terms of Service</a></li> */}
           <li><a href="#" className=" text-gray-600 hover:text-blue-500 ">Staff Login</a></li>
         </ul>
       </div>
