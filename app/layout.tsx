@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/ui/theme-provider"
 import Navigation from "@/components/ui/navigation"
 import Footer from "@/components/ui/footer"
 import {NextUIProvider} from "@nextui-org/react";
+
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -34,9 +35,12 @@ export default function RootLayout({
           >
             <Navigation />
             <main className="container">{children}</main>
+            
             <Footer />
           </ThemeProvider>
+     
           </NextUIProvider>
+    
         </body>
       </html>
     </ViewTransitions>
