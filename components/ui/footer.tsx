@@ -99,9 +99,9 @@ export default function Footer() {
           Copyright © 2025 <a href="www.rsebl.org.bt" className="text-custom-1 hover:underline">Royal Securities Exchange of Bhutan</a>. All rights reserved.
         </p>
         <ul className="flex space-x-4 mt-4 sm:mt-0">
-          <li><a href="#" className=" text-gray-600 hover:text-blue-500  ">Privacy Policy</a></li>
+        <li><Link href="/privacy-policy" className="text-gray-600 hover:text-custom-3 ">Privacy Policy</Link></li>
           {/* <li><a href="#" className=" text-gray-600 hover:text-blue-500  ">Terms of Service</a></li> */}
-          <li><a href="#" className=" text-gray-600 hover:text-blue-500  ">Staff Login</a></li>
+          <li><Link href="https://rsebl.org.bt/agm/" className="text-gray-600 hover:text-custom-3">Staff Login</Link></li>
         </ul>
       </div>
     </div>
