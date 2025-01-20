@@ -24,6 +24,7 @@
     "@tanstack/react-table": "^8.13.2",
     "@visx/shape": "^3.5.0",
     "@visx/visx": "^3.10.2",
+    "axios": "^1.7.9",
     "chart.js": "^4.4.7",
     "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-plugin-zoom": "^2.2.0",

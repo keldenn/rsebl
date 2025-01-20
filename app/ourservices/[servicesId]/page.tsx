@@ -3,11 +3,84 @@
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const ServicesIdPage = () => {
   const params = useParams();
   const servicesId = params?.servicesId;
+  const [brokerageFirms, setBrokerageFirms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [cid, setCid] = useState("");
+  const [selectedBroker, setSelectedBroker] = useState("");
+  const [userDetails, setUserDetails] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
+  });
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsError, setDetailsError] = useState(null);
+
+  useEffect(() => {
+    // Fetch brokerage firms list from the API
+    const fetchBrokerageFirms = async () => {
+      try {
+        const response = await fetch("https://rsebl.org.bt/agm/api/getBrokerList");
+        if (!response.ok) throw new Error("Failed to fetch brokerage firms");
+        const data = await response.json();
+        setBrokerageFirms(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBrokerageFirms();
+  }, []);
+
+  const handleFetchDetails = async () => {
+    if (!cid || !selectedBroker) {
+      setDetailsError("Please enter CID and select a brokerage firm.");
+      return;
+    }
+    setDetailsError(null);
+    setDetailsLoading(true);
+    try {
+      const response = await fetch(
+        `https://rsebl.org.bt/agm/api/getUserDetails?cidNo=${cid}&broker=${selectedBroker}`
+      );
+      const data = await response.json();
+      console.log("Fetched user details:", data); // Debugging log
+  
+      if (data.status === "200" && data.data.length > 0) {
+        const user = data.data[0]; // Extract user details from the first item in the array
+        setUserDetails({
+          name: `${user.f_name} ${user.l_name}`, // Combine first and last name
+          phone: user.phone || "Not Available", // Fallback if phone is not available
+          email: user.email || "Not Available", // Fallback if email is not available
+          address: user.address || "Not Available", // Fallback if address is not available
+        });
+      } else {
+        setDetailsError("No user details found for the provided CID and Brokerage firm.");
+      }
+    } catch (err) {
+      setDetailsError("Failed to fetch user details. Please try again.");
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+  
+
+  const handleFinalSubmit = () => {
+    if (!userDetails) {
+      alert("Please fetch user details before submitting.");
+      return;
+    }
+    alert("Submit button clicked! Implement your final API call here.");
+  };
+
 
   // Define UI for each service ID
   const renderContent = () => {
@@ -69,14 +142,14 @@ const ServicesIdPage = () => {
                 </div>
 
                 {/* Tagline */}
-                <h2 className="text-2xl font-bold mb-6">Convenience at your fingertips</h2>
+                <h2 className="text-2xl font-bold mb-6">Trading on your fingertips</h2>
 
                 {/* Features List */}
                 <ul className="text-lg space-y-3 mb-6">
-                  <li>✔ Immediate fund transfers</li>
-                  <li>✔ Transfer funds using mobile number</li>
-                  <li>✔ Pay utility bills</li>
-                  <li>✔ Recharge your phones</li>
+                  <li>✔ Order Manager</li>
+                  <li>✔ Executed Orders</li>
+                  <li>✔ Market</li>
+                  <li>✔ Listed Companies</li>
                   <li>✔ And many more...</li>
                 </ul>
 
@@ -123,39 +196,88 @@ const ServicesIdPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
               {/* Register Section */}
               <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4">
-                <h2 className="py-4 text-xl font-medium text-center">Register For mCaMs</h2>
-                <label className="text-sm font-medium">CID</label>
-                <input
-                  className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
-                  placeholder="Enter your CID number"
-                  type="number"
-                  required
-                />
-                <label className="text-sm font-medium">Brokerage Firm</label>
-                <select
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base text-muted-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm mt-2"
-                  aria-describedby="firms-description"
-                  aria-invalid="false"
-                  name="firms"
-                  required
-                  >
-                  <option value="" selected>
-                    Select Brokerage Firm
-                  </option>
-                  <option value="firm1">Firm 1</option>
-                  <option value="firm2">Firm 2</option>
-                  <option value="firm3">Firm 3</option>
-                  <option value="firm4">Firm 4</option>
-                </select>
-                <div className="flex justify-center">
-                  <Button variant="outline"
-                        size="lg"
-                        className="my-5"
-                  >
+                  <h2 className="py-4 text-xl font-medium text-center">Register For mCaMs</h2>
+                  <label className="text-sm font-medium">CID</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                    placeholder="Enter your CID number"
+                    value={cid}
+                    type="number"
+                    onChange={(e) => setCid(e.target.value)}
+                    required
+                  />
+                  <label className="text-sm font-medium">Brokerage Firm</label>
+                  {loading ? (
+                    <p className="mt-2">Loading brokerage firms...</p>
+                  ) : error ? (
+                    <p className="mt-2 text-red-500">Error: {error}</p>
+                  ) : (
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base text-muted-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm mt-2"
+                      aria-describedby="firms-description"
+                      aria-invalid="false"
+                      name="firms"
+                      value={selectedBroker}
+                      onChange={(e) => setSelectedBroker(e.target.value)}
+                      required
+                    >
+                      <option value="">Select Brokerage Firm</option>
+                      {brokerageFirms.map((firm) => (
+                        <option key={firm.participant_id} value={firm.participant_code}>
+                          {firm.name || firm.participant_code}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                    {/* Fetch Details Button */}
+                    <div className="flex justify-center">
+                      <Button variant="outline" size="lg" className="mt-4" onClick={handleFetchDetails}>
+                        Fetch Details
+                      </Button>
+                    </div>
+                    {detailsError && <p className="mt-2 text-red-500">{detailsError}</p>}
+                    {detailsLoading && <p className="mt-2">Fetching user details...</p>}
+
+                    {userDetails.name && (
+                      <>
+                    <label className="text-sm font-medium mt-2">Name</label>
+                    <input
+                      className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                      value={userDetails.name || ""}
+                      disabled
+                    />
+                    <label className="text-sm font-medium">Phone Number</label>
+                    <input
+                      className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                      value={userDetails.phone || ""}
+                      disabled
+                    />
+                    <label className="text-sm font-medium">Email</label>
+                    <input
+                      className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                      value={userDetails.email || ""}
+                      disabled
+                    />
+                    <label className="text-sm font-medium">Address</label>
+                    <input
+                      className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                      value={userDetails.address || ""}
+                      disabled
+                    />
+                    <label className="text-sm font-medium">Fee(Nu.)</label>
+                    <input
+                      className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                      placeholder="500"
+                      disabled
+                    />
+                  <div className="flex justify-center">
+                    <Button variant="outline" size="lg" className="my-5" onClick={handleFinalSubmit}>
                       Submit
-                  </Button>
+                    </Button>
+                  </div>
+                  </>
+                  )}
                 </div>
-              </div>
 
               {/* Renew Section */}
               <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4">

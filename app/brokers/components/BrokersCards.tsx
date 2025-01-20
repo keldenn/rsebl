@@ -7,42 +7,42 @@ import { FaMapMarkerAlt, FaEnvelope, FaPhone } from "react-icons/fa";
 import { IoMdPerson } from "react-icons/io";
 
 interface BrokersCardProps {
-  description: string;
-  image: string;
-  broker: string;
-  contact: string;
+  brokerage_name: string;
+  file_path: string;
+  broker_name: string;
+  phone: string;
   email: string;
-  location: string;
+  address: string;
 }
 
 const BrokersCards: React.FC<BrokersCardProps> = ({
-  description,
-  image,
-  broker,
-  contact,
+  brokerage_name,
+  file_path,
+  broker_name,
+  phone,
   email,
-  location,
+  address,
 }) => {
   const [flipped, setFlipped] = useState(false);
 
   const handleFlip = () => setFlipped(!flipped);
 
   return (
-    <div className="group [perspective:1000px] w-full max-w-xs md:max-w-md lg:max-w-lg mx-auto">
+    <div className="group [perspective:1000px] w-full max-w-xs mx-auto">
       {/* Card Container with 3D Flip Animation */}
       <div
-        className={`relative w-full h-80 md:h-96 lg:h-[30rem] transition-transform duration-700 [transform-style:preserve-3d] ${
+        className={`relative w-full h-80 transition-transform duration-700 [transform-style:preserve-3d] ${
           flipped ? "[transform:rotateY(180deg)]" : ""
         }`}
       >
         {/* Front Side */}
         <Card className="absolute w-full h-full rounded-xl border bg-card text-card-foreground shadow [backface-visibility:hidden]">
-          {/* Card Header with Consistent Aspect Ratio */}
+          {/* Card Header */}
           <CardHeader className="p-0">
             <div className="relative w-full h-40">
               <img
-                src={image}
-                alt={description}
+                src={file_path}
+                alt={broker_name}
                 className="object-contain w-full h-full p-2"
               />
             </div>
@@ -50,16 +50,14 @@ const BrokersCards: React.FC<BrokersCardProps> = ({
 
           {/* Card Body */}
           <CardBody className="p-4 space-y-2">
-            <p className="text-sm md:text-base lg:text-lg text-gray-600 text-center">
-              {description}
-            </p>
+            <p className="text-sm text-gray-600 text-center">{brokerage_name}</p>
           </CardBody>
 
           {/* Card Footer */}
           <CardFooter className="p-4">
             <Button
               variant="outline"
-              className="w-full text-sm md:text-base"
+              className="w-full text-sm"
               onClick={handleFlip}
             >
               Learn More
@@ -71,24 +69,22 @@ const BrokersCards: React.FC<BrokersCardProps> = ({
         <Card className="absolute w-full h-full rounded-xl border bg-card text-card-foreground shadow [backface-visibility:hidden] [transform:rotateY(180deg)]">
           <CardHeader className="p-4">
             <div className="relative w-full flex flex-col">
-              <p className="text-lg md:text-xl text-center flex text-center items-center gap-2">
-                {description}
-              </p>
-              <p className="text-sm md:text-base text-gray-600 text-left flex items-center gap-2 pt-2">
+              <p className="text-lg text-center">{brokerage_name}</p>
+              <p className="text-sm text-gray-600 flex items-center gap-2 pt-2">
                 <IoMdPerson className="text-gray-500" />
-                {broker}
+                {broker_name}
               </p>
-              <p className="text-sm md:text-base text-gray-600 text-left flex items-center gap-2 pt-1">
+              <p className="text-sm text-gray-600 flex items-center gap-2 pt-1">
                 <FaPhone className="text-gray-500" />
-                {contact}
+                {phone}
               </p>
-              <p className="text-sm md:text-base text-gray-600 text-left flex items-center gap-2 pt-1 break-all">
+              <p className="text-sm text-gray-600 flex items-center gap-2 pt-1 break-all">
                 <FaEnvelope className="text-gray-500" />
                 {email}
               </p>
-              <p className="text-sm md:text-base text-gray-600 text-left flex items-center gap-2 pt-2 break-all">
+              <p className="text-sm text-gray-600 flex items-center gap-2 pt-2 break-all">
                 <FaMapMarkerAlt className="text-gray-500" />
-                {location}
+                {address}
               </p>
             </div>
           </CardHeader>
@@ -97,10 +93,10 @@ const BrokersCards: React.FC<BrokersCardProps> = ({
           <CardFooter className="p-4">
             <Button
               variant="outline"
-              className="w-full text-sm md:text-base text-gray-800 bg-white hover:bg-gray-200"
+              className="w-full text-sm text-gray-800 bg-white hover:bg-gray-200"
               onClick={handleFlip}
             >
-              Go Back
+              Done
             </Button>
           </CardFooter>
         </Card>
