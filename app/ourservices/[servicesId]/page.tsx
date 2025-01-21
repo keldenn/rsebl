@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import React, { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const ServicesIdPage = () => {
   const params = useParams();
@@ -18,15 +19,19 @@ const ServicesIdPage = () => {
     phone: "",
     email: "",
     address: "",
+    cd_code: "",
+    user_name: "",
   });
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState(null);
+  const { toast } = useToast()
+  const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
 
   useEffect(() => {
     // Fetch brokerage firms list from the API
     const fetchBrokerageFirms = async () => {
       try {
-        const response = await fetch("https://rsebl.org.bt/agm/api/getBrokerList");
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/getBrokerList`);
         if (!response.ok) throw new Error("Failed to fetch brokerage firms");
         const data = await response.json();
         setBrokerageFirms(data);
@@ -49,18 +54,25 @@ const ServicesIdPage = () => {
     setDetailsLoading(true);
     try {
       const response = await fetch(
-        `https://rsebl.org.bt/agm/api/getUserDetails?cidNo=${cid}&broker=${selectedBroker}`
+        `${process.env.NEXT_PUBLIC_API_URL}/getUserDetails?cidNo=${cid}&broker=${selectedBroker}`
       );
       const data = await response.json();
-      console.log("Fetched user details:", data); // Debugging log
-  
-      if (data.status === "200" && data.data.length > 0) {
+
+      if (data.status === "400" && data.message === "Please open a CD account with the selected Brokerage Firm.") {
+        toast({
+          description: "Please open a CD account with the selected Brokerage Firm.",
+          variant: "destructive",
+        });
+      } else if (data.status === "200" && data.data.length > 0) {
         const user = data.data[0]; // Extract user details from the first item in the array
+
         setUserDetails({
-          name: `${user.f_name} ${user.l_name}`, // Combine first and last name
-          phone: user.phone || "Not Available", // Fallback if phone is not available
-          email: user.email || "Not Available", // Fallback if email is not available
-          address: user.address || "Not Available", // Fallback if address is not available
+          name: `${user.f_name} ${user.l_name}`,
+          phone: user.phone || "Not Available",
+          email: user.email || "Not Available",
+          address: user.address || "Not Available",
+          cd_code: user.cd_code || "Not Available",
+          user_name: user.user_name || "Not Avaliable"
         });
       } else {
         setDetailsError("No user details found for the provided CID and Brokerage firm.");
@@ -73,13 +85,78 @@ const ServicesIdPage = () => {
   };
   
 
-  const handleFinalSubmit = () => {
-    if (!userDetails) {
-      alert("Please fetch user details before submitting.");
+  const handleFinalSubmit = async () => {
+    if (!isCheckboxChecked) {
+      toast({
+        description: "Please agree to the terms and conditions before submitting.",
+        variant: "destructive",
+      });
       return;
     }
-    alert("Submit button clicked! Implement your final API call here.");
+  
+    const payload = {
+      cidNo: cid, // CID number entered by the user
+      address: userDetails.address, // User's address from fetched details
+      broker: selectedBroker, // Selected brokerage firm
+      cd_code: userDetails.cd_code, // Hardcoded CD code (replace with dynamic value if needed)
+      declaration: true, // Declaration checkbox is checked
+      email: userDetails.email, // User's email from fetched details
+      fee: 500, // Hardcoded fee amount
+      name: userDetails.name, // User's name from fetched details
+      phoneNo: userDetails.phone, // User's phone number from fetched details
+      status: "SUB", // Hardcoded status
+      userName: userDetails.user_name, // Username derived from broker (e.g., MEMRICB001)
+    };
+    //console.log(payload);
+  
+    try {
+      // Call the submit API
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/submitUserDetails`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        // Show success message if submission is successful
+        toast({
+          description: "Application submitted successfully!",
+          variant: "success",
+        });
+  
+        // Reset the form (optional)
+        setCid("");
+        setSelectedBroker("");
+        setUserDetails({
+          name: "",
+          phone: "",
+          email: "",
+          address: "",
+          cd_code: "",
+          user_name: "",
+        });
+        setIsCheckboxChecked(false);
+      } else {
+        // Handle errors from the API
+        toast({
+          description: data.message || "Failed to submit application. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      // Handle network or other errors
+      toast({
+        description: "An error occurred while submitting the application. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
+  
+  
 
 
   // Define UI for each service ID
@@ -256,7 +333,7 @@ const ServicesIdPage = () => {
                     <input
                       className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
                       value={userDetails.email || ""}
-                      disabled
+                      // disabled
                     />
                     <label className="text-sm font-medium">Address</label>
                     <input
@@ -267,14 +344,32 @@ const ServicesIdPage = () => {
                     <label className="text-sm font-medium">Fee(Nu.)</label>
                     <input
                       className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
-                      placeholder="500"
+                      // placeholder="500"
+                      value={500}
                       disabled
                     />
-                  <div className="flex justify-center">
-                    <Button variant="outline" size="lg" className="my-5" onClick={handleFinalSubmit}>
-                      Submit
-                    </Button>
-                  </div>
+                    <div className="flex items-center mt-4">
+                      <input
+                        type="checkbox"
+                        id="terms"
+                        className="mr-3"
+                        checked={isCheckboxChecked}
+                        onChange={(e) => setIsCheckboxChecked(e.target.checked)}
+                      />
+                      <label htmlFor="terms" className="text-sm font-medium">
+                        I declare that the information stated above is true to the best of my knowledge & belief and I agree to the{" "}
+                        <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                          terms and conditions
+                        </a>{" "}
+                        of RSEB for processing Online Terminal.
+                      </label>
+                    </div>
+                    <div className="flex justify-center">
+                      <Button variant="outline" size="lg" className="my-5" onClick={handleFinalSubmit}>
+                        Submit
+                      </Button>
+                    </div>
+
                   </>
                   )}
                 </div>

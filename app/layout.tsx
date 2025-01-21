@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/ui/theme-provider"
 import Navigation from "@/components/ui/navigation"
 import Footer from "@/components/ui/footer"
 import {NextUIProvider} from "@nextui-org/react";
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -35,7 +36,7 @@ export default function RootLayout({
           >
             <Navigation />
             <main className="container">{children}</main>
-            
+            <Toaster />
             <Footer />
           </ThemeProvider>
      
