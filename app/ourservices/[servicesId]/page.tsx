@@ -3,8 +3,11 @@
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+
+const INACTIVITY_TIMEOUT = 300000; // 5 minutes (in milliseconds)
 
 const ServicesIdPage = () => {
   const params = useParams();
@@ -13,6 +16,7 @@ const ServicesIdPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cid, setCid] = useState("");
+  const [username, setUsername] = useState("")
   const [selectedBroker, setSelectedBroker] = useState("");
   const [userDetails, setUserDetails] = useState({
     name: "",
@@ -22,16 +26,56 @@ const ServicesIdPage = () => {
     cd_code: "",
     user_name: "",
   });
+  const [userDetailsRenew, setUserDetailsRenew] = useState({
+    name: "",
+    cid: "",
+    phone: "",
+    email: "",
+    address: "",
+    client_code: "",
+    username: "",
+    participant_code: ""
+  });
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState(null);
-  const { toast } = useToast()
+  const { toast } = useToast();
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
+  const [isCheckboxCheckedRenew, setIsCheckboxCheckedRenew] = useState(false);
+  const timeoutRef = useRef(null);
+  const router = useRouter();
+
+  const resetTimeout = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      //router.push(""); // Replace with the page you want to redirect to
+    }, INACTIVITY_TIMEOUT);
+  };
 
   useEffect(() => {
-    // Fetch brokerage firms list from the API
+    // Set up the timeout on page load
+    resetTimeout();
+
+    // Reset the timeout on user interaction
+    const handleUserActivity = () => resetTimeout();
+    document.addEventListener("mousemove", handleUserActivity);
+    document.addEventListener("keydown", handleUserActivity);
+
+    return () => {
+      // Cleanup listeners and timeout
+      clearTimeout(timeoutRef.current);
+      document.removeEventListener("mousemove", handleUserActivity);
+      document.removeEventListener("keydown", handleUserActivity);
+    };
+  }, []);
+
+  useEffect(() => {
     const fetchBrokerageFirms = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/getBrokerList`);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/getBrokerList`
+        );
         if (!response.ok) throw new Error("Failed to fetch brokerage firms");
         const data = await response.json();
         setBrokerageFirms(data);
@@ -47,7 +91,10 @@ const ServicesIdPage = () => {
 
   const handleFetchDetails = async () => {
     if (!cid || !selectedBroker) {
-      setDetailsError("Please enter CID and select a brokerage firm.");
+      toast({
+        description: "Please enter your cid and select brokerage firm",
+        variant: "destructive",
+      });
       return;
     }
     setDetailsError(null);
@@ -63,9 +110,11 @@ const ServicesIdPage = () => {
           description: "Please open a CD account with the selected Brokerage Firm.",
           variant: "destructive",
         });
+        setTimeout(() => {
+          window.location.reload();
+        }, 5000);
       } else if (data.status === "200" && data.data.length > 0) {
-        const user = data.data[0]; // Extract user details from the first item in the array
-
+        const user = data.data[0];
         setUserDetails({
           name: `${user.f_name} ${user.l_name}`,
           phone: user.phone || "Not Available",
@@ -75,15 +124,75 @@ const ServicesIdPage = () => {
           user_name: user.user_name || "Not Avaliable"
         });
       } else {
-        setDetailsError("No user details found for the provided CID and Brokerage firm.");
+        //setDetailsError("No user details found for the provided CID and Brokerage firm.");
+        toast({
+          description: "No user details found for the provided CID and Brokerage firm.",
+          variant: "destructive",
+        });
       }
     } catch (err) {
-      setDetailsError("Failed to fetch user details. Please try again.");
+      //setDetailsError("Failed to fetch user details. Please try again.");
+      toast({
+        description: "Failed to fetch user details. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setDetailsLoading(false);
     }
   };
-  
+  const handleFetchDetailsRenew = async () => {
+    if (!username) {
+      toast({
+        description: "Please enter your username",
+        variant: "destructive",
+      });
+      return;
+    }
+    setDetailsError(null);
+    setDetailsLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/getUserDetailsByUsername?userName=${username}`
+      );
+      const data = await response.json();
+
+      if (data.status === "100" && data.message === "Please enter a valid username.") {
+        toast({
+          description: "Please enter a valid username.",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.reload();
+        }, 5000);
+      } else if (data.status === "200" && data.data.length > 0) {
+        const user = data.data[0];
+        setUserDetailsRenew({
+          name: user.name || "Not Avaliable",
+          phone: user.phone || "Not Available",
+          email: user.email || "Not Available",
+          address: user.address || "Not Available",
+          client_code: user.client_code || "Not Available",
+          username: user.username || "Not Avaliable",
+          cid: user.cid || "Not Avaliable",
+          participant_code: user.participant_code || "Not Avaliable"
+        });
+      } else {
+        //setDetailsError("No user details found for the provided username.");
+        toast({
+          description: "No user details found for the provided username.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      //setDetailsError("Failed to fetch user details. Please try again.");
+      toast({
+        description: "Failed to fetch user details. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
 
   const handleFinalSubmit = async () => {
     if (!isCheckboxChecked) {
@@ -93,71 +202,119 @@ const ServicesIdPage = () => {
       });
       return;
     }
-  
+
     const payload = {
-      cidNo: cid, // CID number entered by the user
-      address: userDetails.address, // User's address from fetched details
-      broker: selectedBroker, // Selected brokerage firm
-      cd_code: userDetails.cd_code, // Hardcoded CD code (replace with dynamic value if needed)
-      declaration: true, // Declaration checkbox is checked
-      email: userDetails.email, // User's email from fetched details
-      fee: 500, // Hardcoded fee amount
-      name: userDetails.name, // User's name from fetched details
-      phoneNo: userDetails.phone, // User's phone number from fetched details
-      status: "SUB", // Hardcoded status
-      userName: userDetails.user_name, // Username derived from broker (e.g., MEMRICB001)
+      cidNo: cid,
+      address: userDetails.address,
+      broker: selectedBroker,
+      cd_code: userDetails.cd_code,
+      declaration: true,
+      email: userDetails.email,
+      fee: 500,
+      name: userDetails.name,
+      phoneNo: userDetails.phone,
+      status: "SUB",
+      userName: userDetails.user_name,
     };
-    //console.log(payload);
-  
+
     try {
-      // Call the submit API
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/submitUserDetails`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-  
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/submitUserDetails`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
       const data = await response.json();
-  
-      if (response.ok) {
-        // Show success message if submission is successful
-        toast({
-          description: "Application submitted successfully!",
-          variant: "success",
-        });
-  
-        // Reset the form (optional)
-        setCid("");
-        setSelectedBroker("");
-        setUserDetails({
-          name: "",
-          phone: "",
-          email: "",
-          address: "",
-          cd_code: "",
-          user_name: "",
-        });
-        setIsCheckboxChecked(false);
+
+      if (response.ok && data.status === "200") {
+        // Redirect to the payment gateway
+        initiatePayment(data.data);
       } else {
-        // Handle errors from the API
         toast({
           description: data.message || "Failed to submit application. Please try again.",
           variant: "destructive",
         });
       }
     } catch (err) {
-      // Handle network or other errors
       toast({
         description: "An error occurred while submitting the application. Please try again.",
         variant: "destructive",
       });
     }
   };
-  
-  
+  const handleFinalSubmitRenew = async () => {
+    if (!isCheckboxCheckedRenew) {
+      toast({
+        description: "Please agree to the terms and conditions before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    const payloadRenew = {
+      cidNo: cid,
+      address: userDetailsRenew.address,
+      cdCode: userDetailsRenew.client_code,
+      declaration: true,
+      email: userDetailsRenew.email,
+      fee: 500,
+      name: userDetailsRenew.name,
+      phoneNo: userDetailsRenew.phone,
+      userName: userDetailsRenew.username,
+    };
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/submitFormCaMSRenewal`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payloadRenew),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.status === "200") {
+        // Redirect to the payment gateway
+        initiatePayment(data.data);
+      } else {
+        toast({
+          description: data.message || "Failed to submit application. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      toast({
+        description: "An error occurred while submitting the application. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const initiatePayment = (paymentData) => {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = process.env.NEXT_PUBLIC_PAYMENT_GATEWAY_URL;
+
+    Object.entries(paymentData).forEach(([key, value]) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+  };
 
   // Define UI for each service ID
   const renderContent = () => {
@@ -272,125 +429,190 @@ const ServicesIdPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
               {/* Register Section */}
-              <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4">
-                  <h2 className="py-4 text-xl font-medium text-center">Register For mCaMs</h2>
-                  <label className="text-sm font-medium">CID</label>
+              <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4 flex flex-col self-start">
+              <h2 className="py-4 text-xl font-medium text-center">Register For mCaMs</h2>
+              <label className="text-sm font-medium">CID</label>
+              <input
+                className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                placeholder="Enter your CID number"
+                value={cid}
+                type="number"
+                onChange={(e) => setCid(e.target.value)}
+                required
+              />
+              <label className="text-sm font-medium">Brokerage Firm</label>
+              {loading ? (
+                <p className="mt-2">Loading brokerage firms...</p>
+              ) : error ? (
+                <p className="mt-2 text-red-500">Error: {error}</p>
+              ) : (
+                <select
+                  className="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-base"
+                  value={selectedBroker}
+                  onChange={(e) => setSelectedBroker(e.target.value)}
+                  required
+                >
+                  <option value="">Select Brokerage Firm</option>
+                  {brokerageFirms.map((firm) => (
+                    <option key={firm.participant_id} value={firm.participant_code}>
+                      {firm.name || firm.participant_code}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="mt-4"
+                  onClick={handleFetchDetails}
+                >
+                  Fetch Details
+                </Button>
+              </div>
+              {detailsError && <p className="mt-2 text-red-500">{detailsError}</p>}
+              {detailsLoading && <p className="mt-2">Fetching user details...</p>}
+              {userDetails.name && (
+                <>
+                  <label className="text-sm font-medium mt-2">Name</label>
                   <input
                     className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
-                    placeholder="Enter your CID number"
-                    value={cid}
-                    type="number"
-                    onChange={(e) => setCid(e.target.value)}
-                    required
+                    value={userDetails.name || ""}
+                    disabled
+                  /><label className="text-sm font-medium">Phone Number</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                    value={userDetails.phone}
+                    disabled
                   />
-                  <label className="text-sm font-medium">Brokerage Firm</label>
-                  {loading ? (
-                    <p className="mt-2">Loading brokerage firms...</p>
-                  ) : error ? (
-                    <p className="mt-2 text-red-500">Error: {error}</p>
-                  ) : (
-                    <select
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base text-muted-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm mt-2"
-                      aria-describedby="firms-description"
-                      aria-invalid="false"
-                      name="firms"
-                      value={selectedBroker}
-                      onChange={(e) => setSelectedBroker(e.target.value)}
-                      required
-                    >
-                      <option value="">Select Brokerage Firm</option>
-                      {brokerageFirms.map((firm) => (
-                        <option key={firm.participant_id} value={firm.participant_code}>
-                          {firm.name || firm.participant_code}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                    {/* Fetch Details Button */}
-                    <div className="flex justify-center">
-                      <Button variant="outline" size="lg" className="mt-4" onClick={handleFetchDetails}>
-                        Fetch Details
-                      </Button>
-                    </div>
-                    {detailsError && <p className="mt-2 text-red-500">{detailsError}</p>}
-                    {detailsLoading && <p className="mt-2">Fetching user details...</p>}
-
-                    {userDetails.name && (
-                      <>
-                    <label className="text-sm font-medium mt-2">Name</label>
+                  <label className="text-sm font-medium">Email</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                    value={userDetails.email}
+                  />
+                  <p className="text-sm font-small ml-8 mb-2">This is the email registered with Broker, please update if it is incorrect.</p>
+                  <label className="text-sm font-medium">Address</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                    value={userDetails.address}
+                    disabled
+                  />
+                  <label className="text-sm font-medium">Fee(Nu.)</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                    value={500}
+                    disabled
+                  />
+                  <div className="flex items-center mt-4">
                     <input
-                      className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
-                      value={userDetails.name || ""}
-                      disabled
+                      type="checkbox"
+                      id="terms"
+                      className="mr-3"
+                      checked={isCheckboxChecked}
+                      onChange={(e) => setIsCheckboxChecked(e.target.checked)}
                     />
-                    <label className="text-sm font-medium">Phone Number</label>
-                    <input
-                      className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
-                      value={userDetails.phone || ""}
-                      disabled
-                    />
-                    <label className="text-sm font-medium">Email</label>
-                    <input
-                      className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
-                      value={userDetails.email || ""}
-                      // disabled
-                    />
-                    <label className="text-sm font-medium">Address</label>
-                    <input
-                      className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
-                      value={userDetails.address || ""}
-                      disabled
-                    />
-                    <label className="text-sm font-medium">Fee(Nu.)</label>
-                    <input
-                      className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
-                      // placeholder="500"
-                      value={500}
-                      disabled
-                    />
-                    <div className="flex items-center mt-4">
-                      <input
-                        type="checkbox"
-                        id="terms"
-                        className="mr-3"
-                        checked={isCheckboxChecked}
-                        onChange={(e) => setIsCheckboxChecked(e.target.checked)}
-                      />
-                      <label htmlFor="terms" className="text-sm font-medium">
-                        I declare that the information stated above is true to the best of my knowledge & belief and I agree to the{" "}
-                        <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
-                          terms and conditions
-                        </a>{" "}
-                        of RSEB for processing Online Terminal.
-                      </label>
-                    </div>
-                    <div className="flex justify-center">
-                      <Button variant="outline" size="lg" className="my-5" onClick={handleFinalSubmit}>
-                        Submit
-                      </Button>
-                    </div>
-
-                  </>
-                  )}
-                </div>
-
-              {/* Renew Section */}
-              <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4">
-                <h2 className="py-4 text-xl font-medium text-center">Renew my mCaMs account</h2>
-                <label className="text-sm font-medium">Username</label>
-                <input
-                  className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
-                  placeholder="Enter your username"
-                  type="text"
-                />
-                <div className="flex justify-center">
-                  <Button variant="outline"
+                    <label htmlFor="terms" className="text-sm font-medium">
+                      I declare that the information stated above is true to the best of my knowledge & belief and I agree to the {" "}
+                      <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                        terms and conditions
+                      </a>{" "}
+                      of RSEB for processing Online Terminal.
+                    </label>
+                  </div>
+                  <div className="flex justify-center">
+                    <Button
+                      variant="outline"
                       size="lg"
                       className="my-5"
-                      >
-                    Submit
-                  </Button>
-                </div>
+                      onClick={handleFinalSubmit}
+                    >
+                      Submit
+                    </Button>
+                  </div>
+                </>
+              )}
+              </div>
+
+              {/* Renew Section */}
+              <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4 flex flex-col self-start">
+              <h2 className="py-4 text-xl font-medium text-center">Renew my mCaMs account</h2>
+              <label className="text-sm font-medium">Username</label>
+              <input
+                className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                placeholder="Enter your Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="mt-4"
+                  onClick={handleFetchDetailsRenew}
+                >
+                  Fetch Details
+                </Button>
+              </div>
+              {userDetailsRenew.name && (
+                <>
+                  <label className="text-sm font-medium mt-2">Name</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                    value={userDetailsRenew.name || ""}
+                    disabled
+                  /><label className="text-sm font-medium">Phone Number</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                    value={userDetailsRenew.phone}
+                    disabled
+                  />
+                  <label className="text-sm font-medium">Email</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                    value={userDetailsRenew.email}
+                  />
+                  <p className="text-sm font-small ml-8 mb-2">This is the email registered with Broker, please update if it is incorrect.</p>
+                  <label className="text-sm font-medium">Address</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                    value={userDetailsRenew.address}
+                    disabled
+                  />
+                  <label className="text-sm font-medium">Fee(Nu.)</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
+                    value={500}
+                    disabled
+                  />
+                  <div className="flex items-center mt-4">
+                    <input
+                      type="checkbox"
+                      id="terms"
+                      className="mr-3"
+                      checked={isCheckboxCheckedRenew}
+                      onChange={(e) => setIsCheckboxCheckedRenew(e.target.checked)}
+                    />
+                    <label htmlFor="terms" className="text-sm font-medium">
+                      I declare that the information stated above is true to the best of my knowledge & belief and I agree to the {" "}
+                      <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                        terms and conditions
+                      </a>{" "}
+                      of RSEB for processing Online Terminal.
+                    </label>
+                  </div>
+                  <div className="flex justify-center">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="my-5"
+                      onClick={handleFinalSubmitRenew}
+                    >
+                      Submit
+                    </Button>
+                  </div>
+                </>
+              )}
               </div>
             </div>
           </>
@@ -398,18 +620,79 @@ const ServicesIdPage = () => {
 
       case "OnlineShareStmt":
         const [accountType, setAccountType] = useState(""); // State to track dropdown selection
+        const [cidNo, setCidNo] = useState("");
+        const [disnNo, setDisnNo] = useState("");
+        const [phone, setPhone] = useState(""); // State for phone number
+        const [email, setEmail] = useState(""); // State for email
+        const [loading, setLoading] = useState(false); // State for loading indicator
+        const [fieldsVisible, setFieldsVisible] = useState(false);
 
         const handleAccountTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
           setAccountType(e.target.value); // Update state based on dropdown selection
         };
+        const handleCidChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+          setCidNo(e.target.value); // Update CID value
+        };
+        const handleDisnChange = (e) => setDisnNo(e.target.value);
+
+        const fetchData = async () => {
+          if (accountType === "I" && !cidNo) {
+            toast({
+              description: "CID number is required",
+              variant: "destructive",
+            });
+            return;
+          }
+        
+          if (accountType === "J" && !disnNo) {
+            toast({
+              description: "DISN number is required",
+              variant: "destructive",
+            });
+            return;
+          }
+      
+          setLoading(true);
+          try {
+            // Construct the API URL dynamically
+            const apiURL = `https://rsebl.org.bt/agm/api/checkshareExistNew?${accountType === "I" ? `cidNo=${cidNo}` : `cidNo=${disnNo}`}&accType=${accountType}`;
+            
+            // Fetch data from the API
+            const response = await fetch(apiURL);
+            const data = await response.json();
+        
+            if (data.status === 200) {
+              // Populate phone and email fields
+              setPhone(data.phone || "");
+              setEmail(data.email || "");
+              setFieldsVisible(true); // Show additional fields
+            } else {
+              toast({
+                description: data.message || "No data is available on holding any shares.",
+                variant: "destructive",
+              });
+            }
+          } catch (error) {
+            console.error("Error fetching data:", error);
+            toast({
+              description: "Error fetching data:",
+              variant: "destructive",
+            });
+          } finally {
+            setLoading(false);
+          }
+        };
+
         return (
           <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
-            {/* Register Section */}
+            {/* Online Share Section */}
             <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4">
               <h2 className="py-4 text-xl font-medium text-center">Online Share Statement</h2>
+              
+              {/* Account Type Dropdown */}
               <label className="text-sm font-medium">Account Type</label>
               <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base text-muted-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm mt-2 mb-2"
+                className="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-base text-muted-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm mt-2 mb-2"
                 aria-describedby="firms-description"
                 aria-invalid="false"
                 name="firms"
@@ -418,23 +701,27 @@ const ServicesIdPage = () => {
                 onChange={handleAccountTypeChange}
               >
                 <option value="">Select Account Type</option>
-                <option value="individual">Individual</option>
-                <option value="corporate">Corporate/Association</option>
+                <option value="I">Individual</option>
+                <option value="J">Corporate/Association</option>
               </select>
-      
-              {accountType === "individual" && (
+
+              {/* CID No Input (for Individual) */}
+              {accountType === "I" && (
                 <>
-                  <label className="text-sm font-medium">CID</label>
+                  <label className="text-sm font-medium">CID No</label>
                   <input
                     className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
                     placeholder="Enter your CID number"
-                    type="number"
+                    type="text"
                     required
+                    value={cidNo}
+                    onChange={handleCidChange}
                   />
                 </>
               )}
-      
-              {accountType === "corporate" && (
+
+              {/* DISN No Input (for Corporate/Association) */}
+              {accountType === "J" && (
                 <>
                   <label className="text-sm font-medium">DISN No</label>
                   <input
@@ -442,17 +729,59 @@ const ServicesIdPage = () => {
                     placeholder="Enter DISN number provided by RSEB"
                     type="text"
                     required
+                    value={disnNo}
+                    onChange={handleDisnChange}
                   />
                 </>
               )}
-      
+
+              {/* Fetch Button */}
               <div className="flex justify-center">
-                <Button variant="outline" size="lg" className="my-5">
-                  Submit
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="my-5" 
+                  onClick={fetchData}
+                  disabled={loading}>
+                    {loading ? "Fetching..." : "Fetch"}
                 </Button>
               </div>
+
+              {/* Phone and Email fields (only visible after fetching data) */}
+              {fieldsVisible && (
+                <>
+                  <p className="text-sm font-medium flex justify-center">
+                    If your Phone number/Email is incorrect, please contact RSEB office/Broker to update.
+                  </p>
+                  <label className="text-sm font-medium">Phone No</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Enter your phone number"
+                    type="text"
+                    required
+                  />
+                  <label className="text-sm font-medium">Email</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    type="email"
+                    required
+                  />
+                  <div className="flex justify-center">
+                    <Button variant="outline" size="lg" className="my-5">
+                      Submit
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
+
+  
         );
         
       default:
