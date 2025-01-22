@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useSearchParams, usePathname, useRouter } from "next/navigation"
-import { ScreenerOptions } from "./screener-options"
+// import { ScreenerOptions } from "./screener-options"
 import { useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -91,8 +91,8 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full">
-      <div className="flex items-center pb-4">
-        <Select onValueChange={(value) => handleSelect(value)}>
+      <div className="flex items-center pb-4 mt-2">
+        {/* <Select onValueChange={(value) => handleSelect(value)}>
           <SelectTrigger className="w-[180px] bg-card">
             <SelectValue placeholder="Most actives" />
           </SelectTrigger>
@@ -103,15 +103,17 @@ export function DataTable<TData, TValue>({
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select> */}
         <div className="ml-2 flex items-center">
           <Input
             placeholder="Filter company..."
             value={
-              (table.getColumn("shortName")?.getFilterValue() as string) ?? ""
+              (table.getColumn("shortName")?.getFilterValue() as string) 
+        
             }
             onChange={(event) =>
               table.getColumn("shortName")?.setFilterValue(event.target.value)
+              
             }
             className="max-w-sm bg-background caret-blue-500"
           />

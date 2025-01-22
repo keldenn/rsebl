@@ -1,63 +1,73 @@
 'use client';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import NewsCard from "@/components/ui/news-card";
 import Modal from "@/components/ui/modal";
 import { Button } from "@/components/ui/button"; // Assuming you have a Button component
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const articles = [
-  {
-    title: "Selected Candidates for IT Officer Post",
-    description:
-      "RSEB is pleased to announce the results for the post of IT Officer following the practical test held on 22nd November 2024. The selected candidates are requested to report to the RSEB office on 2nd December 2024 at 9:00 AM. Kindly refer to the attached document for the list of selected candidates.",
-    date: "Jan 7, 2025",
-    pdfUrl: "/files/morning-brief.pdf",
-    imageUrl: "/images/defaultbg.png",
-  },
-  {
-    title: "ACMI Launch",
-    description:
-      "RSEB with DAMC under the Ministry of Agriculture and Forests successfully launched ACMI(Agricultural Commodity Market Initiative) which is an online marketplace for farmers, producers, traders, and consumers who can buy and sell agriculture, livestock and Non-wood Forest Products. The MoU was signed by CEO of RSEB and Dasho Secretary of MoAF.",
-    date: "Jan 7, 2025",
-    imageUrl:
-      "https://rsebl.org.bt/agm/storage/timeline/nndHtH0cBoh6rMuj511dDJkYxdq55baFOzL0bR7o.jpg",
-  },
-  {
-    title: "BPCL issues Commercial Paper",
-    description:
-      "Bhutan Polymers Company Ltd. issues commercial paper worth Nu. 45 million from 10th December 2024 to 12th December 2024. The maturity period of the commercial paper is 180 days and the discount rate is 6%. Enclosed here with the offer document for your kind information.",
-    date: "Jan 7, 2025",
-    pdfUrl: "/files/morning-brief.pdf",
-    imageUrl: "/images/defaultbg.png",
-  },
-  {
-    title: "MoU Signing of Bhutan Commodity Exchange Initiative",
-    description:
-      "The Memorandum of Understanding was signed between the Department of Agricultural Marketing and Cooperatives, Ministry of Agriculture & Livestock, the Food Corporation of Bhutan and Royal Securities Exchange of Bhutan on the development of the Bhutan Commodity Exchange Initiative (BCEI).",
-    date: "Jan 7, 2025",
-    imageUrl:
-      "https://rsebl.org.bt/agm/storage/timeline/1zLs33Wxo3qKecmHmCUJvmDdZMmn2DsCnpSGsNhe.jpg",
-  },
-];
-
 const ITEMS_PER_PAGE = 6; // Number of articles per page
 
 const NewsPage: React.FC = () => {
+  const [newsArticles, setNewsArticles] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [selectedArticle, setSelectedArticle] = useState<{
     title: string;
     description: string;
     imageUrl?: string;
     pdfUrl?: string;
   } | null>(null);
-
   const [currentPage, setCurrentPage] = useState(1);
+  const [loadingNews, setLoadingNews] = useState(true);
+  const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
 
-  const newsArticles = articles.filter((article) => !article.pdfUrl);
-  const announcements = articles.filter((article) => article.pdfUrl);
+  const fetchNews = async () => {
+    try {
+      setLoadingNews(true);
+      const response = await fetch("https://rsebl.org.bt/agm/api/fetch-time-line-new");
+      const data = await response.json();
+      const formattedNews = data.map((item: any) => ({
+        title: item.title,
+        description: item.content.replace(/<[^>]+>/g, ""), // Strip HTML tags
+        date: new Date(item.year).toDateString(),
+        imageUrl: `https://rsebl.org.bt/agm/storage/${item.file_path}`,
+        pdfUrl: null,
+      }));
+      setNewsArticles(formattedNews);
+    } catch (error) {
+      console.error("Failed to fetch news:", error);
+    } finally {
+      setLoadingNews(false);
+    }
+  };
 
-  const totalPages = (data: typeof articles) => Math.ceil(data.length / ITEMS_PER_PAGE);
+  const fetchAnnouncements = async () => {
+    try {
+      setLoadingAnnouncements(true);
+      const response = await fetch("https://rsebl.org.bt/agm/api/fetch-news");
+      const data = await response.json();
+      const formattedAnnouncements = data.map((item: any) => ({
+        title: item.title,
+        description: item.announcement.replace(/<[^>]+>/g, ""), // Strip HTML tags
+        date: new Date(item.created_at).toDateString(),
+        imageUrl: null, // Announcements don't seem to have images
+        pdfUrl: `https://rsebl.org.bt/agm/storage/${item.file_path}`,
+      }));
+      setAnnouncements(formattedAnnouncements);
+    } catch (error) {
+      console.error("Failed to fetch announcements:", error);
+    } finally {
+      setLoadingAnnouncements(false);
+    }
+  };
 
-  const paginatedArticles = (data: typeof articles) =>
+  useEffect(() => {
+    fetchNews();
+    fetchAnnouncements();
+  }, []);
+
+  const totalPages = (data: typeof newsArticles) => Math.ceil(data.length / ITEMS_PER_PAGE);
+
+  const paginatedArticles = (data: typeof newsArticles) =>
     data.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const openModal = (article: {
@@ -77,15 +87,15 @@ const NewsPage: React.FC = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
-  const handleNext = (data: typeof articles) => {
+  const handleNext = (data: typeof newsArticles) => {
     if (currentPage < totalPages(data)) setCurrentPage(currentPage + 1);
   };
 
   return (
     <div className="p-6 space-y-6">
       {/* Tabs */}
-      <Tabs defaultValue="news" >
-        <TabsList  className="">
+      <Tabs defaultValue="news">
+        <TabsList>
           <TabsTrigger value="news" onClick={() => setCurrentPage(1)}>
             News
           </TabsTrigger>
@@ -96,79 +106,79 @@ const NewsPage: React.FC = () => {
 
         {/* News Tab */}
         <TabsContent value="news">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paginatedArticles(newsArticles).map((article, index) => (
-              <NewsCard
-                key={index}
-                title={article.title}
-                description={article.description}
-                date={article.date}
-                imageUrl={article.imageUrl}
-                onMore={() => openModal(article)}
-              />
-            ))}
-          </div>
-          <div className="flex items-center justify-end space-x-4 mt-4">
-          <span className="text-sm font-medium">
-              Page {currentPage} of {totalPages(newsArticles)}
-            </span>
-            <Button
-              onClick={handlePrevious}
-              disabled={currentPage === 1}
-              variant="outline"
-              size="sm"
-            >
-              Previous
-            </Button>
-           
-            <Button
-              onClick={() => handleNext(newsArticles)}
-              disabled={currentPage === totalPages(newsArticles) || totalPages(newsArticles) === 0}
-              variant="outline"
-              size="sm"
-            >
-              Next
-            </Button>
-          </div>
+          {loadingNews ? (
+            <div>Loading news...</div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {paginatedArticles(newsArticles).map((article, index) => (
+                  <NewsCard
+                    key={index}
+                    title={article.title}
+                    description={article.description}
+                    date={article.date}
+                    imageUrl={article.imageUrl}
+                    onMore={() => openModal(article)}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center justify-end space-x-4 mt-4">
+                <span className="text-sm font-medium">
+                  Page {currentPage} of {totalPages(newsArticles)}
+                </span>
+                <Button onClick={handlePrevious} disabled={currentPage === 1} variant="outline" size="sm">
+                  Previous
+                </Button>
+                <Button
+                  onClick={() => handleNext(newsArticles)}
+                  disabled={currentPage === totalPages(newsArticles) || totalPages(newsArticles) === 0}
+                  variant="outline"
+                  size="sm"
+                >
+                  Next
+                </Button>
+              </div>
+            </>
+          )}
         </TabsContent>
 
         {/* Announcements Tab */}
         <TabsContent value="announcements">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paginatedArticles(announcements).map((article, index) => (
-              <NewsCard
-                key={index}
-                title={article.title}
-                description={article.description}
-                date={article.date}
-                imageUrl={article.imageUrl}
-                pdfUrl={article.pdfUrl}
-                onMore={() => openModal(article)}
-              />
-            ))}
-          </div>
-          <div className="flex items-center justify-end space-x-4 mt-4">
-          <span className="text-sm font-medium">
-              Page {currentPage} of {totalPages(announcements)}
-            </span>
-            <Button
-              onClick={handlePrevious}
-              disabled={currentPage === 1}
-              variant="outline"
-              size="sm"
-            >
-              Previous
-            </Button>
-            
-            <Button
-              onClick={() => handleNext(announcements)}
-              disabled={currentPage === totalPages(announcements) || totalPages(announcements) === 0}
-              variant="outline"
-              size="sm"
-            >
-              Next
-            </Button>
-          </div>
+          {loadingAnnouncements ? (
+            <div>Loading announcements...</div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {paginatedArticles(announcements).map((article, index) => (
+                  <NewsCard
+                    key={index}
+                    title={article.title}
+                    description={article.description}
+                    date={article.date}
+                    pdfUrl={article.pdfUrl}
+                    imageUrl={"/images/defaultbg.png"}
+                    onMore={() => openModal(article)}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center justify-end space-x-4 mt-4">
+                <span className="text-sm font-medium">
+                  Page {currentPage} of {totalPages(announcements)}
+                </span>
+                <Button onClick={handlePrevious} disabled={currentPage === 1} variant="outline" size="sm">
+                  Previous
+                </Button>
+                <Button
+                  onClick={() => handleNext(announcements)}
+                  disabled={currentPage === totalPages(announcements) || totalPages(announcements) === 0}
+                  variant="outline"
+                  size="sm"
+                >
+                  Next
+                </Button>
+              </div>
+            </>
+          )}
         </TabsContent>
       </Tabs>
 

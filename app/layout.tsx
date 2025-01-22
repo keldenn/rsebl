@@ -11,9 +11,9 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Finly: Stock Quotes, Market News, & Analysis",
+  title: "Royal Securities Exchange of Bhutan",
   description:
-    "Finly is a source of free stock quotes, business and finance news, portfolio management tools, and international market data.",
+    "To become an integral part of the financial system and participate in nation-building.",
 }
 
 export default function RootLayout({

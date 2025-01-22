@@ -73,11 +73,11 @@ export const columns: ColumnDef<ScreenerQuote>[] = [
   },
   {
     accessorKey: "regularMarketChange",
-    meta: "Change ($)",
+    meta: "Change (BTN)",
     header: () => <div className="text-right">Change</div>,
     cell: (props: CellContext<ScreenerQuote, unknown>) => {
-      const { row } = props
-      const marketChange = parseFloat(row.getValue("regularMarketChange"))
+      const { row } = props;
+      const marketChange = parseFloat(row.getValue("regularMarketChange"));
       return (
         <div className="flex justify-end">
           <div
@@ -85,14 +85,16 @@ export const columns: ColumnDef<ScreenerQuote>[] = [
               "text-right",
               marketChange > 0
                 ? "text-green-800 dark:text-green-400"
-                : "text-red-800 dark:text-red-500"
+                : marketChange < 0
+                ? "text-red-800 dark:text-red-500"
+                : "text-gray-500 dark:text-gray-400" // Add gray for zero
             )}
           >
-            {marketChange > 0 ? "+" : ""}
+            {marketChange > 0 ? "+" : marketChange < 0 ? "" : ""}
             {marketChange.toFixed(2)}
           </div>
         </div>
-      )
+      );
     },
   },
   {
@@ -100,10 +102,8 @@ export const columns: ColumnDef<ScreenerQuote>[] = [
     meta: "Change (%)",
     header: () => <div className="text-right">% Change</div>,
     cell: (props: CellContext<ScreenerQuote, unknown>) => {
-      const { row } = props
-      const marketChangePercent = parseFloat(
-        row.getValue("regularMarketChangePercent")
-      )
+      const { row } = props;
+      const marketChangePercent = parseFloat(row.getValue("regularMarketChangePercent"));
       return (
         <div className="flex justify-end">
           <div
@@ -111,50 +111,43 @@ export const columns: ColumnDef<ScreenerQuote>[] = [
               "w-[4rem] min-w-fit rounded-md px-2 py-0.5 text-right",
               marketChangePercent > 0
                 ? "bg-green-300 text-green-800 dark:bg-green-950 dark:text-green-400"
-                : "bg-red-300 text-red-800 dark:bg-red-950 dark:text-red-500"
+                : marketChangePercent < 0
+                ? "bg-red-300 text-red-800 dark:bg-red-950 dark:text-red-500"
+                : "bg-gray-300 text-gray-800 dark:bg-gray-950 dark:text-gray-400" // Add gray background for zero
             )}
           >
-            {marketChangePercent > 0 ? "+" : ""}
+            {marketChangePercent > 0 ? "+" : marketChangePercent < 0 ? "" : ""}
             {marketChangePercent.toFixed(2)}
           </div>
         </div>
-      )
+      );
+    },
+  },
+  
+  {
+    accessorKey: "lastTradedVol",
+    meta: "Last Traded Vol",
+    header: () => <div className="text-right">Last Traded Vol</div>,
+    cell: (props: CellContext<ScreenerQuote, unknown>) => {
+      const { row } = props
+      const volume = row.getValue("lastTradedVol")
+      function convertToIntegerWithComma(value: string): string {
+        // Remove the ".00" part but keep the commas
+        return value.replace('.00', '');
+      }
+      
+      return <div className="text-right">{ convertToIntegerWithComma(volume)}</div>
     },
   },
   {
-    accessorKey: "regularMarketVolume",
-    meta: "Volume",
-    header: () => <div className="text-right">Volume</div>,
+    accessorKey: "lastTradedVal",
+    meta: "Last Traded Val",
+    header: () => <div className="text-right">Last Traded Val</div>,
     cell: (props: CellContext<ScreenerQuote, unknown>) => {
       const { row } = props
-      const volume = parseFloat(row.getValue("regularMarketVolume"))
-      const formatVolume = (volume: number): string => {
-        if (volume >= 1000000) {
-          return `${(volume / 1000000).toFixed(3)}M`
-        } else {
-          return volume.toString()
-        }
-      }
+      const volume = row.getValue("lastTradedVal")
 
-      return <div className="text-right">{formatVolume(volume)}</div>
-    },
-  },
-  {
-    accessorKey: "averageDailyVolume3Month",
-    meta: "Avg Volume",
-    header: () => <div className="text-right">Avg Volume</div>,
-    cell: (props: CellContext<ScreenerQuote, unknown>) => {
-      const { row } = props
-      const volume = parseFloat(row.getValue("averageDailyVolume3Month"))
-      const formatVolume = (volume: number): string => {
-        if (volume >= 1000000) {
-          return `${(volume / 1000000).toFixed(3)}M`
-        } else {
-          return volume.toString()
-        }
-      }
-
-      return <div className="text-right">{formatVolume(volume)}</div>
+      return <div className="text-right">{volume}</div>
     },
   },
   {

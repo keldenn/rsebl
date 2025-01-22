@@ -15,13 +15,13 @@ export default async function ScreenerPage({
     screener?: string
   }
 }) {
-  const screener = searchParams?.screener || DEFAULT_SCREENER
+  const screener = searchParams?.screener || "DEFAULT_SCREENER"
 
   const screenerDataResults = await fetchScreenerStocks(screener)
 
   return (
     <div>
-      <DataTable columns={columns} data={screenerDataResults.quotes} />
+      <DataTable columns={columns} data={screenerDataResults} />
     </div>
   )
 }
