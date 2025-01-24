@@ -666,6 +666,9 @@ const ServicesIdPage = () => {
               setPhone(data.phone || "");
               setEmail(data.email || "");
               setFieldsVisible(true); // Show additional fields
+              toast({
+                description: "If your Phone number/Email is incorrect, please contact RSEB office/Broker to update.",
+              });
             } else {
               toast({
                 description: data.message || "No data is available on holding any shares.",
@@ -750,9 +753,9 @@ const ServicesIdPage = () => {
               {/* Phone and Email fields (only visible after fetching data) */}
               {fieldsVisible && (
                 <>
-                  <p className="text-sm font-medium flex justify-center">
+                  {/* <p className="text-sm font-medium flex justify-center">
                     If your Phone number/Email is incorrect, please contact RSEB office/Broker to update.
-                  </p>
+                  </p> */}
                   <label className="text-sm font-medium">Phone No</label>
                   <input
                     className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"

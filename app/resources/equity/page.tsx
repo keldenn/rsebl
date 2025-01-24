@@ -1,22 +1,38 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function EquityPage() {
+  const [tabs, setTabs] = useState([]);
+
+
+  useEffect(() => {
+    // Fetch data from the API
+    axios
+      .get("https://rsebl.org.bt/agm/api/fetch-book-lists/1")
+      .then((response) => {
+        setTabs(response.data); // Store API response in state
+      })
+      .catch((error) => {
+        console.error("Error fetching tabs:", error);
+      });
+  }, []);
+
   return (
     <div className="w-full p-4 max-w-full mx-auto space-y-4">
       <Tabs defaultValue="CorporateAction" className="space-y-4">
         <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 ">
-          <TabsTrigger value="CorporateAction">Corporate Action</TabsTrigger>
-          <TabsTrigger value="IPOListing">IPO & Listing</TabsTrigger>
-          <TabsTrigger value="PrimaryMarket">Primary Market</TabsTrigger>
-          <TabsTrigger value="SecondaryMarket">Secondary Market and Trading</TabsTrigger>
-          <TabsTrigger value="StockFundamentals">Stock Fundamentals</TabsTrigger>
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.id} value={tab.title}>
+              {tab.title}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value="CorporateAction">
+        <TabsContent value="Corporate Action">
         <Card className="mb-5">
             <CardHeader>
               <CardTitle>Introduction</CardTitle>
@@ -64,6 +80,7 @@ export default function EquityPage() {
               <p>
                 <strong>Adjusted price after bonus:</strong> [Market Price / (1 + Bonus Issue %)]
               </p>
+              <img src="#" alt="bonus" />
             </CardContent>
           </Card>
 
@@ -131,7 +148,7 @@ export default function EquityPage() {
           </Card>
           </TabsContent>
 
-        <TabsContent value="IPOListing">
+        <TabsContent value="IPO & Listing">
                 
           <Card className="mb-5">
             <CardHeader>
@@ -228,7 +245,7 @@ export default function EquityPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="PrimaryMarket">
+        <TabsContent value="Primary market">
         <Card className="mb-5">
             <CardHeader>
             <CardTitle>Introduction</CardTitle>
@@ -418,7 +435,7 @@ In accelerated depreciation larger amounts are written off in the earlier years 
         </Card>
         </TabsContent>
 
-        <TabsContent value="SecondaryMarket">
+        <TabsContent value="Secondary market and Trading">
         <Card className="mb-5">
     <CardHeader>
         <CardTitle>Introduction</CardTitle>
@@ -602,7 +619,7 @@ In accelerated depreciation larger amounts are written off in the earlier years 
 
         </TabsContent>
 
-        <TabsContent value="StockFundamentals">
+        <TabsContent value="Stock fundamentals">
         <Card className="mb-5">
     <CardHeader>
         <CardTitle>Introduction</CardTitle>
