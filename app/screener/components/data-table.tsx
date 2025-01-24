@@ -47,47 +47,56 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-
-  const searchParams = useSearchParams()
-  const pathname = usePathname()
-  const { replace } = useRouter()
+  const [globalFilter, setGlobalFilter] = useState("")
 
   const table = useReactTable({
     data,
     columns,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      globalFilter,
+    },
     initialState: {
       pagination: {
         pageSize: 15,
       },
     },
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      if (!filterValue) return true
+      return String(row.getValue(columnId))
+        .toLowerCase()
+        .includes(filterValue.toLowerCase())
     },
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
     getFilteredRowModel: getFilteredRowModel(),
   })
 
   const handleSelect = useCallback(
     (value: string) => {
-      const params = new URLSearchParams(searchParams)
-      const SelectedValue = value.replace(/\s/g, "_").toLowerCase()
-
+      const searchParams = new URLSearchParams(useSearchParams().toString()); // Create a mutable copy
+      const pathname = usePathname();
+      const { replace } = useRouter();
+  
+      const SelectedValue = value.replace(/\s/g, "_").toLowerCase();
+  
       if (SelectedValue) {
-        params.set("screener", SelectedValue)
+        searchParams.set("screener", SelectedValue);
       } else {
-        params.delete("screener")
+        searchParams.delete("screener");
       }
-      replace(`${pathname}?${params.toString()}`)
+  
+      replace(`${pathname}?${searchParams.toString()}`);
     },
-    [searchParams, pathname, replace]
-  )
+    [useSearchParams, usePathname, useRouter] // Ensure hooks are up-to-date
+  );
 
   return (
     <div className="w-full">
@@ -105,16 +114,10 @@ export function DataTable<TData, TValue>({
           </SelectContent>
         </Select> */}
         <div className="ml-2 flex items-center">
-          <Input
-            placeholder="Filter company..."
-            value={
-              (table.getColumn("shortName")?.getFilterValue() as string) 
-        
-            }
-            onChange={(event) =>
-              table.getColumn("shortName")?.setFilterValue(event.target.value)
-              
-            }
+        <Input
+            placeholder="Search across all columns..."
+            value={globalFilter}
+            onChange={(event) => setGlobalFilter(event.target.value)}
             className="max-w-sm bg-background caret-blue-500"
           />
         </div>
