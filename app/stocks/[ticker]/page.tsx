@@ -24,24 +24,24 @@ type Props = {
   }
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const ticker = params.ticker
+// export async function generateMetadata({ params }: Props): Promise<Metadata> {
+//   const ticker = params.ticker
 
-  const quoteData = await fetchQuote(ticker)
-  const regularMarketPrice = quoteData.regularMarketPrice?.toLocaleString(
-    "en-US",
-    {
-      style: "currency",
-      currency: "USD",
-    }
-  )
+//   const quoteData = await fetchQuote(ticker)
+//   const regularMarketPrice = quoteData.regularMarketPrice?.toLocaleString(
+//     "en-US",
+//     {
+//       style: "currency",
+//       currency: "USD",
+//     }
+//   )
 
-  return {
-    title: `${ticker} ${regularMarketPrice}`,
-    description: `Stocks page for ${ticker}`,
-    keywords: [ticker, "stocks"],
-  }
-}
+//   return {
+//     title: `${ticker} ${regularMarketPrice}`,
+//     description: `Stocks page for ${ticker}`,
+//     keywords: [ticker, "stocks"],
+//   }
+// }
 
 export default async function StocksPage({ params, searchParams }: Props) {
   const ticker = params.ticker
@@ -52,7 +52,7 @@ export default async function StocksPage({ params, searchParams }: Props) {
   )
 
   return (
-    <div className="bg-red-500">
+    <div className="">
       <Card>
         <CardContent className="space-y-10 pt-6 lg:px-40 lg:py-14">
           <Suspense
@@ -62,7 +62,7 @@ export default async function StocksPage({ params, searchParams }: Props) {
               </div>
             }
           >
-            <StockChart ticker={ticker} range={range} interval={interval} />
+            {/* <StockChart ticker={ticker} range={range} interval={interval} /> */}
           </Suspense>
           <Suspense
             fallback={
@@ -71,7 +71,7 @@ export default async function StocksPage({ params, searchParams }: Props) {
               </div>
             }
           >
-            <FinanceSummary ticker={ticker} />
+            {/* <FinanceSummary ticker={ticker} /> */}
           </Suspense>
           <Suspense
             fallback={

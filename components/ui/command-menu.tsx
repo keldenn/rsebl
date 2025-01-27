@@ -13,7 +13,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command"
 import { Button } from "./button"
-import tickers from "@/data/tickers.json"
+import tickers from "@/data/tickers_rsebl.json"
 import { useRouter } from "next/navigation"
 
 const SUGGESTIONS = [
@@ -28,7 +28,22 @@ const SUGGESTIONS = [
 export default function CommandMenu() {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
+  const [suggestions, setSuggestions] = useState([])
   const router = useRouter()
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      try {
+        const response = await fetch("https://rsebl.org.bt/agm/api/fetch-stock-suggestion")
+        const data = await response.json()
+
+        setSuggestions(data)
+      } catch (error) {
+        console.error("Failed to fetch suggestions:", error)
+      }
+    }
+    fetchSuggestions()
+  }, [])
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -67,7 +82,7 @@ export default function CommandMenu() {
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup heading="Suggestions">
               {search.length === 0 &&
-                SUGGESTIONS.map((suggestion) => (
+                suggestions &&suggestions.map((suggestion) => (
                   <CommandItem
                     key={suggestion.ticker}
                     value={suggestion.ticker + "\n \n" + suggestion.title}

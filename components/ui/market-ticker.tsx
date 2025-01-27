@@ -34,7 +34,7 @@ const MarketTicker: React.FC = () => {
     };
 
     fetchMarketData();
-    const interval = setInterval(fetchMarketData, 3000);
+    const interval = setInterval(fetchMarketData, 60000);
     return () => clearInterval(interval);
   }, []);
 

@@ -1,4 +1,3 @@
-import yahooFinance from "yahoo-finance2"
 import { Card, CardContent } from "../../../../components/ui/card"
 import ReadMoreText from "../../../../components/ui/read-more-text"
 import Link from "next/link"
@@ -8,21 +7,27 @@ export default async function CompanySummaryCard({
 }: {
   ticker: string
 }) {
-  const data = await yahooFinance.quoteSummary(ticker, {
-    modules: ["summaryProfile"],
-  })
+  // Fetch data from the custom API
+  const response = await fetch(
+    `https://rsebl.org.bt/agm/api/fetch-single-script/${ticker}`
+  )
+  const data = await response.json()
 
-  if (!data.summaryProfile) {
+  if (!data || data.length === 0) {
     return null
   }
+
+  // Extract relevant fields
+  const companyData = data[0]
   const {
-    longBusinessSummary,
+    name,
     sector,
-    industryDisp,
-    country,
-    fullTimeEmployees,
-    website,
-  } = data.summaryProfile
+    address,
+    paid_up_shares,
+    website_link,
+    date_of_est,
+    logo_path,
+  } = companyData
 
   return (
     <Card className="group relative min-h-max overflow-hidden">
@@ -30,34 +35,35 @@ export default async function CompanySummaryCard({
 
       <CardContent className="z-50 flex h-full w-full flex-col items-start justify-center gap-6 py-10 text-sm lg:flex-row">
         <div className="z-50 max-w-2xl text-pretty font-medium">
-          <ReadMoreText text={longBusinessSummary ?? ""} truncateLength={500} />
+          <ReadMoreText
+            text={`Learn more about ${name}. Established in ${date_of_est}.`}
+            truncateLength={500}
+          />
         </div>
-        {sector && industryDisp && country && fullTimeEmployees && website && (
+
+        {sector && address && paid_up_shares && website_link && (
           <div className="z-50 min-w-fit font-medium text-muted-foreground">
             <div>
-              Sector: <span className="text-foreground ">{sector}</span>
+              Sector: <span className="text-foreground">{sector}</span>
             </div>
             <div>
-              Industry: <span className="text-foreground ">{industryDisp}</span>
+              Address: <span className="text-foreground">{address}</span>
             </div>
             <div>
-              Country: <span className="text-foreground ">{country}</span>
-            </div>
-            <div>
-              Employees:{" "}
-              <span className="text-foreground ">
-                {fullTimeEmployees?.toLocaleString("en-US")}
+              Paid-up Shares:{" "}
+              <span className="text-foreground">
+                {parseInt(paid_up_shares).toLocaleString("en-US")}
               </span>
             </div>
             <div>
               Website:{" "}
-              <span className="text-foreground ">
-                {website && (
+              <span className="text-foreground">
+                {website_link && (
                   <Link
-                    href={website}
+                    href={website_link}
                     className="text-blue-600 hover:underline dark:text-blue-500"
                   >
-                    {website}
+                    {website_link}
                   </Link>
                 )}
               </span>

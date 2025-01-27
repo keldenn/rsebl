@@ -1,4 +1,3 @@
-import { fetchStockSearch } from "@/lib/yahoo-finance/fetchStockSearch"
 import Link from "next/link"
 import {
   differenceInMinutes,
@@ -6,76 +5,76 @@ import {
   differenceInDays,
 } from "date-fns"
 
+function formatDate(dateString: string) {
+  // Try parsing common date formats
+  const formats = [
+    "yyyy-MM-dd HH:mma", // Example: 2023-04-29 10:00AM
+    "h:mm a dd'th' MMMM yyyy", // Example: 10:00 AM 28th February 2018
+    "yyyy-MM-dd", // Example: 2022-04-30
+    "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", // ISO string
+  ]
+
+  for (const fmt of formats) {
+    const parsedDate = parse(dateString, fmt, new Date())
+    if (isValid(parsedDate)) {
+      return format(parsedDate, "dd MMM yyyy, h:mm a") // Desired output format
+    }
+  }
+
+  // Fallback if no format matches
+  return "Invalid Date"
+}
+
+// Function to calculate relative time
 function timeAgo(publishTime: string) {
   const publishDate = new Date(publishTime)
   const now = new Date()
-
-  const diffInMinutes = differenceInMinutes(now, publishDate)
-  const diffInHours = differenceInHours(now, publishDate)
-  const diffInDays = differenceInDays(now, publishDate)
+  const diffInMinutes = Math.floor((now.getTime() - publishDate.getTime()) / 60000)
 
   if (diffInMinutes < 60) {
     return `${diffInMinutes} minutes ago`
-  } else if (diffInHours < 24) {
-    return `${diffInHours} hours ago`
+  } else if (diffInMinutes < 1440) {
+    return `${Math.floor(diffInMinutes / 60)} hours ago`
   } else {
-    return `${diffInDays} days ago`
+    return `${Math.floor(diffInMinutes / 1440)} days ago`
   }
 }
+// Function to fetch AGM data
+async function fetchAgmData(ticker: string) {
+  const response = await fetch(
+    `https://rsebl.org.bt/agm/api/fetch-agm-by-symbol/${ticker}`
+  )
+  if (!response.ok) {
+    throw new Error("Failed to fetch AGM data")
+  }
+  return response.json()
+}
 
-export default async function News({ ticker }: { ticker: string }) {
-  const newsData = await fetchStockSearch(ticker)
-  const url = `https://uk.finance.yahoo.com/quote/${ticker}`
+export default async function Agm({ ticker }: { ticker: string }) {
+  const agmData = await fetchAgmData(ticker)
 
   return (
     <div className="w-4/5">
-      {newsData.news.length === 0 && (
+      {!agmData || agmData.length === 0 ? (
         <div className="py-4 text-center text-sm font-medium text-muted-foreground">
-          No Recent Stories
+          No AGM information available
         </div>
-      )}
-      {newsData.news.length > 0 && (
+      ) : (
         <>
-          <Link
-            href={url}
-            prefetch={false}
-            className="group flex w-fit flex-row items-center gap-2 pb-4 text-sm font-medium text-blue-500"
+        <div
+            className="group flex w-fit flex-row items-center gap-2 pb-4 text-sm font-medium text-custom-1"
           >
-            See More Data from Yahoo Finance
-            <i>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4 rotate-180 transition-transform group-hover:translate-x-1"
-              >
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </i>
-          </Link>
-          <div className="flex flex-col gap-2">
-            {newsData.news.map((article) => (
-              <Link
-                key={article.uuid}
-                href={article.link}
-                prefetch={false}
-                className="flex flex-col gap-1"
-              >
-                <span className="text-sm font-medium text-muted-foreground">
-                  {article.publisher} -{" "}
-                  {timeAgo(article.providerPublishTime.toISOString())}
+            Events
+          </div>
+          <div className="flex flex-col gap-5">
+            {agmData.map((agm: any, index: number) => (
+              <div key={index} className="flex flex-col gap-1">
+                <span className="font-semibold ">
+                  {agm.agm_name}
                 </span>
-                <span className="font-semibold">{article.title}</span>
-                <span className="text-sm font-medium text-muted-foreground">
-                  {article.published_at}
-                </span>
-              </Link>
+                <span className="text-sm text-muted-foreground"> - {agm.date}</span>
+                <span className="text-sm text-muted-foreground"> - {agm.venue}</span>
+              </div>
             ))}
           </div>
         </>

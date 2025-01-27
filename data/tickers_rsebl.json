@@ -1,0 +1,92 @@
+[
+    {
+      "id": 1,
+      "ticker": "BBPL",
+      "title": "BHUTAN BOARD PRODUCTS LTD."
+    },
+    {
+      "id": 2,
+      "ticker": "BCCL",
+      "title": "BHUTAN CARBIDE & CHEMICALS LTD."
+    },
+    {
+      "id": 3,
+      "ticker": "BFAL",
+      "title": "BHUTAN FERRO ALLOYS LTD."
+    },
+    {
+      "id": 4,
+      "ticker": "BIL",
+      "title": "BHUTAN INSURANCE LTD."
+    },
+    {
+      "id": 5,
+      "ticker": "BNBL",
+      "title": "BHUTAN NATIONAL BANK LTD."
+    },
+    {
+      "id": 6,
+      "ticker": "BPCL",
+      "title": "BHUTAN POLYMERS COMPANY LTD."
+    },
+    {
+      "id": 7,
+      "ticker": "BTCL",
+      "title": "BHUTAN TOURISM CORPORATION LTD."
+    },
+    {
+      "id": 8,
+      "ticker": "DFAL",
+      "title": "DRUK FERRO ALLOYS LIMITED"
+    },
+    {
+      "id": 9,
+      "ticker": "DPL",
+      "title": "DUNGSAM POLYMERS LIMITED"
+    },
+    {
+      "id": 10,
+      "ticker": "DPNB",
+      "title": "DRUK PNB BANK LTD."
+    },
+    {
+      "id": 11,
+      "ticker": "DWAL",
+      "title": "DRUK WANG ALLOYS LTD."
+    },
+    {
+      "id": 12,
+      "ticker": "GICB",
+      "title": "GIC BHUTAN REINSURANCE CO. LTD."
+    },
+    {
+      "id": 13,
+      "ticker": "KCL",
+      "title": "KUENSEL CORPORATION LTD."
+    },
+    {
+      "id": 14,
+      "ticker": "PCAL",
+      "title": "PENDEN CEMENT AUTHORITY LTD."
+    },
+    {
+      "id": 15,
+      "ticker": "RICB",
+      "title": "ROYAL INSURANCE CORPORATION OF BHUTAN LTD."
+    },
+    {
+      "id": 16,
+      "ticker": "STCB",
+      "title": "STATE TRADING CORPORATION OF BHUTAN LTD."
+    },
+    {
+      "id": 17,
+      "ticker": "SVL",
+      "title": "SHERZA VENTURES LIMITED"
+    },
+    {
+      "id": 18,
+      "ticker": "TBL",
+      "title": "T BANK LTD."
+    }
+  ]
