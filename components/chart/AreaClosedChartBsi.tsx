@@ -9,10 +9,6 @@ import { LinearGradient } from "@visx/gradient"
 import { AreaClosed, LinePath } from "@visx/shape"
 import { scaleLinear } from "@visx/scale"
 import { ParentSize } from "@visx/responsive"
-import { Button } from "../ui/button"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { DEFAULT_RANGE } from "@/lib/yahoo-finance/constants"
-import { Range } from "@/lib/yahoo-finance/types"
 
 // UTILS
 const toDate = (d: any) => +new Date(d?.date || d)
@@ -252,11 +248,7 @@ function GraphSlider({ data, width, height, top, state, dispatch }: any) {
   )
 }
 
-export default function AreaClosedChart({ chartQuotes, range }: any) {
-  const searchParams = useSearchParams()
-  const { replace } = useRouter()
-  const pathname = usePathname()
-
+export default function AreaClosedChartBsi({ chartQuotes }: any) {
   const last = chartQuotes[chartQuotes.length - 1]
 
   const initialState = {
@@ -284,37 +276,6 @@ export default function AreaClosedChart({ chartQuotes, range }: any) {
     })
     .replace(":", ".")
 
-  // RANGE
-  const createPageURL = useCallback(
-    (range: string) => {
-      const params = new URLSearchParams(searchParams)
-
-      if (range) {
-        params.set("range", range)
-      } else {
-        params.delete("range")
-      }
-      return `${pathname}?${params.toString().toLowerCase()}`
-    },
-    [searchParams, pathname]
-  )
-
-  const rangeOptions: Range[] = ["1d", "1w", "1m", "3m", "1y"]
-
-  const isValidRange = (r: string): r is Range =>
-    rangeOptions.includes(r as Range)
-
-  if (!isValidRange(range)) {
-    replace(createPageURL(DEFAULT_RANGE))
-  }
-
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const range = e.currentTarget.textContent
-    if (range) {
-      replace(createPageURL(range))
-    }
-  }
-
   return (
     <div className="w-full min-w-fit">
       <div
@@ -325,8 +286,7 @@ export default function AreaClosedChart({ chartQuotes, range }: any) {
             : "invisible"
         }
       >
-        {formattedDate}{" "}
-        {range !== "3m" && range !== "1y" && "at " + formattedTime}
+        {formattedDate}
       </div>
       <div className="h-80">
         {chartQuotes.length > 0 ? (
@@ -347,22 +307,6 @@ export default function AreaClosedChart({ chartQuotes, range }: any) {
             <p>No data available</p>
           </div>
         )}
-      </div>
-      <div className="mt-1 flex flex-row">
-        {rangeOptions.map((r) => (
-          <Button
-            key={r}
-            variant={"ghost"}
-            onClick={handleClick}
-            className={
-              range === r
-                ? "bg-accent font-bold text-accent-foreground"
-                : "text-muted-foreground"
-            }
-          >
-            {r.toUpperCase()}
-          </Button>
-        ))}
       </div>
     </div>
   )

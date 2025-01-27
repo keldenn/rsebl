@@ -16,7 +16,7 @@ export default function FinancePage() {
         const fetchChapters = async () => {
             try {
                 const response = await axios.get(
-                    "https://rsebl.org.bt/agm/api/fetch-chapters/12"
+                    `${process.env.NEXT_PUBLIC_API_URL}/fetch-chapters/12`
                 );
                 setChapters(response.data); // Store the chapters in state
                 setLoading(false);

@@ -123,6 +123,9 @@ const ServicesIdPage = () => {
           cd_code: user.cd_code || "Not Available",
           user_name: user.user_name || "Not Avaliable"
         });
+        toast({
+          description: "This is the email registered with Broker, please update if it is incorrect.",
+        });
       } else {
         //setDetailsError("No user details found for the provided CID and Brokerage firm.");
         toast({
@@ -176,6 +179,10 @@ const ServicesIdPage = () => {
           cid: user.cid || "Not Avaliable",
           participant_code: user.participant_code || "Not Avaliable"
         });
+        toast({
+          description: "This is the email registered with Broker, please update if it is incorrect.",
+        });
+        
       } else {
         //setDetailsError("No user details found for the provided username.");
         toast({
@@ -490,7 +497,6 @@ const ServicesIdPage = () => {
                     className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
                     value={userDetails.email}
                   />
-                  <p className="text-sm font-small ml-8 mb-2">This is the email registered with Broker, please update if it is incorrect.</p>
                   <label className="text-sm font-medium">Address</label>
                   <input
                     className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
@@ -572,7 +578,6 @@ const ServicesIdPage = () => {
                     className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
                     value={userDetailsRenew.email}
                   />
-                  <p className="text-sm font-small ml-8 mb-2">This is the email registered with Broker, please update if it is incorrect.</p>
                   <label className="text-sm font-medium">Address</label>
                   <input
                     className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"

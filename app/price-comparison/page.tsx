@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -14,7 +14,6 @@ import {
   Filler,
 } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
-import dayjs from 'dayjs'; // Import dayjs for date formatting
 
 ChartJS.register(
   LineElement,
@@ -30,25 +29,55 @@ ChartJS.register(
 
 export default function PriceComparison() {
   const sectors = {
-    Banking: [
-      { company: 'BNBL', data: [{ date: '2020-04-23', price: 28 }, { date: '2020-05-24', price: 28 }, { date: '2020-06-29', price: 37.9 }] },
-      { company: 'TBL', data: [{ date: '2020-04-23', price: 37 }, { date: '2020-05-24', price: 37 }, { date: '2020-06-29', price: 75 }] },
-      { company: 'DPNB', data: [{ date: '2020-04-23', price: 30 }, { date: '2020-04-24', price: 35 }, { date: '2020-04-29', price: 28 }] },
-    ],
-    Insurance: [
-      { company: 'RICBL', data: [{ date: '2020-04-23', price: 50 }, { date: '2020-04-24', price: 51 }] },
-      { company: 'BIL', data: [{ date: '2020-04-23', price: 60 }, { date: '2020-04-24', price: 62 }] },
-    ],
-    Manufacturing: [
-      { company: 'BFAL', data: [{ date: '2020-04-23', price: 17 }, { date: '2020-04-24', price: 19 }] },
-      { company: 'DFAL', data: [{ date: '2020-04-23', price: 20 }, { date: '2020-04-24', price: 22 }] },
-    ],
+    Banking: ['BNBL', 'TBL', 'DPNB'],
+    Insurance: ['RICBL', 'BIL'],
+    Manufacturing: ['BFAL', 'DFAL', 'BPCL', 'DPL', 'BCCL'],
+  };
+
+  const apiEndpoints = {
+    BNBL: `${process.env.NEXT_PUBLIC_API_URL}/fetch-price-movement/BNBL`,
+    TBL: `${process.env.NEXT_PUBLIC_API_URL}/fetch-price-movement/TBL`,
+    DPNB: `${process.env.NEXT_PUBLIC_API_URL}/fetch-price-movement/DPNB`,
+    RICBL: `${process.env.NEXT_PUBLIC_API_URL}/fetch-price-movement/RICB`,
+    BIL: `${process.env.NEXT_PUBLIC_API_URL}/fetch-price-movement/BIL`,
+    BFAL: `${process.env.NEXT_PUBLIC_API_URL}/fetch-price-movement/BFAL`,
+    DFAL: `${process.env.NEXT_PUBLIC_API_URL}/fetch-price-movement/DFAL`,
+    BPCL: `${process.env.NEXT_PUBLIC_API_URL}/fetch-price-movement/BPCL`,
+    DPL: `${process.env.NEXT_PUBLIC_API_URL}/fetch-price-movement/DPL`,
+    BCCL: `${process.env.NEXT_PUBLIC_API_URL}/fetch-price-movement/BCCL`
   };
 
   const [selectedSector, setSelectedSector] = useState('Banking');
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('All');
+  const [sectorData, setSectorData] = useState([]);
 
   const timeFilters = ['1M', '3M', '6M', '1Y', 'All'];
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const companies = sectors[selectedSector];
+      const dataPromises = companies.map(async (company) => {
+        const response = await fetch(apiEndpoints[company]);
+        const rawData = await response.json();
+        console.log('API Response for', company, rawData);
+    
+        // Ensure data is an array before processing
+        const data = Array.isArray(rawData) ? rawData : [];
+        return {
+          company,
+          data: data.map(([timestamp, price]) => ({
+            date: new Date(timestamp),
+            price,
+          })),
+        };
+      });
+    
+      const results = await Promise.all(dataPromises);
+      setSectorData(results);
+    };
+
+    fetchData();
+  }, [selectedSector]);
 
   const handleSectorChange = (event) => {
     setSelectedSector(event.target.value);
@@ -70,24 +99,21 @@ export default function PriceComparison() {
 
     const daysToInclude = timePeriods[selectedTimeFilter];
     return data.filter((point) => {
-      const pointDate = new Date(point.date);
-      const differenceInDays = (today - pointDate) / (1000 * 60 * 60 * 24);
+      const differenceInDays = (today - point.date) / (1000 * 60 * 60 * 24);
       return differenceInDays <= daysToInclude;
     });
   };
 
-  const selectedSectorData = sectors[selectedSector].map((company) => ({
+  const filteredData = sectorData.map((company) => ({
     ...company,
     data: filterDataByTime(company.data),
   }));
 
   const chartData = {
-    labels: selectedSectorData[0]?.data.map((point) => {
-      const date = new Date(point.date);
-      const options = { month: 'short', year: 'numeric' }; // Short month and year format
-      return date.toLocaleDateString(undefined, options);
-    }) || [],
-    datasets: selectedSectorData.map((company, index) => ({
+    labels: filteredData[0]?.data.map((point) =>
+      point.date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
+    ) || [],
+    datasets: filteredData.map((company, index) => ({
       label: company.company,
       data: company.data.map((point) => point.price),
       borderColor: ['#382E7A', '#205A8A', '#7E3BF2', '#3A2A76', '#73D13D'][index],
@@ -96,7 +122,7 @@ export default function PriceComparison() {
       fill: false,
     })),
   };
-  
+
   const options = {
     responsive: true,
     plugins: {
@@ -106,13 +132,12 @@ export default function PriceComparison() {
       tooltip: {
         callbacks: {
           title: function (context) {
-            // Get the full date from the data
-            const date = new Date(selectedSectorData[0].data[context[0].dataIndex]?.date);
+            const date = new Date(filteredData[0]?.data[context[0]?.dataIndex]?.date);
             return date.toLocaleDateString(undefined, {
               day: 'numeric',
               month: 'short',
               year: 'numeric',
-            }); // Format: "23 Apr 2020"
+            });
           },
           label: function (context) {
             return `${context.dataset.label}: ${context.raw}`;
@@ -135,14 +160,7 @@ export default function PriceComparison() {
       x: {
         title: {
           display: true,
-          text: selectedTimeFilter, // Use the selected filter as the x-axis title
-        },
-        ticks: {
-          callback: function (value, index, ticks) {
-            const date = new Date(chartData.labels[index]);
-            const options = { month: 'short', year: 'numeric' }; // Display month and year
-            return date.toLocaleDateString(undefined, options);
-          },
+          text: selectedTimeFilter,
         },
       },
       y: {
@@ -152,9 +170,13 @@ export default function PriceComparison() {
         },
       },
     },
+    elements: {
+      point: {
+        radius: 0, // Removes the visible points on the graph
+        //hoverRadius: 0, // Prevents circles from appearing on hover
+      },
+    },
   };
-  
-  
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
@@ -178,7 +200,7 @@ export default function PriceComparison() {
               key={filter}
               onClick={() => handleTimeFilterChange(filter)}
               className={`px-4 py-2 rounded-md ${
-                selectedTimeFilter === filter ? 'bg-blue-500 text-white' : 'border'
+                selectedTimeFilter === filter ? 'bg-custom-1 text-white' : 'border'
               }`}
             >
               {filter}
