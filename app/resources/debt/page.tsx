@@ -25,7 +25,7 @@ export default function FinancialTabsPage() {
     const fetchChapters = async () => {
       try {
         const response = await axios.get(
-          "https://rsebl.org.bt/agm/api/fetch-chapters/24"
+          `${process.env.NEXT_PUBLIC_API_URL}/fetch-chapters/24`
         );
         setChapters(response.data); // Store the chapters in state
         setLoading(false);
@@ -41,7 +41,7 @@ export default function FinancialTabsPage() {
   useEffect(() => {
     // Fetch data from the API
     axios
-      .get("https://rsebl.org.bt/agm/api/fetch-chapters/25")
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/fetch-chapters/25`)
       .then((response) => {
         setCpapers(response.data);
         setLoading(false);
@@ -56,7 +56,7 @@ export default function FinancialTabsPage() {
   useEffect(() => {
     // Fetch data from the API
     axios
-      .get("https://rsebl.org.bt/agm/api/fetch-book-lists/12")
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/fetch-book-lists/12`)
       .then((response) => {
         setTabs(response.data); // Store API response in state
       })
@@ -68,7 +68,7 @@ export default function FinancialTabsPage() {
   useEffect(() => {
     // Fetch data from the API
     axios
-      .get("https://rsebl.org.bt/agm/api/fetch-chapters/27")
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/fetch-chapters/27`)
       .then((response) => {
         setSubDebt(response.data); // Store API response in state
       })

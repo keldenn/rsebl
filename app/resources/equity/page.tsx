@@ -12,7 +12,7 @@ export default function EquityPage() {
   useEffect(() => {
     // Fetch data from the API
     axios
-      .get("https://rsebl.org.bt/agm/api/fetch-book-lists/1")
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/fetch-book-lists/1`)
       .then((response) => {
         setTabs(response.data); // Store API response in state
       })

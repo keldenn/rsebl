@@ -1,17 +1,42 @@
-import React from 'react';
+"use client"
+
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const VideoGrid = () => {
-  const videos = [
-    { id: 1, title: 'eLearning Episode 1', url: 'https://www.youtube.com/embed/8h365NhhcOs' },
-    { id: 2, title: 'eLearning Episode 2', url: 'https://www.youtube.com/embed/yQmKjTtLXxg' },
-    { id: 3, title: 'eLearning Episode 3', url: 'https://www.youtube.com/embed/8nnHVIR-Vrg' },
-    { id: 4, title: 'eLearning Episode 4', url: 'https://www.youtube.com/embed/0AUO3nA07dI' },
-    { id: 5, title: 'eLearning Episode 5', url: 'https://www.youtube.com/embed/UCtqWt8-VBg' },
-    { id: 6, title: 'eLearning Episode 6', url: 'https://www.youtube.com/embed/E7rIza0fF04' },
-    { id: 7, title: 'eLearning Episode 7', url: 'https://www.youtube.com/embed/CDZruD5a_Wg' },
-    { id: 8, title: 'eLearning Episode 8', url: 'https://www.youtube.com/embed/6BGGOviySnE' },
-    { id: 9, title: 'eLearning Episode 9', url: 'https://www.youtube.com/embed/KeZ4S0w1vbk' },
-  ];
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch data from the API
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        let allVideos = [];
+        let currentPage = 1;
+        let lastPage = 1;
+
+        do {
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/fetch-literacy?page=${currentPage}`);
+          const { data, last_page } = response.data;
+          allVideos = [...allVideos, ...data];
+          lastPage = last_page;
+          currentPage += 1;
+        } while (currentPage <= lastPage);
+
+        setVideos(allVideos);
+      } catch (error) {
+        console.error('Error fetching videos:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVideos();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center my-5">Loading videos...</div>;
+  }
 
   return (
     <div className="container mx-auto my-5">
@@ -24,13 +49,13 @@ const VideoGrid = () => {
             }`}
           >
             <iframe
-              src={video.url}
-              title={video.title}
+              src={video.link}
+              title={video.topic}
               className="w-full h-full"
               allowFullScreen
             ></iframe>
             <div className="bg-gray-100 p-2">
-              <h5 className="text-center font-semibold">{video.title}</h5>
+              <h5 className="text-center font-semibold">{video.topic}</h5>
             </div>
           </div>
         ))}

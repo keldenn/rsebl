@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,53 +22,52 @@ import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type NewsletterType = {
+  id: number;
   name: string;
-  file: string;
+  file_path: string;
+  status: number;
+  created_at: string;
 };
 
 type PressReleaseType = {
+  id: number;
   title: string;
   description: string;
   date: string;
   link: string;
 };
 
-const data = {
-  Newsletter: [
-    { name: "Newsletter January 2023", file: "Download Link 1" },
-    { name: "Newsletter February 2023", file: "Download Link 2" },
-    { name: "Newsletter March 2023", file: "Download Link 3" },
-    { name: "Newsletter April 2023", file: "Download Link 4" },
-    { name: "Newsletter May 2023", file: "Download Link 5" },
-    { name: "Newsletter June 2023", file: "Download Link 6" },
-    { name: "Newsletter July 2023", file: "Download Link 7" },
-  ],
-  PressRelease: [
-    {
-      title: "Press Release: Product Launch",
-      description: "We are excited to announce the launch of our new product.",
-      date: "2023-01-15",
-      link: "Download Link 1",
-    },
-    {
-      title: "Press Release: Annual Meeting",
-      description: "Highlights from our annual meeting and future plans.",
-      date: "2023-02-20",
-      link: "Download Link 2",
-    },
-    {
-      title: "Press Release: Partnership Announcement",
-      description: "Announcing a strategic partnership with XYZ Corporation.",
-      date: "2023-03-10",
-      link: "Download Link 3",
-    },
-  ],
-};
-
 export default function PublicationPage() {
+  const [newsletters, setNewsletters] = useState<NewsletterType[]>([]);
+  const [pressReleases, setPressReleases] = useState<PressReleaseType[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  useEffect(() => {
+    // Fetch newsletters
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-news-letters`)
+      .then((response) => response.json())
+      .then((data) => {
+        const formattedNewsletters = data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          file_path: item.file_path,
+          status: item.status,
+          created_at: item.created_at,
+        }));
+        setNewsletters(formattedNewsletters);
+      })
+      .catch((error) => console.error("Error fetching newsletters:", error));
+
+    // Fetch press releases
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-press-release`)
+      .then((response) => response.json())
+      .then((data) => {
+        setPressReleases(data); // Assuming API data matches `PressReleaseType` structure
+      })
+      .catch((error) => console.error("Error fetching press releases:", error));
+  }, []);
 
   const handlePageChange = (type: "previous" | "next", totalPages: number) => {
     if (type === "previous" && currentPage > 1) setCurrentPage((prev) => prev - 1);
@@ -92,38 +91,38 @@ export default function PublicationPage() {
 
     return (
       <>
-      <Card>
-        <CardContent className="pt-4">
-        <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>File</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedData.length > 0 ? (
-                    paginatedData.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell>
-                          <a href="#" className="text-blue-500 hover:underline">
-                            {item.file}
-                          </a>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={2} className="text-center">
-                        No data found.
+        <Card>
+          <CardContent className="pt-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>File</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedData.length > 0 ? (
+                  paginatedData.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>{item.name}</TableCell>
+                      <TableCell>
+                        <a href={`${process.env.NEXT_PUBLIC_BASE_URL}/${item.file_path}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                          Read More
+                        </a>
                       </TableCell>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-        </CardContent>
-      </Card>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={2} className="text-center">
+                      No data found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
         {/* Pagination */}
         <div className="flex items-center justify-end mt-5">
           <div className="flex items-center space-x-2 text-sm font-medium">
@@ -139,9 +138,8 @@ export default function PublicationPage() {
               </SelectContent>
             </Select>
           </div>
-
           <div className="flex items-center space-x-4">
-          <span className="text-sm font-medium ms-3">
+            <span className="text-sm font-medium ms-3">
               Page {currentPage} of {totalPages}
             </span>
             <Button
@@ -152,7 +150,6 @@ export default function PublicationPage() {
             >
               Previous
             </Button>
-           
             <Button
               onClick={() => handlePageChange("next", totalPages)}
               disabled={currentPage === totalPages || totalPages === 0}
@@ -168,26 +165,29 @@ export default function PublicationPage() {
   };
 
   const renderPressReleases = (items: PressReleaseType[]) => {
-    const filteredData = items.filter(
-      (item) =>
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredData = items.filter((item) => {
+      const name = item.name || ""; // Fallback to an empty string if undefined
+      //const path = item.file_path || ""; // Fallback to an empty string if undefined
+      return (
+        name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    });
+    
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredData.length > 0 ? (
-          filteredData.map((item, index) => (
-            <Card key={index}>
+          filteredData.map((item) => (
+            <Card key={item.id}>
               <CardHeader>
-                <CardTitle>{item.title}</CardTitle>
-                <CardDescription>{item.date}</CardDescription>
+                <CardTitle>{item.name}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p>{item.description}</p>
-                <a href="#" className="text-blue-500 hover:underline mt-2 block">
-                  {item.link}
+                <a href={`${process.env.NEXT_PUBLIC_BASE_URL}/${item.file_path}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline mt-2 block">
+                  Read more
                 </a>
+                
               </CardContent>
             </Card>
           ))
@@ -200,27 +200,24 @@ export default function PublicationPage() {
 
   return (
     <div className="w-full p-4 max-w-full mx-auto space-y-4">
-    
-
       <Tabs defaultValue="Newsletter" className="space-y-4">
-     <div className="flex justify-between w-full">
-     <TabsList className="">
-          <TabsTrigger value="Newsletter">Newsletter</TabsTrigger>
-          <TabsTrigger value="PressRelease">Press Release</TabsTrigger>
-        </TabsList>
-        <Input
-        placeholder="Search by name, title, or description..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full lg:w-1/3 mb-4"
-      />
-     </div>
+        <div className="flex justify-between w-full">
+          <TabsList className="">
+            <TabsTrigger value="Newsletter">Newsletter</TabsTrigger>
+            <TabsTrigger value="PressRelease">Press Release</TabsTrigger>
+          </TabsList>
+          <Input
+            placeholder="Search by name, title, or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full lg:w-1/3 mb-4"
+          />
+        </div>
         <TabsContent value="Newsletter">
-          {renderTableContent(data.Newsletter)}
+          {renderTableContent(newsletters)}
         </TabsContent>
-
         <TabsContent value="PressRelease">
-          {renderPressReleases(data.PressRelease)}
+          {renderPressReleases(pressReleases)}
         </TabsContent>
       </Tabs>
     </div>
