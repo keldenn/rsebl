@@ -36,7 +36,6 @@ const CompanyProfile = () => {
     fetchProfileContent();
   }, []);
 
-
   return (
     <>
       <main className="bg-gradient-to-b min-h-screen">

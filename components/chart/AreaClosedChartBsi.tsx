@@ -14,8 +14,6 @@ import { ParentSize } from "@visx/responsive"
 const toDate = (d: any) => +new Date(d?.date || d)
 
 const formatCurrency = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
 }).format
 
 const MemoAreaClosed = memo(AreaClosed)

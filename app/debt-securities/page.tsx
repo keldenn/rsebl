@@ -1,304 +1,264 @@
 "use client";
 
-import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils"
+import React, { useEffect, useState, useCallback } from "react";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  useReactTable,
+  SortingState,
+  ColumnFiltersState,
+  VisibilityState,
+} from "@tanstack/react-table";
 import {
   Table,
-  TableHeader,
   TableBody,
-  TableRow,
-  TableHead,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-type BondType = {
-  name: string;
-  maturityPeriod: string;
+type BondMarketType = {
+  symbol: string;
+  price: number;
+  date: string;
+  volume: string;
+  value: string;
+  currentPrice: number;
+};
+
+type BondDataType = {
+  id: number;
+  security_name: string;
+  start_date: string;
+  end_date: string;
+  maturity_period: number;
   rate: string;
-  amount: string;
-  effectiveDate: string;
-  maturityDate: string;
+  amount_issued: number;
+  status: number;
 };
 
 type CommercialPaperType = {
-  name: string;
-  maturityPeriod: string;
-  discountRate: string;
-  effectiveDate: string;
-  maturityDate: string;
-  amountIssued: string;
-  overSubscription: string;
+  id: number;
+  security_name: string;
+  start_date: string;
+  end_date: string;
+  maturity_period: number;
+  rate: string;
+  amount_issued: number;
+  status: number;
 };
 
-type BondMarketType = {
-  sym: string;
-  marketPrice: string;
-  change: string;
-  volume: string;
-  value: string;
-  lastTrade: string;
-};
+const bondMarketColumns: ColumnDef<BondMarketType>[] = [
+  { accessorKey: "symbol", header: "Symbol" },
+  { accessorKey: "currentPrice", header: "Market Price" },
+  {
+    accessorKey: "price",
+    header: "Change",
+    cell: ({ row }) => {
+      const price = row.getValue("price");
+      const priceValue = !isNaN(Number(price)) ? Number(price) : 0;
+      const priceClass =
+        priceValue > 0
+          ? "text-green-600"
+          : priceValue < 0
+          ? "text-red-600"
+          : "text-gray-600";
 
-const data = {
-  Bonds: [
-    {
-      name: "Bond A",
-      maturityPeriod: "5 years",
-      rate: "5.5%",
-      amount: "$1,000,000",
-      effectiveDate: "2023-01-01",
-      maturityDate: "2028-01-01",
+      return (
+        <span className={priceClass}>
+          {priceValue > 0 ? "+" : ""}
+          {priceValue.toFixed(2)}
+        </span>
+      );
     },
-    {
-      name: "Bond B",
-      maturityPeriod: "3 years",
-      rate: "4.2%",
-      amount: "$500,000",
-      effectiveDate: "2023-03-15",
-      maturityDate: "2026-03-15",
+  },
+  { accessorKey: "volume", header: "Volume" },
+  { accessorKey: "value", header: "Value" },
+  { accessorKey: "date", header: "Last Trade Date" },
+];
+
+const bondsColumns: ColumnDef<BondDataType>[] = [
+  { accessorKey: "security_name", header: "Name" },
+  { accessorKey: "maturity_period", header: "Maturity Period" },
+  { accessorKey: "rate", header: "Rate %" },
+  { accessorKey: "amount_issued", header: "Amount Issued" },
+  { accessorKey: "start_date", header: "Effective Date" },
+  { accessorKey: "end_date", header: "Maturity Date" },
+];
+
+const commercialPaperColumns: ColumnDef<CommercialPaperType>[] = [
+  { accessorKey: "security_name", header: "Name" },
+  { accessorKey: "maturity_period", header: "Maturity Period" },
+  { accessorKey: "rate", header: "Discount Rate %" },
+  { accessorKey: "start_date", header: "Effective Date" },
+  { accessorKey: "end_date", header: "Maturity Date" },
+  { accessorKey: "amount_issued", header: "Amount Issued" },
+];
+
+function DataTable<TData>({
+  columns,
+  data,
+}: {
+  columns: ColumnDef<TData>[];
+  data: TData[];
+}) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [globalFilter, setGlobalFilter] = useState("");
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      globalFilter,
     },
-  ],
-  CommercialPaper: [
-    {
-      name: "CP A",
-      maturityPeriod: "90 days",
-      discountRate: "3.5%",
-      effectiveDate: "2023-02-01",
-      maturityDate: "2023-05-01",
-      amountIssued: "$200,000",
-      overSubscription: "10%",
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      return Object.values(row.original)
+        .join(" ")
+        .toLowerCase()
+        .includes(filterValue.toLowerCase());
     },
-    {
-      name: "CP B",
-      maturityPeriod: "180 days",
-      discountRate: "4.0%",
-      effectiveDate: "2023-04-01",
-      maturityDate: "2023-10-01",
-      amountIssued: "$300,000",
-      overSubscription: "5%",
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    initialState: {
+      pagination: {
+        pageSize: 5,
+      },
     },
-  ],
-  BondMarket: [
-    {
-      sym: "BND001",
-      marketPrice: "$105.50",
-      change: "+0.50%",
-      volume: "1,000",
-      value: "$105,500",
-      lastTrade: "2023-01-15 14:30",
-    },
-    {
-      sym: "BND002",
-      marketPrice: "$98.75",
-      change: "-0.25%",
-      volume: "2,500",
-      value: "$246,875",
-      lastTrade: "2023-01-15 14:45",
-    },
-  ],
-};
-
-export default function FinancialPublicationPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  const handlePageChange = (type: "previous" | "next", totalPages: number) => {
-    if (type === "previous" && currentPage > 1) setCurrentPage((prev) => prev - 1);
-    if (type === "next" && currentPage < totalPages) setCurrentPage((prev) => prev + 1);
-  };
-
-  const handleRowsPerPageChange = (value: string) => {
-    setRowsPerPage(Number(value));
-    setCurrentPage(1); // Reset to the first page
-  };
-
-  const renderTableContent = (
-    items: BondType[] | CommercialPaperType[],
-    columns: string[]
-  ) => {
-    const filteredData = items.filter((item) =>
-      Object.values(item).some((val) =>
-        val.toString().toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    );
-    const paginatedData = filteredData.slice(
-      (currentPage - 1) * rowsPerPage,
-      currentPage * rowsPerPage
-    );
-    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-
-    return (
-      <>
-        <Card>
-          <CardContent className="pt-4">
-            <Table>
-              <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Maturity Period</TableHead>
-                <TableHead>Rate</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Effective Date</TableHead>
-                <TableHead>Maturity Date</TableHead>
-              </TableRow>
-              </TableHeader>
-              <TableBody>
-              {paginatedData.length > 0 ? (
-                  paginatedData.map((item, index) => (
-                    <TableRow key={index}>
-                      {columns.map((col, colIndex) => (
-                        <TableCell
-                          key={colIndex}
-                          className={col === "name" ? "text-bold font-custom-1" : ""}
-                        >
-                          {(item as any)[col]}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className="text-center">
-                      No data found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-        {/* Pagination */}
-        <div className="flex items-center justify-end mt-5">
-          <div className="flex items-center space-x-2 text-sm font-medium">
-            <span>Rows per page</span>
-            <Select value={rowsPerPage.toString()} onValueChange={handleRowsPerPageChange}>
-              <SelectTrigger className="h-8 w-[70px]">
-                <span>{rowsPerPage}</span>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="15">15</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <span className="text-sm font-medium ms-3">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              onClick={() => handlePageChange("previous", totalPages)}
-              disabled={currentPage === 1}
-              variant="outline"
-              size="sm"
-            >
-              Previous
-            </Button>
-
-            <Button
-              onClick={() => handlePageChange("next", totalPages)}
-              disabled={currentPage === totalPages || totalPages === 0}
-              variant="outline"
-              size="sm"
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      </>
-    );
-  };
-
-  const renderBondMarketTable = () => {
-    return (
-      <Card className="mb-4">
-        <CardContent className="pt-4">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Sym</TableHead>
-                <TableHead>Market Price</TableHead>
-                <TableHead>% Change</TableHead>
-                <TableHead>Volume</TableHead>
-                <TableHead>Value</TableHead>
-                <TableHead>Last Trade</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.BondMarket.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell className="text-bold font-custom-1">{item.sym}</TableCell>
-                  <TableCell>{item.marketPrice}</TableCell>
-                  <TableCell
-      
-            >
-              {item.change}
-            </TableCell>
-                  <TableCell>{item.volume}</TableCell>
-                  <TableCell>{item.value}</TableCell>
-                  <TableCell>{item.lastTrade}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    );
-  };
+  });
 
   return (
-    <div className="w-full p-4 max-w-full mx-auto space-y-4">
-      <Tabs defaultValue="Bonds" className="space-y-4">
-        <div className="flex justify-between w-full">
-          <TabsList>
-            <TabsTrigger value="Bonds">Bonds</TabsTrigger>
-            <TabsTrigger value="CommercialPaper">Commercial Paper</TabsTrigger>
-          </TabsList>
-          <Input
-            placeholder="Search by name, maturity period, or other details..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full lg:w-1/3 mb-4"
-          />
-        </div>
-        <TabsContent value="Bonds">
-          {renderBondMarketTable()}
-          {renderTableContent(data.Bonds, [
-            "name",
-            "maturityPeriod",
-            "rate",
-            "amount",
-            "effectiveDate",
-            "maturityDate",
-          ])}
-        </TabsContent>
-
-        <TabsContent value="CommercialPaper">
-          {renderTableContent(data.CommercialPaper, [
-            "name",
-            "maturityPeriod",
-            "discountRate",
-            "effectiveDate",
-            "maturityDate",
-            "amountIssued",
-            "overSubscription",
-          ])}
-        </TabsContent>
-      </Tabs>
+    <div className="w-full">
+      <div className="flex items-center justify-between pb-4 mt-4">
+        <Input
+          placeholder="Search..."
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          className="max-w-md"
+        />
+      </div>
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+      <div className="flex items-center justify-between mt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
+          Previous
+        </Button>
+        <span className="text-sm text-gray-600">
+          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        >
+          Next
+        </Button>
+      </div>
     </div>
+  );
+}
+
+export default function FinancialPublicationPage() {
+  const [bondMarketData, setBondMarketData] = useState<BondMarketType[]>([]);
+  const [bondsData, setBondsData] = useState<BondDataType[]>([]);
+  const [commercialPapersData, setCommercialPapersData] = useState<CommercialPaperType[]>([]);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-live-bond-market`)
+      .then((res) => res.json())
+      .then((data) => setBondMarketData(data))
+      .catch(console.error);
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-bonds`)
+      .then((res) => res.json())
+      .then((data) => setBondsData(data))
+      .catch(console.error);
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-commercialPapers`)
+      .then((res) => res.json())
+      .then((data) => setCommercialPapersData(data))
+      .catch(console.error);
+  }, []);
+
+  return (
+    <Tabs defaultValue="bonds">
+      <TabsList>
+        <TabsTrigger value="bonds">Bonds</TabsTrigger>
+        <TabsTrigger value="commercial-papers">Commercial Papers</TabsTrigger>
+      </TabsList>
+      <TabsContent value="bonds">
+        <Card className="mb-4">
+          <CardContent>
+            <DataTable columns={bondMarketColumns} data={bondMarketData} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <DataTable columns={bondsColumns} data={bondsData} />
+          </CardContent>
+        </Card>
+      </TabsContent>
+      <TabsContent value="commercial-papers">
+        <Card>
+          <CardContent>
+            <DataTable columns={commercialPaperColumns} data={commercialPapersData} />
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 }
