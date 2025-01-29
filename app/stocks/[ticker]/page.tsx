@@ -13,6 +13,7 @@ import { Suspense } from "react"
 import type { Metadata } from "next"
 import { fetchQuote } from "@/lib/yahoo-finance/fetchQuote"
 
+
 type Props = {
   params: {
     ticker: string
@@ -62,7 +63,7 @@ export default async function StocksPage({ params, searchParams }: Props) {
               </div>
             }
           >
-            {/* <StockChart ticker={ticker} range={range} interval={interval} /> */}
+            <StockChart ticker={ticker} range={range} interval={interval} />
           </Suspense>
           <Suspense
             fallback={
