@@ -20,10 +20,11 @@ import {
   validateRange,
 } from "@/lib/yahoo-finance/fetchChartData"
 import { fetchStockSearch } from "@/lib/yahoo-finance/fetchStockSearch"
+import { fetchMarketStock } from "@/lib/yahoo-finance/fetchMarketStocks"
 import NewsSection from "@/components/ui/news-section"
 import StatsSection from "@/components/ui/stats-section"
 import StockTabs from "@/components/ui/stocks-tabs"
-import LogoCarousel from "@/components/ui/logo-carousel"
+// import LogoCarousel from "@/components/ui/logo-carousel"
 
 function isMarketOpen() {
   const now = new Date()
@@ -55,29 +56,29 @@ function isMarketOpen() {
 }
 
 const tickersFutures = [
-  { symbol: "ES=F", shortName: "S&P 500 Futures" },
-  { symbol: "NQ=F", shortName: "NASDAQ Futures" },
-  { symbol: "YM=F", shortName: "Dow Jones Futures" },
-  { symbol: "RTY=F", shortName: "Russell 2000 Futures" },
-  { symbol: "CL=F", shortName: "Crude Oil" },
-  { symbol: "GC=F", shortName: "Gold" },
-  { symbol: "SI=F", shortName: "Silver" },
-  { symbol: "EURUSD=X", shortName: "EUR/USD" },
-  { symbol: "^TNX", shortName: "10 Year Bond" },
-  { symbol: "BTC-USD", shortName: "Bitcoin" },
+  { symbol: "BBPL", shortName: "S&P 500 Futures" },
+  { symbol: "BCCL", shortName: "NASDAQ Futures" },
+  { symbol: "BFAL", shortName: "Dow Jones Futures" },
+  { symbol: "BIL", shortName: "Russell 2000 Futures" },
+  { symbol: "BNBL", shortName: "Crude Oil" },
+  { symbol: "BPCL", shortName: "Gold" },
+  { symbol: "BTCL", shortName: "Silver" },
+  { symbol: "DFAL", shortName: "EUR/USD" },
+  { symbol: "DPL", shortName: "10 Year Bond" },
+  { symbol: "DPNB", shortName: "Bitcoin" },
 ]
 
 const tickerAfterOpen = [
-  { symbol: "^GSPC", shortName: "S&P 500" },
-  { symbol: "^IXIC", shortName: "NASDAQ" },
-  { symbol: "^DJI", shortName: "Dow Jones" },
-  { symbol: "^RUT", shortName: "Russell 2000" },
-  { symbol: "CL=F", shortName: "Crude Oil" },
-  { symbol: "GC=F", shortName: "Gold" },
-  { symbol: "SI=F", shortName: "Silver" },
-  { symbol: "EURUSD=X", shortName: "EUR/USD" },
-  { symbol: "^TNX", shortName: "10 Year Bond" },
-  { symbol: "BTC-USD", shortName: "Bitcoin" },
+  { symbol: "BBPL", shortName: "S&P 500 Futures" },
+  { symbol: "BCCL", shortName: "NASDAQ Futures" },
+  { symbol: "BFAL", shortName: "Dow Jones Futures" },
+  { symbol: "BIL", shortName: "Russell 2000 Futures" },
+  { symbol: "BNBL", shortName: "Crude Oil" },
+  { symbol: "BPCL", shortName: "Gold" },
+  { symbol: "BTCL", shortName: "Silver" },
+  { symbol: "DFAL", shortName: "EUR/USD" },
+  { symbol: "DPL", shortName: "10 Year Bond" },
+  { symbol: "DPNB", shortName: "Bitcoin" },
 ]
 
 function getMarketSentiment(ptChange: string) {
@@ -113,13 +114,13 @@ export default async function Home({
   const news = await fetchStockSearch("^DJI", 1)
 
   const promises = tickers.map(({ symbol }) =>
-    yahooFinance.quoteCombine(symbol)
+    fetchMarketStock(symbol)
   )
   const results = await Promise.all(promises)
 
   const resultsWithTitles = results.map((result, index) => ({
     ...result,
-    shortName: tickers[index].shortName,
+    shortName: tickers[index].symbol,
   }))
 
   // const marketSentiment = getMarketSentiment(
@@ -239,7 +240,8 @@ View more
 
 <h2 className="text-xl font-medium py-4">Stock Highlights</h2>
 <StockTabs></StockTabs>
-<LogoCarousel></LogoCarousel>
+{/* <LogoCarousel></LogoCarousel> */}
     </div>
   )
 }
+
