@@ -23,6 +23,8 @@ import { fetchStockSearch } from "@/lib/yahoo-finance/fetchStockSearch"
 import NewsSection from "@/components/ui/news-section"
 import StatsSection from "@/components/ui/stats-section"
 import StockTabs from "@/components/ui/stocks-tabs"
+import LogoCarousel from "@/components/ui/logo-carousel"
+
 function isMarketOpen() {
   const now = new Date()
 
@@ -78,17 +80,17 @@ const tickerAfterOpen = [
   { symbol: "BTC-USD", shortName: "Bitcoin" },
 ]
 
-function getMarketSentiment(changePercentage: number | undefined) {
-  if (!changePercentage) {
-    return "neutral"
-  }
-  if (changePercentage > 0.1) {
+function getMarketSentiment(ptChange: string) {
+  const change = parseFloat(ptChange)
+
+  if (change === 0) {
+    return "Neutral"
+  } else if (change > 0) {
     return "bullish"
-  } else if (changePercentage < -0.1) {
-    return "bearish"
   } else {
-    return "neutral"
+    return "bearish"
   }
+
 }
 
 export default async function Home({
@@ -120,9 +122,32 @@ export default async function Home({
     shortName: tickers[index].shortName,
   }))
 
-  const marketSentiment = getMarketSentiment(
-    resultsWithTitles[0].regularMarketChangePercent
-  )
+  // const marketSentiment = getMarketSentiment(
+  //   resultsWithTitles[0].regularMarketChangePercent
+  // )
+
+  // const sentimentColor =
+  //   marketSentiment === "bullish"
+  //     ? "text-green-500"
+  //     : marketSentiment === "bearish"
+  //       ? "text-red-500"
+  //       : "text-neutral-500"
+
+  // const sentimentBackground =
+  //   marketSentiment === "bullish"
+  //     ? "bg-green-500/10"
+  //     : marketSentiment === "bearish"
+  //       ? "bg-red-300/50 dark:bg-red-950/50"
+  //       : "bg-neutral-500/10"
+  const response = await fetch("https://rsebl.org.bt/agm/api/fetch-BSI")
+  const data = await response.json()
+
+
+  // Extract ptChange from API response
+  const ptChange = data[0]?.ptChange || "0"
+
+  // Determine market sentiment
+  const marketSentiment = getMarketSentiment(ptChange)
 
   const sentimentColor =
     marketSentiment === "bullish"
@@ -141,7 +166,6 @@ export default async function Home({
   return (
     <div className="flex flex-col gap-4">
        <HeroCarousel></HeroCarousel>
-       <h2 className="text-xl font-medium py-4">Market Pulse</h2>
         <StatsSection></StatsSection>
       <div className="flex flex-col gap-4 lg:flex-row ">
        
@@ -153,7 +177,7 @@ export default async function Home({
                 <strong className={sentimentColor}>{marketSentiment}</strong>
               </CardTitle>
             </CardHeader>
-            {news.news[0] && news.news[0].title && (
+            {/* {news.news[0] && news.news[0].title && (
               <CardFooter className="flex-col items-start">
                 <p className="mb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-500">
                   What you need to know today
@@ -166,7 +190,7 @@ export default async function Home({
                   {news.news[0].title}
                 </Link>
               </CardFooter>
-            )}
+            )} */}
             <div
               className={`pointer-events-none absolute inset-0 z-0 h-[65%] w-[65%] -translate-x-[10%] -translate-y-[30%] rounded-full blur-3xl ${sentimentBackground}`}
             />
@@ -215,6 +239,7 @@ View more
 
 <h2 className="text-xl font-medium py-4">Stock Highlights</h2>
 <StockTabs></StockTabs>
+<LogoCarousel></LogoCarousel>
     </div>
   )
 }
