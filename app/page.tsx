@@ -55,30 +55,56 @@ function isMarketOpen() {
   }
 }
 
+// const tickersFutures = [
+//   { symbol: "BBPL", shortName: "S&P 500 Futures" },
+//   { symbol: "BCCL", shortName: "NASDAQ Futures" },
+//   { symbol: "BFAL", shortName: "Dow Jones Futures" },
+//   { symbol: "BIL", shortName: "Russell 2000 Futures" },
+//   { symbol: "BNBL", shortName: "Crude Oil" },
+//   { symbol: "BPCL", shortName: "Gold" },
+//   { symbol: "BTCL", shortName: "Silver" },
+//   { symbol: "DFAL", shortName: "EUR/USD" },
+//   { symbol: "DPL", shortName: "10 Year Bond" },
+//   { symbol: "DPNB", shortName: "Bitcoin" },
+// ]
+
+// const tickerAfterOpen = [
+//   { symbol: "BBPL", shortName: "S&P 500 Futures" },
+//   { symbol: "BCCL", shortName: "NASDAQ Futures" },
+//   { symbol: "BFAL", shortName: "Dow Jones Futures" },
+//   { symbol: "BIL", shortName: "Russell 2000 Futures" },
+//   { symbol: "BNBL", shortName: "Crude Oil" },
+//   { symbol: "BPCL", shortName: "Gold" },
+//   { symbol: "BTCL", shortName: "Silver" },
+//   { symbol: "DFAL", shortName: "EUR/USD" },
+//   { symbol: "DPL", shortName: "10 Year Bond" },
+//   { symbol: "DPNB", shortName: "Bitcoin" },
+// ]
+
 const tickersFutures = [
-  { symbol: "BBPL", shortName: "S&P 500 Futures" },
-  { symbol: "BCCL", shortName: "NASDAQ Futures" },
-  { symbol: "BFAL", shortName: "Dow Jones Futures" },
-  { symbol: "BIL", shortName: "Russell 2000 Futures" },
-  { symbol: "BNBL", shortName: "Crude Oil" },
-  { symbol: "BPCL", shortName: "Gold" },
-  { symbol: "BTCL", shortName: "Silver" },
-  { symbol: "DFAL", shortName: "EUR/USD" },
-  { symbol: "DPL", shortName: "10 Year Bond" },
-  { symbol: "DPNB", shortName: "Bitcoin" },
+  { symbol: "ES=F", shortName: "S&P 500 Futures" },
+  { symbol: "NQ=F", shortName: "NASDAQ Futures" },
+  { symbol: "YM=F", shortName: "Dow Jones Futures" },
+  { symbol: "RTY=F", shortName: "Russell 2000 Futures" },
+  { symbol: "CL=F", shortName: "Crude Oil" },
+  { symbol: "GC=F", shortName: "Gold" },
+  { symbol: "SI=F", shortName: "Silver" },
+  { symbol: "EURUSD=X", shortName: "EUR/USD" },
+  { symbol: "^TNX", shortName: "10 Year Bond" },
+  { symbol: "BTC-USD", shortName: "Bitcoin" },
 ]
 
 const tickerAfterOpen = [
-  { symbol: "BBPL", shortName: "S&P 500 Futures" },
-  { symbol: "BCCL", shortName: "NASDAQ Futures" },
-  { symbol: "BFAL", shortName: "Dow Jones Futures" },
-  { symbol: "BIL", shortName: "Russell 2000 Futures" },
-  { symbol: "BNBL", shortName: "Crude Oil" },
-  { symbol: "BPCL", shortName: "Gold" },
-  { symbol: "BTCL", shortName: "Silver" },
-  { symbol: "DFAL", shortName: "EUR/USD" },
-  { symbol: "DPL", shortName: "10 Year Bond" },
-  { symbol: "DPNB", shortName: "Bitcoin" },
+  { symbol: "^GSPC", shortName: "S&P 500" },
+  { symbol: "^IXIC", shortName: "NASDAQ" },
+  { symbol: "^DJI", shortName: "Dow Jones" },
+  { symbol: "^RUT", shortName: "Russell 2000" },
+  { symbol: "CL=F", shortName: "Crude Oil" },
+  { symbol: "GC=F", shortName: "Gold" },
+  { symbol: "SI=F", shortName: "Silver" },
+  { symbol: "EURUSD=X", shortName: "EUR/USD" },
+  { symbol: "^TNX", shortName: "10 Year Bond" },
+  { symbol: "BTC-USD", shortName: "Bitcoin" },
 ]
 
 function getMarketSentiment(ptChange: string) {
@@ -114,13 +140,13 @@ export default async function Home({
   const news = await fetchStockSearch("^DJI", 1)
 
   const promises = tickers.map(({ symbol }) =>
-    fetchMarketStock(symbol)
+    yahooFinance.quoteCombine(symbol)
   )
   const results = await Promise.all(promises)
 
   const resultsWithTitles = results.map((result, index) => ({
     ...result,
-    shortName: tickers[index].symbol,
+    shortName: tickers[index].shortName,
   }))
 
   // const marketSentiment = getMarketSentiment(
