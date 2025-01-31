@@ -27,7 +27,7 @@ const ServicesCards: React.FC<ServicesCardProps> = ({ description, image, link }
 
       {/* Card Body */}
       <CardBody className="p-4 space-y-2">
-        <p className="text-sm text-gray-600 text-center">{description}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 text-center">{description}</p>
       </CardBody>
 
       {/* Card Footer */}
