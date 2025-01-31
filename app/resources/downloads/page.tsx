@@ -50,22 +50,71 @@ type AuditReportType = {
 
 const officeReportsColumns: ColumnDef<OfficeReportsType>[] = [
   { accessorKey: "year", header: "Year" },
-  { accessorKey: "file_path", header: "File" },
+  {
+    accessorKey: "file_path",
+    header: "File",
+    cell: ({ row }) => (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => window.open(`${process.env.NEXT_PUBLIC_BASE_URL}${row.original.file_path}`, "_blank")}
+      >
+        View
+      </Button>
+    ),
+  },
 ];
 
 const regulationsColumns: ColumnDef<RegulationsType>[] = [
   { accessorKey: "file_name", header: "Name" },
-  { accessorKey: "file_path", header: "File" },
+  {
+    accessorKey: "file_path",
+    header: "File",
+    cell: ({ row }) => (
+      <Button
+        variant="outline"
+        onClick={() => window.open(`${process.env.NEXT_PUBLIC_BASE_URL}${row.original.file_path}`, "_blank")}
+      >
+        View
+      </Button>
+    ),
+  },
 ];
 
 const formsColumns: ColumnDef<FormsType>[] = [
-    { accessorKey: "file_name", header: "Name" },
-    { accessorKey: "file_path", header: "File" },
+  { accessorKey: "file_name", header: "Name" },
+  {
+    accessorKey: "file_path",
+    header: "File",
+    cell: ({ row }) => (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => window.open(`${process.env.NEXT_PUBLIC_BASE_URL}${row.original.file_path}`, "_blank")}
+      >
+        View
+      </Button>
+    ),
+  },
 ];
+
 const auditReportsColumns: ColumnDef<AuditReportType>[] = [
-    { accessorKey: "year", header: "Year" },
-    { accessorKey: "file_path", header: "File" },
-  ];
+  { accessorKey: "year", header: "Year" },
+  {
+    accessorKey: "file_path",
+    header: "File",
+    cell: ({ row }) => (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => window.open(`${process.env.NEXT_PUBLIC_BASE_URL}${row.original.file_path}`, "_blank")}
+      >
+        View
+      </Button>
+    ),
+  },
+];
+
 
 function DataTable<TData>({
   columns,
@@ -196,7 +245,7 @@ export default function FinancialPublicationPage() {
       .then((data) => setFormsData(data))
       .catch(console.error);
 
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-audit-reports`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-audit-reports`)
       .then((res) => res.json())
       .then((data) => setAuditReportsData(data))
       .catch(console.error);
@@ -208,20 +257,19 @@ export default function FinancialPublicationPage() {
         <TabsTrigger value="annual-reports">Annual Reports</TabsTrigger>
         <TabsTrigger value="regulations">Regulations</TabsTrigger>
         <TabsTrigger value="forms">Forms</TabsTrigger>
-        <TabsTrigger value="audited-reports">Audited Reports</TabsTrigger>
+        <TabsTrigger value="audit-reports">Audited Reports</TabsTrigger>
       </TabsList>
+
+      {/* Annual Reports Tab */}
       <TabsContent value="annual-reports">
-        <Card className="mb-4">
+        <Card>
           <CardContent>
             <DataTable columns={officeReportsColumns} data={officeReportsData} />
           </CardContent>
         </Card>
-        <Card>
-          <CardContent>
-            <DataTable columns={regulationsColumns} data={regulationsData} />
-          </CardContent>
-        </Card>
       </TabsContent>
+
+      {/* Regulations Tab */}
       <TabsContent value="regulations">
         <Card>
           <CardContent>
@@ -229,6 +277,8 @@ export default function FinancialPublicationPage() {
           </CardContent>
         </Card>
       </TabsContent>
+
+      {/* Forms Tab */}
       <TabsContent value="forms">
         <Card>
           <CardContent>
@@ -236,6 +286,8 @@ export default function FinancialPublicationPage() {
           </CardContent>
         </Card>
       </TabsContent>
+
+      {/* Audited Reports Tab (Fix: Corrected value from `audit-reports` to match the trigger) */}
       <TabsContent value="audit-reports">
         <Card>
           <CardContent>
@@ -246,3 +298,4 @@ export default function FinancialPublicationPage() {
     </Tabs>
   );
 }
+

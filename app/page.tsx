@@ -149,6 +149,10 @@ export default async function Home({
     shortName: tickers[index].shortName,
   }))
 
+  const agmResponse = await fetch("https://rsebl.org.bt/agm/api/fetch-agm");
+  const agmData = await agmResponse.json();
+  const latestAGM = agmData.length > 0 ? agmData[0] : null; // Get the latest AGM
+
   // const marketSentiment = getMarketSentiment(
   //   resultsWithTitles[0].regularMarketChangePercent
   // )
@@ -204,20 +208,28 @@ export default async function Home({
                 <strong className={sentimentColor}>{marketSentiment}</strong>
               </CardTitle>
             </CardHeader>
-            {/* {news.news[0] && news.news[0].title && (
+            {/* AGM Announcement */}
+            {latestAGM && (
               <CardFooter className="flex-col items-start">
                 <p className="mb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-500">
-                  What you need to know today
+                  What you need to know
                 </p>
+                <p className="text-base font-semibold">{latestAGM.agm_name}</p>
                 <Link
                   prefetch={false}
-                  href={news.news[0].link}
-                  className="text-lg font-extrabold"
+                  href={`/company/${encodeURIComponent(latestAGM.name)}`} // Redirect to company page
+                  className="text-sm font-medium"
                 >
-                  {news.news[0].title}
+                  {latestAGM.name}
                 </Link>
+                <p className="text-sm text-neutral-700 dark:text-neutral-400">
+                  {latestAGM.venue}
+                </p>
+                <p className="text-sm text-neutral-700 dark:text-neutral-400">
+                  {latestAGM.date}
+                </p>
               </CardFooter>
-            )} */}
+            )}
             <div
               className={`pointer-events-none absolute inset-0 z-0 h-[65%] w-[65%] -translate-x-[10%] -translate-y-[30%] rounded-full blur-3xl ${sentimentBackground}`}
             />
