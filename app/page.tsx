@@ -153,23 +153,6 @@ export default async function Home({
   const agmData = await agmResponse.json();
   const latestAGM = agmData.length > 0 ? agmData[0] : null; // Get the latest AGM
 
-  // const marketSentiment = getMarketSentiment(
-  //   resultsWithTitles[0].regularMarketChangePercent
-  // )
-
-  // const sentimentColor =
-  //   marketSentiment === "bullish"
-  //     ? "text-green-500"
-  //     : marketSentiment === "bearish"
-  //       ? "text-red-500"
-  //       : "text-neutral-500"
-
-  // const sentimentBackground =
-  //   marketSentiment === "bullish"
-  //     ? "bg-green-500/10"
-  //     : marketSentiment === "bearish"
-  //       ? "bg-red-300/50 dark:bg-red-950/50"
-  //       : "bg-neutral-500/10"
   const response = await fetch("https://rsebl.org.bt/agm/api/fetch-BSI")
   const data = await response.json()
 
