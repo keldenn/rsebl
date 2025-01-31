@@ -39,7 +39,7 @@ const MarketTicker: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-custom-1 dark:bg-black text-white dark:text-white py-2 overflow-hidden">
+    <div className="bg-custom-1 text-white py-2 overflow-hidden">
       <div className="flex items-center animate-marquee whitespace-nowrap">
         {marketData.map((data, index) => {
           const priceChange = data.price;

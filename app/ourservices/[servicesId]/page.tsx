@@ -355,7 +355,8 @@ const ServicesIdPage = () => {
                 >
                 <path
                   d="M87.4225 91.3752L65.3705 70.9525C64.0985 69.7752 64.0985 67.8659 65.3705 66.6885L126.916 9.6912C128.187 8.51387 130.248 8.51387 131.518 9.6912L193.064 66.6885C194.336 67.8659 194.336 69.7752 193.064 70.9525L131.518 127.95C130.248 129.127 128.187 129.127 126.916 127.95L111.918 114.062"
-                  stroke="#205A8A"
+                  // stroke="#205A8A"
+                  className="stroke-[#205A8A] dark:stroke-white"
                   strokeWidth="16.6253"
                   strokeMiterlimit={10}
                 />
@@ -373,13 +374,14 @@ const ServicesIdPage = () => {
                 <g mask="url(#mask0_2363_2582)">
                   <path
                     d="M114.908 46.7712L136.96 67.1939C138.232 68.3712 138.232 70.2805 136.96 71.4579L75.4147 128.455C74.1441 129.633 72.0827 129.633 70.8121 128.455L9.26674 71.4579C7.99474 70.2805 7.99474 68.3712 9.26674 67.1939L70.8121 10.1965C72.0827 9.01921 74.1441 9.01921 75.4147 10.1965L90.4121 24.0845"
-                    stroke="#382E7A"
+                    // stroke="#382E7A"
+                     className="stroke-[#382E7A] dark:stroke-white"
                     strokeWidth="16.6253"
                     strokeMiterlimit={10}
                   />
                 </g>
               </svg>
-                  <h1 className="text-4xl font-bold text-[#3B3A73]">{servicesId}</h1>
+                  <h1 className="text-4xl font-bold text-custom-1 dark:text-white">{servicesId}</h1>
                 </div>
 
                 {/* Tagline */}

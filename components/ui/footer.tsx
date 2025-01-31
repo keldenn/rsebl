@@ -22,7 +22,8 @@ export default function Footer() {
               >
                 <path
                   d="M87.4225 91.3752L65.3705 70.9525C64.0985 69.7752 64.0985 67.8659 65.3705 66.6885L126.916 9.6912C128.187 8.51387 130.248 8.51387 131.518 9.6912L193.064 66.6885C194.336 67.8659 194.336 69.7752 193.064 70.9525L131.518 127.95C130.248 129.127 128.187 129.127 126.916 127.95L111.918 114.062"
-                  stroke="#205A8A"
+                  // stroke="#205A8A"
+                  className="stroke-[#205A8A] dark:stroke-white"
                   strokeWidth="16.6253"
                   strokeMiterlimit={10}
                 />
@@ -40,7 +41,8 @@ export default function Footer() {
                 <g mask="url(#mask0_2363_2582)">
                   <path
                     d="M114.908 46.7712L136.96 67.1939C138.232 68.3712 138.232 70.2805 136.96 71.4579L75.4147 128.455C74.1441 129.633 72.0827 129.633 70.8121 128.455L9.26674 71.4579C7.99474 70.2805 7.99474 68.3712 9.26674 67.1939L70.8121 10.1965C72.0827 9.01921 74.1441 9.01921 75.4147 10.1965L90.4121 24.0845"
-                    stroke="#382E7A"
+                    // stroke="#382E7A"
+                    className="stroke-[#382E7A] dark:stroke-white"
                     strokeWidth="16.6253"
                     strokeMiterlimit={10}
                   />
@@ -51,20 +53,20 @@ export default function Footer() {
 
           {/* Company Section */}
           <div>
-            <h2 className="text-lg font-semibold text-custom-1">Company</h2>
+            <h2 className="text-lg font-semibold text-custom-1 dark:text-custom-1">Company</h2>
             <ul className="mt-4 space-y-2">
               <li>
-                <Link href="/company/profile" className="text-gray-600 hover:text-blue-500">
+                <Link href="/company/profile" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                   Profile
                 </Link>
               </li>
               <li>
-                <Link href="/company/organogram" className="text-gray-600 hover:text-blue-500">
+                <Link href="/company/organogram" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                   Organogram
                 </Link>
               </li>
               <li>
-                <Link href="/company/timeline" className="text-gray-600 hover:text-blue-500">
+                <Link href="/company/timeline" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                   Timeline
                 </Link>
               </li>
@@ -73,30 +75,30 @@ export default function Footer() {
 
           {/* Resources Section */}
           <div>
-            <h2 className="text-lg font-semibold text-custom-1">Resources</h2>
+            <h2 className="text-lg font-semibold text-custom-1 dark:text-custom-1">Resources</h2>
             <ul className="mt-4 space-y-2">
               <li>
-                <Link href="/resources/debt" className="text-gray-600 hover:text-blue-500">
+                <Link href="/resources/debt" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                   Debt
                 </Link>
               </li>
               <li>
-                <Link href="/resources/finances" className="text-gray-600 hover:text-blue-500">
+                <Link href="/resources/finances" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                   Finances
                 </Link>
               </li>
               <li>
-                <Link href="/resources/equity" className="text-gray-600 hover:text-blue-500">
+                <Link href="/resources/equity" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                   Equity
                 </Link>
               </li>
               <li>
-                <Link href="/resources/indices" className="text-gray-600 hover:text-blue-500">
+                <Link href="/resources/indices" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                   Indices
                 </Link>
               </li>
               <li>
-                <Link href="/resources/downloads" className="text-gray-600 hover:text-blue-500">
+                <Link href="/resources/downloads" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                   Downloads
                 </Link>
               </li>
@@ -105,15 +107,15 @@ export default function Footer() {
 
           {/* Charts & Metrics Section */}
           <div>
-            <h2 className="text-lg font-semibold text-custom-1">Charts & Metrics</h2>
+            <h2 className="text-lg font-semibold text-custom-1 dark:text-custom-1">Charts & Metrics</h2>
             <ul className="mt-4 space-y-2">
               <li>
-                <Link href="/bsi" className="text-gray-600 hover:text-blue-500">
+                <Link href="/bsi" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                   Bhutan Stock Index
                 </Link>
               </li>
               <li>
-                <Link href="/price-comparison" className="text-gray-600 hover:text-blue-500">
+                <Link href="/price-comparison" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                   Price Comparison
                 </Link>
               </li>
@@ -122,25 +124,25 @@ export default function Footer() {
 
           {/* More Section */}
           <div>
-            <h2 className="text-lg font-semibold text-custom-1">More</h2>
+            <h2 className="text-lg font-semibold text-custom-1 dark:text-custom-1">More</h2>
             <ul className="mt-4 space-y-2">
               <li>
-                <Link href="/more/contact" className="text-gray-600 hover:text-custom-3">
+                <Link href="/more/contact" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="/more/media" className="text-gray-600 hover:text-custom-3">
+                <Link href="/more/media" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                   Media
                 </Link>
               </li>
               <li>
-                <Link href="/more/literacy" className="text-gray-600 hover:text-custom-3">
+                <Link href="/more/literacy" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                   Literacy
                 </Link>
               </li>
               <li>
-                <Link href="/more/faqs" className="text-gray-600 hover:text-custom-3">
+                <Link href="/more/faqs" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                   FAQs
                 </Link>
               </li>
@@ -149,25 +151,25 @@ export default function Footer() {
         </div>
 
         {/* Divider */}
-        <hr className="border-gray-300" />
+        <hr className="border-gray-300 dark:border-white" />
 
         {/* Footer Bottom */}
-        <div className="flex flex-col sm:flex-row justify-between items-center text-sm text-gray-600">
+        <div className="flex flex-col sm:flex-row justify-between items-center text-sm text-gray-600 dark:text-gray-400">
           <p>
             Copyright © 2025{" "}
-            <a href="www.rsebl.org.bt" className="text-custom-1 hover:underline">
+            <a href="www.rsebl.org.bt" className="text-custom-1 dark:text-custom-1 hover:underline">
               Royal Securities Exchange of Bhutan
             </a>
             . All rights reserved.
           </p>
           <ul className="flex space-x-4 mt-4 sm:mt-0">
             <li>
-              <Link href="/privacy-policy" className="text-gray-600 hover:text-custom-3">
+              <Link href="/privacy-policy" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                 Privacy Policy
               </Link>
             </li>
             <li>
-              <Link href="https://rsebl.org.bt/agm/" className="text-gray-600 hover:text-custom-3">
+              <Link href="https://rsebl.org.bt/agm/" className="text-gray-600 dark:text-gray-400 hover:text-custom-3">
                 Staff Login
               </Link>
             </li>

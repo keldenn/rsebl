@@ -43,26 +43,30 @@ const OrderBook: React.FC<OrderBookProps> = ({ symbol }) => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-left">BID</TableHead>
-                <TableHead className="text-center">PRICE (Nu)</TableHead>
-                <TableHead className="text-right">ASK</TableHead>
+                <TableHead className="text-left font-semibold text-sm">Bid</TableHead>
+                <TableHead className="text-center font-semibold text-sm">Price(Nu)</TableHead>
+                <TableHead className="text-right font-semibold text-sm">Ask</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {orderBook.length > 0 ? (
                 orderBook.map((order, index) => (
                   <TableRow key={index}>
-                    <TableCell className={`text-left ${order.BuyVol > 0 ? "text-green-800 dark:text-green-400" : "text-gray-400"}`}>
+                    <TableCell className={`text-left ${order.BuyVol > 0 ? "text-green-800 dark:text-green-400" : "text-gray-400"} ${
+                        order.Discovered == order.Price ? "bg-custom-1  text-white dark:bg-custom-1 dark:text-white font-bold" : ""
+                      }`}>
                       {order.BuyVol}
                     </TableCell>
                     <TableCell
                       className={`text-center ${
-                        order.Discovered == order.Price ? "bg-custom-1 dark:bg-custom-1 font-bold" : ""
-                      }`}
+                        order.Discovered == order.Price ? "bg-custom-1  text-white dark:bg-custom-1 font-bold" : ""
+                      } `}
                     >
                       {order.Price}
                     </TableCell>
-                    <TableCell className={`text-right ${order.SellVol > 0 ? "text-red-800 dark:text-red-400" : "text-gray-400"}`}>
+                    <TableCell className={`text-right ${order.SellVol > 0 ? "text-red-800 dark:text-red-400" : "text-gray-400"} ${
+                        order.Discovered == order.Price ? "bg-custom-1  text-white dark:bg-custom-1 dark:text-white font-bold" : ""
+                      }`}>
                       {order.SellVol}
                     </TableCell>
                   </TableRow>

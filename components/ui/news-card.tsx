@@ -35,7 +35,7 @@ interface NewsCardProps {
             {truncateText(description, descriptionLimit)}
             {description.length > descriptionLimit && (
               <span
-                className="text-blue-600 cursor-pointer"
+                className="text-custom-1 cursor-pointer"
                 onClick={onMore} // Trigger modal on click
               >
                 more

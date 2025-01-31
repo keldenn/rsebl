@@ -250,7 +250,7 @@ export default async function Home({
       <div className="flex items-center justify-between py-4">
   <h2 className="text-xl font-medium">News & Announcements</h2>
 
-<Link className="text-blue-600 hover:underline text-sm font-medium" href="/news-and-announcements">
+<Link className="text-custom-1 hover:underline text-sm font-medium" href="/news-and-announcements">
     
 View more
     </Link>
