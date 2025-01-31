@@ -24,7 +24,7 @@ import { fetchMarketStock } from "@/lib/yahoo-finance/fetchMarketStocks"
 import NewsSection from "@/components/ui/news-section"
 import StatsSection from "@/components/ui/stats-section"
 import StockTabs from "@/components/ui/stocks-tabs"
-// import LogoCarousel from "@/components/ui/logo-carousel"
+import LogoCarousel from "@/components/ui/logo-carousel"
 
 function isMarketOpen() {
   const now = new Date()
@@ -149,11 +149,11 @@ export default async function Home({
     shortName: tickers[index].shortName,
   }))
 
-  const agmResponse = await fetch("https://rsebl.org.bt/agm/api/fetch-agm");
+  const agmResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-agm-with-sym`);
   const agmData = await agmResponse.json();
   const latestAGM = agmData.length > 0 ? agmData[0] : null; // Get the latest AGM
 
-  const response = await fetch("https://rsebl.org.bt/agm/api/fetch-BSI")
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-BSI`)
   const data = await response.json()
 
 
@@ -200,7 +200,7 @@ export default async function Home({
                 <p className="text-base font-semibold">{latestAGM.agm_name}</p>
                 <Link
                   prefetch={false}
-                  href={`/company/${encodeURIComponent(latestAGM.name)}`} // Redirect to company page
+                  href={`/stocks/${encodeURIComponent(latestAGM.symbol)}`} // Redirect to company page
                   className="text-sm font-medium"
                 >
                   {latestAGM.name}
@@ -261,7 +261,7 @@ View more
 
 <h2 className="text-xl font-medium py-4">Stock Highlights</h2>
 <StockTabs></StockTabs>
-{/* <LogoCarousel></LogoCarousel> */}
+<LogoCarousel></LogoCarousel>
     </div>
   )
 }

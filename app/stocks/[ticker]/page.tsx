@@ -13,6 +13,7 @@ import { Suspense } from "react"
 import type { Metadata } from "next"
 import { fetchQuote } from "@/lib/yahoo-finance/fetchQuote"
 import OrderBook from "./components/OrderBook"
+import CorporateDetails from "./components/CorporateDetails"
 
 
 type Props = {
@@ -109,7 +110,7 @@ export default async function StocksPage({ params, searchParams }: Props) {
               </div>
             }
           >
-            {/* <CoporateDetails ticker={ticker} /> */}
+            <CorporateDetails ticker={ticker} />
           </Suspense>
         </CardContent>
       </Card>

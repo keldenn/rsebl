@@ -119,14 +119,17 @@ const auditReportsColumns: ColumnDef<AuditReportType>[] = [
 function DataTable<TData>({
   columns,
   data,
+  globalFilter,
+  setPaginationInfo, // New Prop
 }: {
   columns: ColumnDef<TData>[];
   data: TData[];
+  globalFilter: string;
+  setPaginationInfo: (pagination: { pageIndex: number; pageCount: number; canNext: boolean; canPrev: boolean; nextPage: () => void; prevPage: () => void }) => void;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [globalFilter, setGlobalFilter] = useState("");
 
   const table = useReactTable({
     data,
@@ -140,17 +143,16 @@ function DataTable<TData>({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     globalFilterFn: (row, columnId, filterValue) => {
       return Object.values(row.original)
         .join(" ")
         .toLowerCase()
         .includes(filterValue.toLowerCase());
     },
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     initialState: {
       pagination: {
         pageSize: 5,
@@ -158,16 +160,20 @@ function DataTable<TData>({
     },
   });
 
+  // Send pagination info to parent
+  useEffect(() => {
+    setPaginationInfo({
+      pageIndex: table.getState().pagination.pageIndex + 1,
+      pageCount: table.getPageCount(),
+      canNext: table.getCanNextPage(),
+      canPrev: table.getCanPreviousPage(),
+      nextPage: table.nextPage,
+      prevPage: table.previousPage,
+    });
+  }, [table.getState().pagination]);
+
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between pb-4 mt-4">
-        <Input
-          placeholder="Search..."
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          className="max-w-md"
-        />
-      </div>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -198,36 +204,26 @@ function DataTable<TData>({
           )}
         </TableBody>
       </Table>
-      <div className="flex items-center justify-between mt-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <span className="text-sm text-gray-600">
-          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
-      </div>
     </div>
   );
 }
+
+
 
 export default function FinancialPublicationPage() {
   const [officeReportsData, setOfficeReportsData] = useState<OfficeReportsType[]>([]);
   const [regulationsData, setRegulationsData] = useState<RegulationsType[]>([]);
   const [formsData, setFormsData] = useState<FormsType[]>([]);
   const [auditReportsData, setAuditReportsData] = useState<AuditReportType[]>([]);
+  const [globalFilter, setGlobalFilter] = useState(""); // Centralized search state
+  const [paginationInfo, setPaginationInfo] = useState({
+    pageIndex: 1,
+    pageCount: 1,
+    canNext: false,
+    canPrev: false,
+    nextPage: () => {},
+    prevPage: () => {},
+  });
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-office-reports`)
@@ -260,11 +256,21 @@ export default function FinancialPublicationPage() {
         <TabsTrigger value="audit-reports">Audited Reports</TabsTrigger>
       </TabsList>
 
+      {/* Search Input - Placed above the card */}
+      <div className="flex justify-between items-center my-4">
+        <Input
+          placeholder="Search..."
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          className="max-w-md"
+        />
+      </div>
+
       {/* Annual Reports Tab */}
       <TabsContent value="annual-reports">
         <Card>
           <CardContent>
-            <DataTable columns={officeReportsColumns} data={officeReportsData} />
+            <DataTable columns={officeReportsColumns} data={officeReportsData} globalFilter={globalFilter} setPaginationInfo={setPaginationInfo} />
           </CardContent>
         </Card>
       </TabsContent>
@@ -273,7 +279,7 @@ export default function FinancialPublicationPage() {
       <TabsContent value="regulations">
         <Card>
           <CardContent>
-            <DataTable columns={regulationsColumns} data={regulationsData} />
+            <DataTable columns={regulationsColumns} data={regulationsData} globalFilter={globalFilter} setPaginationInfo={setPaginationInfo} />
           </CardContent>
         </Card>
       </TabsContent>
@@ -282,20 +288,34 @@ export default function FinancialPublicationPage() {
       <TabsContent value="forms">
         <Card>
           <CardContent>
-            <DataTable columns={formsColumns} data={formsData} />
+            <DataTable columns={formsColumns} data={formsData} globalFilter={globalFilter} setPaginationInfo={setPaginationInfo} />
           </CardContent>
         </Card>
       </TabsContent>
 
-      {/* Audited Reports Tab (Fix: Corrected value from `audit-reports` to match the trigger) */}
+      {/* Audited Reports Tab */}
       <TabsContent value="audit-reports">
         <Card>
           <CardContent>
-            <DataTable columns={auditReportsColumns} data={auditReportsData} />
+            <DataTable columns={auditReportsColumns} data={auditReportsData} globalFilter={globalFilter} setPaginationInfo={setPaginationInfo} />
           </CardContent>
         </Card>
       </TabsContent>
+
+      {/* Pagination - Placed outside the card */}
+      <div className="flex items-center justify-end gap-2 mt-4">
+        <Button variant="outline" size="sm" onClick={paginationInfo.prevPage} disabled={!paginationInfo.canPrev}>
+          Previous
+        </Button>
+        <span className="text-sm text-gray-600">
+          Page {paginationInfo.pageIndex} of {paginationInfo.pageCount}
+        </span>
+        <Button variant="outline" size="sm" onClick={paginationInfo.nextPage} disabled={!paginationInfo.canNext}>
+          Next
+        </Button>
+      </div>
     </Tabs>
   );
 }
+
 
