@@ -12,6 +12,7 @@ import { Interval } from "@/types/yahoo-finance"
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import { fetchQuote } from "@/lib/yahoo-finance/fetchQuote"
+import OrderBook from "./components/OrderBook"
 
 
 type Props = {
@@ -83,6 +84,7 @@ export default async function StocksPage({ params, searchParams }: Props) {
           >
             <CompanySummaryCard ticker={ticker} />
           </Suspense>
+        
           <Suspense
             fallback={
               <div className="flex h-[20rem] items-center justify-center text-muted-foreground ">
@@ -90,7 +92,24 @@ export default async function StocksPage({ params, searchParams }: Props) {
               </div>
             }
           >
+          <div className="flex flex-col md:flex-row gap-4">
+          <div className="w-full md:w-1/2">
             <News ticker={ticker} />
+          </div>
+          <div className="w-full md:w-1/2">
+            <OrderBook symbol={ticker} />
+          </div>
+        </div>
+           
+          </Suspense>
+          <Suspense
+            fallback={
+              <div className="flex h-[10rem] items-center justify-center text-muted-foreground ">
+                Loading...
+              </div>
+            }
+          >
+            {/* <CoporateDetails ticker={ticker} /> */}
           </Suspense>
         </CardContent>
       </Card>

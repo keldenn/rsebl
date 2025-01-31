@@ -54,7 +54,7 @@ export default async function Agm({ ticker }: { ticker: string }) {
   const agmData = await fetchAgmData(ticker)
 
   return (
-    <div className="w-4/5">
+    <div >
       {!agmData || agmData.length === 0 ? (
         <div className="py-4 text-center text-sm font-medium text-muted-foreground">
           No AGM information available
