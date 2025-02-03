@@ -116,16 +116,21 @@ export default function Navigation() {
         </div>
         {/* Dropdown menu for mobile */}
         {isOpen && (
-            <div className="lg:hidden flex flex-col space-y-2 py-2">
+            <div className="lg:hidden flex flex-col justify-center items-center w-full space-y-2 py-2">
               {NAVIGATION.map((item) => (
-                <Link key={item.title} href={item.href} className="px-4 py-2 hover:bg-accent">
+                <Link key={item.title} href={item.href} className="px-4 py-2 w-full" onClick={() => setIsOpen(false)} >
                   {item.title}
                 </Link>
               ))}
-              <CommandMenu />
-              <ThemeToggle />
+              <div className="flex px-4 py-2  w-full">
+                <div  className="w-1/2 me-2"><CommandMenu /></div>
+                <div className="w-1/2 ms-2"><ThemeToggle /></div>
+              </div>
+ 
+          
             </div>
           )}
+          
       </div>
     </header>
  

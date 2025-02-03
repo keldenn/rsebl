@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import AreaClosedChartBsi from "@/components/chart/AreaClosedChartBsi";
-
+import { Button } from "@/components/ui/button";
 export default function DynamicStockChart() {
   const [chartData, setChartData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -126,24 +126,7 @@ export default function DynamicStockChart() {
         </div>
       </div>
 
-      <div className="mb-4">
-        <div className="flex space-x-2">
-          {timeFilters.map((filter) => (
-            <button
-              key={filter}
-              onClick={() => handleTimeFilterChange(filter)}
-              className={cn(
-                "px-4 py-2 rounded-md font-semibold border",
-                selectedTimeFilter === filter
-                  ? "bg-custom-1 text-white"
-                  : "bg-background hover:bg-blue-100"
-              )}
-            >
-              {filter}
-            </button>
-          ))}
-        </div>
-      </div>
+      
 
       <div className="relative h-[300px] md:h-[400px]">
         {isLoading ? (
@@ -161,6 +144,26 @@ export default function DynamicStockChart() {
         ) : (
           <AreaClosedChartBsi chartQuotes={filteredData} range={selectedTimeFilter} />
         )}
+        <div className="my-4">
+        <div className="flex space-x-2">
+
+          {timeFilters.map((filter) => (
+            <Button
+            variant={"ghost"}
+              key={filter}
+              onClick={() => handleTimeFilterChange(filter)}
+              className={cn(
+                "",
+                selectedTimeFilter === filter
+                  ? "bg-accent font-bold text-accent-foreground"
+                  : "text-muted-foreground"
+              )}
+            >
+              {filter}
+            </Button>
+          ))}
+        </div>
+      </div>
       </div>
     </div>
   );
