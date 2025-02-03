@@ -16,14 +16,6 @@ import { Button } from "./button"
 import tickers from "@/data/tickers_rsebl.json"
 import { useRouter } from "next/navigation"
 
-const SUGGESTIONS = [
-  { ticker: "TSLA", title: "Tesla Inc." },
-  { ticker: "NVDA", title: "NVIDIA Corporation" },
-  { ticker: "AAPL", title: "Apple Inc." },
-  { ticker: "MSFT", title: "Microsoft Corporation" },
-  { ticker: "GOOGL", title: "Alphabet Inc." },
-  { ticker: "AMZN", title: "Amazon.com Inc." },
-]
 
 export default function CommandMenu() {
   const [open, setOpen] = useState(false)
@@ -62,7 +54,7 @@ export default function CommandMenu() {
         onClick={() => setOpen(true)}
         variant="outline"
         size={"sm"}
-        className="group"
+        className="group w-full"
       >
         <p className="flex gap-10 text-sm text-muted-foreground group-hover:text-foreground">
           Search...
@@ -92,7 +84,7 @@ export default function CommandMenu() {
                       router.push(`/stocks/${suggestion.ticker}`)
                     }}
                   >
-                    <p className="mr-2 font-semibold">{suggestion.ticker}</p>
+                    <p className="mr-2 font-semibold text-custom-1">{suggestion.ticker}</p>
                     <p className="text-sm text-muted-foreground">
                       {suggestion.title}
                     </p>
@@ -119,7 +111,7 @@ export default function CommandMenu() {
                         router.push(`/stocks/${ticker.ticker}`)
                       }}
                     >
-                      <p className="mr-2 font-semibold">{ticker.ticker}</p>
+                      <p className="mr-2 font-semibold text-custom-1">{ticker.ticker}</p>
                       <p className="text-sm text-muted-foreground">
                         {ticker.title}
                       </p>

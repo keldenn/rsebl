@@ -16,12 +16,12 @@ export function ThemeToggle() {
   const { setTheme } = useTheme()
 
   return (
-    <div className="">
+    <div >
     <DropdownMenu
-
+  
 >
   <DropdownMenuTrigger asChild>
-    <Button variant={"outline"} size={"sm"}>
+    <Button className="w-full" variant={"outline"} size={"sm"}>
       <svg
         viewBox="0 0 24 24"
         fill="none"
