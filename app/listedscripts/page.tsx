@@ -20,7 +20,7 @@ export default function ListedScriptsPage() {
           priceChange: parseFloat(item.price),
           percentageChange:
             ((parseFloat(item.price) / (parseFloat(item.currentPrice) - parseFloat(item.price))) * 100).toFixed(2),
-          link: `/listedscripts/${item.symbol.toLowerCase()}`,
+          link: `/stocks/${item.symbol.toLowerCase()}`,
         }));
         setCompanyData(formattedData);
       } catch (error) {

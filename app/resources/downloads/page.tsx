@@ -304,12 +304,12 @@ export default function FinancialPublicationPage() {
 
       {/* Pagination - Placed outside the card */}
       <div className="flex items-center justify-end gap-2 mt-4">
-        <Button variant="outline" size="sm" onClick={paginationInfo.prevPage} disabled={!paginationInfo.canPrev}>
-          Previous
-        </Button>
         <span className="text-sm text-gray-600">
           Page {paginationInfo.pageIndex} of {paginationInfo.pageCount}
         </span>
+        <Button variant="outline" size="sm" onClick={paginationInfo.prevPage} disabled={!paginationInfo.canPrev}>
+          Previous
+        </Button>
         <Button variant="outline" size="sm" onClick={paginationInfo.nextPage} disabled={!paginationInfo.canNext}>
           Next
         </Button>
