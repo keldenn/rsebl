@@ -65,7 +65,7 @@ export default async function StocksPage({ params, searchParams }: Props) {
               </div>
             }
           >
-            <StockChart ticker={"AAPL"} range={range} interval={interval} />
+            <StockChart ticker={ticker}/>
           </Suspense>
           <Suspense
             fallback={

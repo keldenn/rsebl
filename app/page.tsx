@@ -137,7 +137,6 @@ export default async function Home({
     range,
     (searchParams?.interval as Interval) || DEFAULT_INTERVAL
   )
-  const news = await fetchStockSearch("^DJI", 1)
 
   const promises = tickers.map(({ symbol }) =>
     yahooFinance.quoteCombine(symbol)

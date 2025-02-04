@@ -1,47 +1,153 @@
-import { fetchChartData } from "@/lib/yahoo-finance/fetchChartData"
-import { Interval, Range } from "@/types/yahoo-finance"
-import AreaClosedChart from "./AreaClosedChart"
-import { fetchQuote } from "@/lib/yahoo-finance/fetchQuote"
+"use client";
 
-export default async function MarketsChart({
-  ticker,
-  range,
-  interval,
-}: {
-  ticker: string
-  range: Range
-  interval: Interval
-}) {
-  const chartData = await fetchChartData(ticker, range, interval)
-  const quoteData = await fetchQuote(ticker)
+import { useEffect, useState } from "react";
+import AreaClosedChartBsi from "@/components/chart/AreaClosedChartBsi";
+import { Button } from "@/components/ui/button";
 
-  const [chart, quote] = await Promise.all([chartData, quoteData])
+export default function StockChart({ ticker }) {
+  const [chartData, setChartData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedTimeFilter, setSelectedTimeFilter] = useState("All");
+  const [stockInfo, setStockInfo] = useState(null);
 
-  const stockQuotes = chart.quotes
-    ? chart.quotes
-        .map((quote) => ({
-          date: quote.date,
-          close: quote.close?.toFixed(2),
-        }))
-        .filter((quote) => quote.close !== undefined && quote.date !== null)
-    : []
+  const timeFilters = ["1M", "3M", "6M", "1Y", "All"];
+
+  useEffect(() => {
+    async function fetchStockInfo() {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-listed-scripts`);
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+        const data = await response.json();
+        const matchedStock = data.find((stock) => stock.symbol === ticker);
+        if (matchedStock) {
+          matchedStock.percentageChange = matchedStock.currentPrice
+            ? ((matchedStock.price / matchedStock.currentPrice) * 100).toFixed(2)
+            : "0.00";
+          matchedStock.percentageChange = matchedStock.percentageChange > 0 
+            ? `+${matchedStock.percentageChange}`
+            : matchedStock.percentageChange;
+          setStockInfo(matchedStock);
+        }
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+      }
+    }
+
+    fetchStockInfo();
+  }, [ticker]);
+
+  useEffect(() => {
+    async function fetchChartData() {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-price-movement/${ticker}`);
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+        const data = await response.json();
+        const transformedData = data.map(([timestamp, price]) => ({
+          date: new Date(timestamp).toISOString().split("T")[0],
+          close: price,
+        }));
+        setChartData(transformedData);
+        setFilteredData(transformedData);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchChartData();
+  }, [ticker]);
+
+  const filterDataByTime = (data) => {
+    const today = new Date();
+    const timePeriods = {
+      "1M": 30,
+      "3M": 90,
+      "6M": 180,
+      "1Y": 365,
+      All: Infinity,
+    };
+
+    const daysToInclude = timePeriods[selectedTimeFilter];
+    return data.filter((point) => {
+      const differenceInDays = (today - new Date(point.date)) / (1000 * 60 * 60 * 24);
+      return differenceInDays <= daysToInclude;
+    });
+  };
+
+  useEffect(() => {
+    if (chartData.length > 0) {
+      const filtered = filterDataByTime(chartData);
+      setFilteredData(filtered);
+    }
+  }, [selectedTimeFilter, chartData]);
 
   return (
-    <>
-      <div className="mb-0.5 font-medium">
-        {quote.shortName} ({quote.symbol}){" "}
-        {quote.regularMarketPrice?.toLocaleString(undefined, {
-          style: "currency",
-          currency: quote.currency,
-        })}
-      </div>
-      {chart.quotes.length > 0 ? (
-        <AreaClosedChart chartQuotes={stockQuotes} range={range} />
-      ) : (
-        <div className="flex h-full items-center justify-center text-center text-neutral-500">
-          No data available
+    <div className="h-auto w-full px-4 py-6 md:px-8">
+      {stockInfo && (
+        <div className="mb-4">
+          <div className="flex flex-col space-y-1 md:flex-row md:items-center md:space-y-0 md:space-x-2">
+            <span className="font-bold text-primary text-lg">{stockInfo.symbol}</span>
+            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground text-sm">{stockInfo.name}</span>
+          </div>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-end">
+            <div className="space-y-2">
+              <span className="font-bold text-primary">
+                {stockInfo.currentPrice} {" "}
+                <span
+                  className={
+                    stockInfo.price > 0
+                      ? "text-green-600 font-semibold text-sm"
+                      : stockInfo.price < 0
+                      ? "text-red-600 font-semibold text-sm"
+                      : "text-muted-foreground font-semibold text-sm"
+                  }
+                >
+                  {stockInfo.price > 0 ? `+${stockInfo.price}` : stockInfo.price} pts ({stockInfo.percentageChange}%)
+                </span>
+              </span>
+            </div>
+          </div>
         </div>
       )}
-    </>
-  )
+      <div className="relative h-[300px] md:h-[400px]">
+        {isLoading ? (
+          <div className="flex h-full items-center justify-center text-center text-neutral-500">
+            Loading data...
+          </div>
+        ) : error ? (
+          <div className="flex h-full items-center justify-center text-center text-red-500">
+            {error}
+          </div>
+        ) : filteredData.length === 0 ? (
+          <div className="flex h-full items-center justify-center text-center text-neutral-500">
+            No data available
+          </div>
+        ) : (
+          <AreaClosedChartBsi chartQuotes={filteredData} range={selectedTimeFilter} />
+        )}
+        <div className="my-4">
+          <div className="flex space-x-2">
+            {timeFilters.map((filter) => (
+              <Button
+                variant={"ghost"}
+                key={filter}
+                onClick={() => setSelectedTimeFilter(filter)}
+                className={selectedTimeFilter === filter ? "bg-accent font-bold text-accent-foreground" : "text-muted-foreground"}
+              >
+                {filter}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
