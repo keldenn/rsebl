@@ -625,7 +625,12 @@ const ServicesIdPage = () => {
           </>
         );
 
-      case "OnlineShareStmt":
+      case "declareShare":
+        return (
+          <h1>HIi</h1>
+        )
+
+      default:
         const [accountType, setAccountType] = useState(""); // State to track dropdown selection
         const [cidNo, setCidNo] = useState("");
         const [disnNo, setDisnNo] = useState("");
@@ -792,31 +797,6 @@ const ServicesIdPage = () => {
           </div>
 
   
-        );
-        
-      default:
-        return (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
-              <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4">
-                <h2 className="py-4 text-xl font-medium text-center">Online Registration for Bhutanese Living Aboard</h2>
-                <label className="text-sm font-medium">CID</label>
-                <input
-                  className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-4"
-                  placeholder="Enter your CID number"
-                  type="text"
-                />
-                <div className="flex justify-center">
-                  <Button variant="outline"
-                      size="lg"
-                      className="my-5"
-                      >
-                    Submit
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </>
         );
     }
   };

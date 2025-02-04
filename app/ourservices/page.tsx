@@ -37,12 +37,7 @@ const servicesData = [
     description: "Online Share Statement",
     image: "https://rsebl.org.bt/agm/storage/serviceLogo/ailCgaN14Y12UzZefNYlHhLW3AgIO0gYrOCCmGSu.png",
     link: "/ourservices/OnlineShareStmt",
-  },
-  {
-    description: "Online Registration For Bhutanese Living Aboard (BLA)",
-    image: "https://rsebl.org.bt/agm/storage/serviceLogo/ailCgaN14Y12UzZefNYlHhLW3AgIO0gYrOCCmGSu.png",
-    link: "/ourservices/OnlineRegNRB",
-  },
+  }
 ];
 
 export default async function ServicesPage() {
