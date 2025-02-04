@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import React, { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import {Input } from "@/components/ui/input";
 
 const INACTIVITY_TIMEOUT = 300000; // 5 minutes (in milliseconds)
 
@@ -625,10 +627,54 @@ const ServicesIdPage = () => {
           </>
         );
 
-      case "declareShare":
+      case "declare-shares":
+        const [cid, setCid] = useState("");
+        const handleSubmit = () => {
+          
+          if (!cid.trim()) {
+            toast({
+              variant: "destructive",
+              title: "Validation Error",
+              description: "CID is required. Please enter a valid CID.",
+            });
+            return;
+          }
+
+          toast({
+            title: "Success",
+            description: `CID ${cid} submitted successfully.`,
+          });
+
+          // Proceed with form submission logic (e.g., API call)
+        };
+
         return (
-          <h1>HIi</h1>
-        )
+          <Card className=" mx-auto mt-10 p-4 ">
+            <CardHeader>
+            <h2 className="text-lg font-semibold text-center">Declare Share</h2>
+            </CardHeader>
+
+            <CardContent>
+              <div className="flex flex-col space-y-4">
+                <Input
+                  type="text"
+                  placeholder="Enter CID"
+                  value={cid}
+                  onChange={(e) => setCid(e.target.value)}
+                />
+              </div>
+            </CardContent>
+
+            <CardFooter className="flex justify-center">
+              <Button variant="outline"
+                      size="lg"
+                    
+              onClick={handleSubmit} className="w-full">
+                Submit
+              </Button>
+            </CardFooter>
+          </Card>
+        );
 
       default:
         const [accountType, setAccountType] = useState(""); // State to track dropdown selection
