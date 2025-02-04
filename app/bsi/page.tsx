@@ -103,18 +103,18 @@ export default function DynamicStockChart() {
     <div className="h-auto w-full px-4 py-6 md:px-8">
       <div className="mb-4">
         <div className="flex flex-col space-y-1 md:flex-row md:items-center md:space-y-0 md:space-x-2">
-          <span className="font-bold text-primary text-lg md:text-xl">Bhutan Stock Index</span>
+          <span className="font-bold text-primary text-lg">BSI</span>
           <span className="text-muted-foreground">·</span>
-          <span className="text-muted-foreground">BSI</span>
+          <span className="text-muted-foreground text-sm">Bhutan Stock Index</span>
         </div>
 
-        <div className="flex flex-col md:flex-row md:justify-between md:items-end mt-3">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-end">
           <div className="space-y-2">
-            <span className="block text-base text-muted-foreground">
-              BSI: {bsi || "N/A"}{" "}
+            <span className="font-bold text-primary">
+              {bsi || "N/A"}{" "}
               <span
                 className={cn(
-                  "font-semibold",
+                  "font-semibold text-sm",
                   ptChange > 0 ? "text-green-600" : ptChange < 0 ? "text-red-600" : "text-muted-foreground"
                 )}
               >
