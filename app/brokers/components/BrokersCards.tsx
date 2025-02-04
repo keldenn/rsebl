@@ -38,7 +38,7 @@ const BrokersCards: React.FC<BrokersCardProps> = ({
         {/* Front Side */}
         <Card className="absolute w-full h-full rounded-xl border bg-card text-card-foreground shadow [backface-visibility:hidden]">
           {/* Card Header */}
-          <CardHeader className="p-0">
+          <CardHeader className="p-6">
             <div className="relative w-full h-40">
               <img
                 src={file_path}
@@ -66,27 +66,32 @@ const BrokersCards: React.FC<BrokersCardProps> = ({
         </Card>
 
         {/* Back Side */}
-        <Card className="absolute w-full h-full rounded-xl border bg-card text-card-foreground shadow [backface-visibility:hidden] [transform:rotateY(180deg)]">
+        <Card className="absolute w-full flex flex-col justify-between h-full rounded-xl border bg-card text-card-foreground shadow [backface-visibility:hidden] [transform:rotateY(180deg)]">
           <CardHeader className="p-4">
-            <div className="relative w-full flex flex-col">
-              <p className="text-lg text-center">{brokerage_name}</p>
-              <p className="text-sm text-gray-600 flex items-center gap-2 pt-2">
-                <IoMdPerson className="text-gray-500" />
-                {broker_name}
-              </p>
-              <p className="text-sm text-gray-600 flex items-center gap-2 pt-1">
-                <FaPhone className="text-gray-500" />
-                {phone}
-              </p>
-              <p className="text-sm text-gray-600 flex items-center gap-2 pt-1 break-all">
-                <FaEnvelope className="text-gray-500" />
-                {email}
-              </p>
-              <p className="text-sm text-gray-600 flex items-center gap-2 pt-2 break-all">
-                <FaMapMarkerAlt className="text-gray-500" />
-                {address}
-              </p>
-            </div>
+          <div className="relative w-full flex flex-col">
+        <p className="text-md mb-5 text-center">{brokerage_name}</p>
+
+        <p className="text-sm text-gray-600 flex items-center gap-3 pt-2">
+          <IoMdPerson className="w-1/8 h-5 text-custom-1" />
+          <span className="w-5/6">{broker_name}</span>
+        </p>
+
+        <p className="text-sm text-gray-600 flex items-center gap-3 pt-2">
+          <FaPhone className="w-1/8 h-5 text-custom-1" />
+          <span className="w-5/6">{phone}</span>
+        </p>
+
+        <p className="text-sm text-gray-600 flex items-center gap-3 pt-2">
+          <FaEnvelope className="w-1/8 h-5 text-custom-1" />
+          <span className="break-all w-5/6">{email}</span>
+        </p>
+
+        <p className="text-sm text-gray-600 flex items-center gap-3 pt-2">
+          <FaMapMarkerAlt className="w-1/8 h-5 text-custom-1" />
+          <span className="break-all w-5/6">{address}</span>
+        </p>
+      </div>``
+
           </CardHeader>
 
           {/* Card Footer */}
