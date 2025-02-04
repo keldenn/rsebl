@@ -74,7 +74,7 @@ export default async function StocksPage({ params, searchParams }: Props) {
               </div>
             }
           >
-            {/* <FinanceSummary ticker={ticker} /> */}
+            <FinanceSummary ticker={ticker} />
           </Suspense>
           <Suspense
             fallback={

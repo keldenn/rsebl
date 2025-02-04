@@ -1,4 +1,5 @@
-import { fetchQuoteSummary } from "@/lib/yahoo-finance/fetchQuoteSummary"
+// import { fetchQuoteSummary } from "@/lib/yahoo-finance/fetchQuoteSummary"
+import { fetchQuoteSummaryNew } from "@/lib/yahoo-finance/fetchQuoteSummaryNew"
 
 function formatNumber(num: number) {
   if (num >= 1e12) {
@@ -16,8 +17,8 @@ const keysToDisplay = [
     key: "open",
     title: "Open",
   },
-  { key: "dayHigh", title: "High" },
-  { key: "dayLow", title: "Low" },
+  { key: "weekHigh", title: "High" },
+  { key: "weekLow", title: "Low" },
   { key: "volume", title: "Vol", format: formatNumber },
   { key: "trailingPE", title: "P/E" },
   { key: "marketCap", title: "Mkt cap", format: formatNumber },
@@ -34,13 +35,14 @@ const keysToDisplay = [
 ]
 
 export default async function FinanceSummary({ ticker }: { ticker: string }) {
-  const financeSummaryData = await fetchQuoteSummary(ticker)
+  const financeSummaryData = await fetchQuoteSummaryNew(ticker)
 
   return (
     <div className="grid grid-flow-col grid-rows-6 gap-4 md:grid-rows-3">
       {keysToDisplay.map((item) => {
         const section = item.section || "summaryDetail"
-        const data = financeSummaryData?.[section]?.[item.key] ?? undefined
+        console.log(financeSummaryData)
+        const data = financeSummaryData?.[item.key] ?? undefined
         let formattedData = "N/A"
 
         if (data !== undefined && !isNaN(data)) {
@@ -57,5 +59,6 @@ export default async function FinanceSummary({ ticker }: { ticker: string }) {
         )
       })}
     </div>
+     
   )
 }
