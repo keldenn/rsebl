@@ -89,7 +89,7 @@ export default function StockChart({ ticker }) {
   }, [selectedTimeFilter, chartData]);
 
   return (
-    <div className="h-auto w-full px-4 py-6 md:px-8">
+    <div className="h-auto w-full">
       {stockInfo && (
         <div className="mb-4">
           <div className="flex flex-col space-y-1 md:flex-row md:items-center md:space-y-0 md:space-x-2">
