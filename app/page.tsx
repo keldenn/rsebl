@@ -1,5 +1,4 @@
 import { DataTable } from "@/components/stocks/markets/data-table"
-import yahooFinance from "yahoo-finance2"
 import {
   Card,
   CardContent,
@@ -8,19 +7,11 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import HeroCarousel from "@/components/ui/home-carousel"
-import { DEFAULT_INTERVAL, DEFAULT_RANGE } from "@/lib/yahoo-finance/constants"
-import { Interval } from "@/types/yahoo-finance"
 import { Suspense } from "react"
 import MarketsChart from "@/components/chart/MarketsChart"
 import Link from "next/link"
 import { columns } from "@/components/stocks/markets/columns"
 import SectorPerformance from "@/components/stocks/SectorPerformance"
-import {
-  validateInterval,
-  validateRange,
-} from "@/lib/yahoo-finance/fetchChartData"
-import { fetchStockSearch } from "@/lib/yahoo-finance/fetchStockSearch"
-import { fetchMarketStock } from "@/lib/yahoo-finance/fetchMarketStocks"
 import NewsSection from "@/components/ui/news-section"
 import StatsSection from "@/components/ui/stats-section"
 import StockTabs from "@/components/ui/stocks-tabs"
@@ -28,8 +19,6 @@ import LogoCarousel from "@/components/ui/logo-carousel"
 
 function isMarketOpen() {
   const now = new Date()
-
-  // Convert to New York time
   const options: Intl.DateTimeFormatOptions = {
     timeZone: "America/New_York",
     hour: "numeric",
@@ -37,87 +26,77 @@ function isMarketOpen() {
     hour12: false,
   }
   const formatter = new Intl.DateTimeFormat([], options)
-
   const timeString = formatter.format(now)
   const [hour, minute] = timeString.split(":").map(Number)
   const timeInET = hour + minute / 60
-
-  // Get the day of the week in New York time
   const dayInET = new Date(
     now.toLocaleString("en-US", { timeZone: "America/New_York" })
   ).getDay()
 
-  // Check if the current time is between 9:30 AM and 4:00 PM ET on a weekday
-  if (dayInET >= 1 && dayInET <= 5 && timeInET >= 9.5 && timeInET < 16) {
-    return true
-  } else {
-    return false
+  return dayInET >= 1 && dayInET <= 5 && timeInET >= 9.5 && timeInET < 16
+}
+
+async function fetchTickers() {
+  try {
+    const response = await fetch("https://rsebl.org.bt/agm/api/fetch-listed-scripts");
+    const data = await response.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      return [];
+    }
+
+    return data.slice(0, 10).map(({ symbol, name, currentPrice, price }) => {
+      if (price === undefined || price === 0) {
+        return { symbol, shortName: name, price: currentPrice, priceChange: price, percentageChange: 0 };
+      }
+
+      const previousPrice = currentPrice - price;
+      const percentageChange = (price / previousPrice) * 100;
+
+      //console.log("percentageChange:",percentageChange);
+
+      return {
+        symbol,
+        shortName: name,
+        price: currentPrice, // Latest price
+        priceChange: price,
+        previousPrice,
+        percentageChange: percentageChange.toFixed(2), // Rounded to 2 decimal places
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching tickers:", error);
+    return [];
   }
 }
 
-// const tickersFutures = [
-//   { symbol: "BBPL", shortName: "S&P 500 Futures" },
-//   { symbol: "BCCL", shortName: "NASDAQ Futures" },
-//   { symbol: "BFAL", shortName: "Dow Jones Futures" },
-//   { symbol: "BIL", shortName: "Russell 2000 Futures" },
-//   { symbol: "BNBL", shortName: "Crude Oil" },
-//   { symbol: "BPCL", shortName: "Gold" },
-//   { symbol: "BTCL", shortName: "Silver" },
-//   { symbol: "DFAL", shortName: "EUR/USD" },
-//   { symbol: "DPL", shortName: "10 Year Bond" },
-//   { symbol: "DPNB", shortName: "Bitcoin" },
-// ]
 
-// const tickerAfterOpen = [
-//   { symbol: "BBPL", shortName: "S&P 500 Futures" },
-//   { symbol: "BCCL", shortName: "NASDAQ Futures" },
-//   { symbol: "BFAL", shortName: "Dow Jones Futures" },
-//   { symbol: "BIL", shortName: "Russell 2000 Futures" },
-//   { symbol: "BNBL", shortName: "Crude Oil" },
-//   { symbol: "BPCL", shortName: "Gold" },
-//   { symbol: "BTCL", shortName: "Silver" },
-//   { symbol: "DFAL", shortName: "EUR/USD" },
-//   { symbol: "DPL", shortName: "10 Year Bond" },
-//   { symbol: "DPNB", shortName: "Bitcoin" },
-// ]
+// Fetch stock price and history
+async function fetchStockData(symbol: string) {
+  try {
+    const response = await fetch(`https://rsebl.org.bt/agm/api/fetch-price-movement/${symbol}`)
+    const data = await response.json()
 
-const tickersFutures = [
-  { symbol: "ES=F", shortName: "S&P 500 Futures" },
-  { symbol: "NQ=F", shortName: "NASDAQ Futures" },
-  { symbol: "YM=F", shortName: "Dow Jones Futures" },
-  { symbol: "RTY=F", shortName: "Russell 2000 Futures" },
-  { symbol: "CL=F", shortName: "Crude Oil" },
-  { symbol: "GC=F", shortName: "Gold" },
-  { symbol: "SI=F", shortName: "Silver" },
-  { symbol: "EURUSD=X", shortName: "EUR/USD" },
-  { symbol: "^TNX", shortName: "10 Year Bond" },
-  { symbol: "BTC-USD", shortName: "Bitcoin" },
-]
+    if (!Array.isArray(data) || data.length === 0) {
+      return { symbol, history: [] }
+    }
 
-const tickerAfterOpen = [
-  { symbol: "^GSPC", shortName: "S&P 500" },
-  { symbol: "^IXIC", shortName: "NASDAQ" },
-  { symbol: "^DJI", shortName: "Dow Jones" },
-  { symbol: "^RUT", shortName: "Russell 2000" },
-  { symbol: "CL=F", shortName: "Crude Oil" },
-  { symbol: "GC=F", shortName: "Gold" },
-  { symbol: "SI=F", shortName: "Silver" },
-  { symbol: "EURUSD=X", shortName: "EUR/USD" },
-  { symbol: "^TNX", shortName: "10 Year Bond" },
-  { symbol: "BTC-USD", shortName: "Bitcoin" },
-]
+    const priceHistory = data.map(([timestamp, price]) => ({
+      date: new Date(timestamp).toISOString(),
+      close: price.toFixed(2),
+    }))
+
+    return { symbol, history: priceHistory }
+  } catch (error) {
+    console.error(`Error fetching data for ${symbol}:`, error)
+    return { symbol, history: [] }
+  }
+}
 
 function getMarketSentiment(ptChange: string) {
   const change = parseFloat(ptChange)
-
-  if (change === 0) {
-    return "Neutral"
-  } else if (change > 0) {
-    return "bullish"
-  } else {
-    return "bearish"
-  }
-
+  if (change === 0) return "Neutral"
+  return change > 0 ? "bullish" : "bearish"
 }
 
 export default async function Home({
@@ -129,94 +108,79 @@ export default async function Home({
     interval?: string
   }
 }) {
-  const tickers = isMarketOpen() ? tickerAfterOpen : tickersFutures
+  const tickers = await fetchTickers()
 
-  const ticker = searchParams?.ticker || tickers[0].symbol
-  const range = validateRange(searchParams?.range || DEFAULT_RANGE)
-  const interval = validateInterval(
-    range,
-    (searchParams?.interval as Interval) || DEFAULT_INTERVAL
-  )
+  if (tickers.length === 0) {
+    return <div>Error loading tickers. Please try again later.</div>
+  }
 
-  const promises = tickers.map(({ symbol }) =>
-    yahooFinance.quoteCombine(symbol)
-  )
-  const results = await Promise.all(promises)
+  const ticker = searchParams?.ticker?.toUpperCase() || tickers[0]?.symbol
 
-  const resultsWithTitles = results.map((result, index) => ({
-    ...result,
-    shortName: tickers[index].shortName,
-  }))
+  // Fetch historical data for each stock symbol
+  const stockDataPromises = tickers.map(({ symbol }) => fetchStockData(symbol))
+  const stockDataResults = await Promise.all(stockDataPromises)
 
-  const agmResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-agm-with-sym`);
-  const agmData = await agmResponse.json();
-  const latestAGM = agmData.length > 0 ? agmData[0] : null; // Get the latest AGM
+  // Merge fetched tickers data with stock history
+  const resultsWithTitles = tickers.map((tickerData) => {
+    const stockData = stockDataResults.find((stock) => stock.symbol === tickerData.symbol) || { history: [] }
+    return {
+      ...tickerData,
+      history: stockData.history,
+    }
+  })
+
+  // Find selected stock data
+  const selectedStock = resultsWithTitles.find((stock) => stock.symbol === ticker)
+  const selectedStockHistory = selectedStock?.history || []
+
+  const agmResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-agm-with-sym`)
+  const agmData = await agmResponse.json()
+  const latestAGM = agmData.length > 0 ? agmData[0] : null
 
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-BSI`)
   const data = await response.json()
-
-
-  // Extract ptChange from API response
   const ptChange = data[0]?.ptChange || "0"
-
-  // Determine market sentiment
   const marketSentiment = getMarketSentiment(ptChange)
 
   const sentimentColor =
-    marketSentiment === "bullish"
-      ? "text-green-500"
-      : marketSentiment === "bearish"
-        ? "text-red-500"
-        : "text-neutral-500"
+    marketSentiment === "bullish" ? "text-green-500" :
+    marketSentiment === "bearish" ? "text-red-500" :
+    "text-neutral-500"
 
   const sentimentBackground =
-    marketSentiment === "bullish"
-      ? "bg-green-500/10"
-      : marketSentiment === "bearish"
-        ? "bg-red-300/50 dark:bg-red-950/50"
-        : "bg-neutral-500/10"
+    marketSentiment === "bullish" ? "bg-green-500/10" :
+    marketSentiment === "bearish" ? "bg-red-300/50 dark:bg-red-950/50" :
+    "bg-neutral-500/10"
 
   return (
     <div className="flex flex-col gap-4">
-       <HeroCarousel></HeroCarousel>
-        <StatsSection></StatsSection>
-      <div className="flex flex-col gap-4 lg:flex-row ">
-       
+      <HeroCarousel />
+      <StatsSection />
+
+      <div className="flex flex-col gap-4 lg:flex-row">
         <div className="w-full lg:w-1/2">
           <Card className="relative flex h-full min-h-[15rem] flex-col justify-between overflow-hidden">
             <CardHeader>
-              <CardTitle className="z-50 w-fit rounded-full px-4  py-2 font-medium dark:bg-neutral-100/5">
-                The markets are{" "}
-                <strong className={sentimentColor}>{marketSentiment}</strong>
+              <CardTitle className="z-50 w-fit rounded-full px-4 py-2 font-medium dark:bg-neutral-100/5">
+                The markets are <strong className={sentimentColor}>{marketSentiment}</strong>
               </CardTitle>
             </CardHeader>
-            {/* AGM Announcement */}
+
             {latestAGM && (
               <CardFooter className="flex-col items-start">
-                <p className="mb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-500">
-                  What you need to know
-                </p>
+                <p className="mb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-500">What you need to know</p>
                 <p className="text-base font-semibold">{latestAGM.agm_name}</p>
-                <Link
-                  prefetch={false}
-                  href={`/stocks/${encodeURIComponent(latestAGM.symbol)}`} // Redirect to company page
-                  className="text-sm font-medium"
-                >
+                <Link prefetch={false} href={`/stocks/${encodeURIComponent(latestAGM.symbol)}`} className="text-sm font-medium">
                   {latestAGM.name}
                 </Link>
-                <p className="text-sm text-neutral-700 dark:text-neutral-400">
-                  {latestAGM.venue}
-                </p>
-                <p className="text-sm text-neutral-700 dark:text-neutral-400">
-                  {latestAGM.date}
-                </p>
+                <p className="text-sm text-neutral-700 dark:text-neutral-400">{latestAGM.venue}</p>
+                <p className="text-sm text-neutral-700 dark:text-neutral-400">{latestAGM.date}</p>
               </CardFooter>
             )}
-            <div
-              className={`pointer-events-none absolute inset-0 z-0 h-[65%] w-[65%] -translate-x-[10%] -translate-y-[30%] rounded-full blur-3xl ${sentimentBackground}`}
-            />
+            <div className={`pointer-events-none absolute inset-0 z-0 h-[65%] w-[65%] -translate-x-[10%] -translate-y-[30%] rounded-full blur-3xl ${sentimentBackground}`} />
           </Card>
         </div>
+
         <div className="w-full lg:w-1/2">
           <Card>
             <CardHeader>
@@ -230,8 +194,17 @@ export default async function Home({
           </Card>
         </div>
       </div>
-      <div>
-        <h2 className="py-4 text-xl font-medium ">Stocks</h2>
+      <div className="flex items-center justify-between py-4">
+      <h2 className="text-xl font-medium">Stocks</h2>
+
+      <Link className="text-custom-1 hover:underline text-sm font-medium" href="/screener">
+          
+        View all
+      </Link>
+
+
+      </div>
+      <div className="flex flex-col gap-4">
         <Card className="flex flex-col gap-4 p-6 lg:flex-row">
           <div className="w-full lg:w-1/2">
             <Suspense fallback={<div>Loading...</div>}>
@@ -240,28 +213,26 @@ export default async function Home({
           </div>
           <div className="w-full lg:w-1/2">
             <Suspense fallback={<div>Loading...</div>}>
-              <MarketsChart ticker={ticker} range={range} interval={interval} />
+              <MarketsChart data={selectedStockHistory} ticker={ticker} />
             </Suspense>
           </div>
         </Card>
       </div>
-
       <div className="flex items-center justify-between py-4">
-  <h2 className="text-xl font-medium">News & Announcements</h2>
+      <h2 className="text-xl font-medium">News & Announcements</h2>
 
-<Link className="text-custom-1 hover:underline text-sm font-medium" href="/news-and-announcements">
-    
-View more
-    </Link>
+      <Link className="text-custom-1 hover:underline text-sm font-medium" href="/news-and-announcements">
+          
+        View more
+      </Link>
 
 
-</div>
-<NewsSection />
+      </div>
+      <NewsSection />
 
-<h2 className="text-xl font-medium py-4">Stock Highlights</h2>
-<StockTabs></StockTabs>
-<LogoCarousel></LogoCarousel>
+      <h2 className="text-xl font-medium py-4">Stock Highlights</h2>
+      <StockTabs />
+      <LogoCarousel />
     </div>
   )
 }
-

@@ -126,7 +126,14 @@ const ServicesIdPage = () => {
         toast({
           description: "This is the email registered with Broker, please update if it is incorrect.",
         });
-      } else {
+      } 
+      else if(data.status === "100" && data.message === "The mCaMS account already exists with the chosen Brokerage Firm."){
+        toast({
+          description: "The mCaMS account already exists with the chosen Brokerage Firm.",
+          variant: "destructive",
+        });
+      }
+      else {
         //setDetailsError("No user details found for the provided CID and Brokerage firm.");
         toast({
           description: "No user details found for the provided CID and Brokerage firm.",
@@ -183,7 +190,14 @@ const ServicesIdPage = () => {
           description: "This is the email registered with Broker, please update if it is incorrect.",
         });
         
-      } else {
+      }else if (data.status === "100" && data.message === "Your mCaMS account is still active. Cannot renew before expires."){
+        toast({
+          description: "Your mCaMS account is still active. Cannot renew before expires.",
+          variant: "destructive",
+        });
+      }
+      
+      else {
         //setDetailsError("No user details found for the provided username.");
         toast({
           description: "No user details found for the provided username.",
@@ -630,7 +644,7 @@ const ServicesIdPage = () => {
           <h1>HIi</h1>
         )
 
-      default:
+      case "OnlineShareStmt":
         const [accountType, setAccountType] = useState(""); // State to track dropdown selection
         const [cidNo, setCidNo] = useState("");
         const [disnNo, setDisnNo] = useState("");

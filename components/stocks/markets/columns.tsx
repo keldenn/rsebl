@@ -1,11 +1,20 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import type { Quote } from "@/node_modules/yahoo-finance2/dist/esm/src/modules/quote"
-import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 
-export const columns: ColumnDef<Quote>[] = [
+// Define a new type that matches your API data structure
+type StockData = {
+  symbol: string
+  shortName: string
+  price: number | string
+  previousPrice: number | string
+  priceChange: number | string
+  percentageChange: number | string
+}
+
+export const columns: ColumnDef<any>[] = [
   {
     accessorKey: "shortName",
     header: "Title",
@@ -17,10 +26,7 @@ export const columns: ColumnDef<Quote>[] = [
       return (
         <Link
           prefetch={false}
-          href={{
-            pathname: "/",
-            query: { ticker: symbol },
-          }}
+          href={{ pathname: "/", query: { ticker: symbol } }}
           className="font-medium"
         >
           {title}
@@ -29,53 +35,68 @@ export const columns: ColumnDef<Quote>[] = [
     },
   },
   {
-    accessorKey: "regularMarketPrice",
-    header: () => <div className="text-right">Price</div>,
+    accessorKey: "price",
+    header: () => <div className="text-right">Latest Price</div>,
     cell: (props) => {
       const { row } = props
-      const price = row.getValue("regularMarketPrice") as number
-      return <div className="text-right">{price.toFixed(2)}</div>
+      const price = row.getValue("price") as number | string
+      return <div className="text-right">{price !== "N/A" ? price : "--"}</div>
     },
   },
   {
-    accessorKey: "regularMarketChange",
+    accessorKey: "priceChange",
     header: () => <div className="text-right">$ Change</div>,
     cell: (props) => {
       const { row } = props
-      const change = row.getValue("regularMarketChange") as number
+      const priceChange = row.getValue("priceChange") as number | string
+      const numericValue = Number(priceChange)
+  
       return (
         <div
           className={cn(
             "text-right",
-            change < 0 ? "text-red-500" : "text-green-500"
+            numericValue > 0
+              ? "text-green-500"
+              : numericValue < 0
+              ? "text-red-500"
+              : "text-gray-500" // Gray if value is zero
           )}
         >
-          {change > 0 ? "+" : ""}
-          {change.toFixed(2)}
+          {priceChange !== "N/A" ? (numericValue > 0 ? `+${priceChange}` : priceChange) : "--"}
         </div>
       )
     },
   },
   {
-    accessorKey: "regularMarketChangePercent",
+    accessorKey: "percentageChange",
     header: () => <div className="text-right">% Change</div>,
     cell: (props) => {
       const { row } = props
-      const changePercent = row.getValue("regularMarketChangePercent") as number
+      let percentageChange = row.getValue("percentageChange") as number | string
+  
+      // Ensure it's a number (strip non-numeric characters like `%` if present)
+      const numericValue =
+        typeof percentageChange === "string"
+          ? Number(percentageChange.replace("%", "").trim())
+          : Number(percentageChange)
+  
       return (
         <div className="flex justify-end">
           <div
             className={cn(
               "w-[4rem] min-w-fit rounded-md px-2 py-0.5 text-right",
-              changePercent < 0
+              numericValue > 0
+                ? "bg-green-300 text-green-800 dark:bg-green-950 dark:text-green-400"
+                : numericValue < 0
                 ? "bg-red-300 text-red-800 dark:bg-red-950 dark:text-red-500"
-                : "bg-green-300 text-green-800 dark:bg-green-950 dark:text-green-400"
+                : "bg-gray-300 text-gray-800 dark:bg-gray-900 dark:text-gray-400" // Gray if value is zero
             )}
           >
-            {changePercent.toFixed(2)}%
+            {percentageChange !== "N/A" ? `${percentageChange}%` : "--"}
           </div>
         </div>
       )
     },
-  },
+  }
+  
 ]
