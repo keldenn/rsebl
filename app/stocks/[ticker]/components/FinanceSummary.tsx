@@ -1,4 +1,4 @@
-// import { fetchQuoteSummary } from "@/lib/yahoo-finance/fetchQuoteSummary"
+
 import { fetchQuoteSummaryNew } from "@/lib/yahoo-finance/fetchQuoteSummaryNew"
 
 function formatNumber(num: number) {
@@ -41,7 +41,7 @@ export default async function FinanceSummary({ ticker }: { ticker: string }) {
     <div className="grid grid-flow-col grid-rows-6 gap-4 md:grid-rows-3">
       {keysToDisplay.map((item) => {
         const section = item.section || "summaryDetail"
-        console.log(financeSummaryData)
+  
         const data = financeSummaryData?.[item.key] ?? undefined
         let formattedData = "N/A"
 
