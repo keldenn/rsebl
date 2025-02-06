@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import {Input } from "@/components/ui/input";
-
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 const INACTIVITY_TIMEOUT = 300000; // 5 minutes (in milliseconds)
 
 const ServicesIdPage = () => {
@@ -691,68 +691,204 @@ const ServicesIdPage = () => {
         );
 
       case "OnlineShareStmt":
-        const [accountType, setAccountType] = useState(""); // State to track dropdown selection
+        const [accountType, setAccountType] = useState("");
         const [cidNo, setCidNo] = useState("");
         const [disnNo, setDisnNo] = useState("");
-        const [phone, setPhone] = useState(""); // State for phone number
-        const [email, setEmail] = useState(""); // State for email
-        const [loading, setLoading] = useState(false); // State for loading indicator
+        const [phone, setPhone] = useState("");
+        const [email, setEmail] = useState("");
+        const [loading, setLoading] = useState(false);
         const [fieldsVisible, setFieldsVisible] = useState(false);
-
+        const [banks, setBanks] = useState([]);
+        const [selectedBank, setSelectedBank] = useState("");
+        const [bfsTransId, setBfsTransId] = useState("");
+        const [otp, setOtp] = useState("");
+        const [showOtpInput, setShowOtpInput] = useState(false);
+        const [countdown, setCountdown] = useState(0);
+      
         const handleAccountTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-          setAccountType(e.target.value); // Update state based on dropdown selection
+          setAccountType(e.target.value);
         };
+      
         const handleCidChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          setCidNo(e.target.value); // Update CID value
+          setCidNo(e.target.value);
         };
-        const handleDisnChange = (e) => setDisnNo(e.target.value);
-
+      
+        const handleDisnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+          setDisnNo(e.target.value);
+        };
+      
         const fetchData = async () => {
           if (accountType === "I" && !cidNo) {
-            toast({
-              description: "CID number is required",
-              variant: "destructive",
-            });
+            toast({ description: "CID number is required", variant: "destructive" });
             return;
           }
-        
+      
           if (accountType === "J" && !disnNo) {
-            toast({
-              description: "DISN number is required",
-              variant: "destructive",
-            });
+            toast({ description: "DISN number is required", variant: "destructive" });
             return;
           }
       
           setLoading(true);
           try {
-            // Construct the API URL dynamically
             const apiURL = `https://rsebl.org.bt/agm/api/checkshareExistNew?${accountType === "I" ? `cidNo=${cidNo}` : `cidNo=${disnNo}`}&accType=${accountType}`;
-            
-            // Fetch data from the API
+            const res = await fetch("https://rsebl.org.bt/agm/api/fetch-all-banks");
+            const bankData = await res.json();
             const response = await fetch(apiURL);
             const data = await response.json();
-        
+      
             if (data.status === 200) {
-              // Populate phone and email fields
               setPhone(data.phone || "");
               setEmail(data.email || "");
-              setFieldsVisible(true); // Show additional fields
+              setBanks(bankData);
+              setFieldsVisible(true);
               toast({
                 description: "If your Phone number/Email is incorrect, please contact RSEB office/Broker to update.",
               });
             } else {
-              toast({
-                description: data.message || "No data is available on holding any shares.",
-                variant: "destructive",
-              });
+              toast({ description: data.message || "No data found.", variant: "destructive" });
             }
           } catch (error) {
             console.error("Error fetching data:", error);
-            toast({
-              description: "Error fetching data:",
-              variant: "destructive",
+            toast({ description: "Error fetching data.", variant: "destructive" });
+          } finally {
+            setLoading(false);
+          }
+        };
+        const initiatePayment = async () => {
+          setLoading(true);
+          try {
+            const response = await fetch("/api/payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                amount: 50,
+                service_code: "OT",
+                operation: "get__transition_txt__id",
+                sys_date_time: new Date().toISOString().replace(/[-:T.]/g, "").slice(0, 14), // YYYYMMDDHHMMSS
+              }),
             });
+        
+            const textResponse = await response.text();
+            console.log("Raw Response:", textResponse);
+        
+            if (!textResponse) {
+              toast({ description: "Empty response from server.", variant: "destructive" });
+              return;
+            }
+        
+            let data;
+            try {
+              data = JSON.parse(textResponse);
+            } catch (error) {
+              console.error("Error parsing JSON:", error);
+              toast({ description: "Invalid response from server.", variant: "destructive" });
+              return;
+            }
+        
+            console.log("Parsed Data:", data);
+        
+            if (data?.data?.[1]?.bfs_bfsTxnId) {
+              setBfsTransId(data.data[1].bfs_bfsTxnId);
+              toast({ description: "Transaction initiated. Please request OTP." });
+              setShowOtpInput(true);
+            } else {
+              toast({ description: "Failed to initiate payment.", variant: "destructive" });
+            }
+          } catch (error) {
+            console.error("Error initiating payment:", error);
+            toast({ description: "Error initiating payment.", variant: "destructive" });
+          } finally {
+            setLoading(false);
+          }
+        };
+        
+      
+        const requestOtp = async () => {
+          if (!bfsTransId) {
+            toast({ description: "Transaction ID is missing.", variant: "destructive" });
+            return;
+          }
+      
+          setLoading(true);
+          try {
+            const response = await fetch("https://cms.rsebl.org.bt/payment_gateway/payment_gateway.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                bfs_trans_id: bfsTransId,
+                amount: 50,
+                bank_code: selectedBank,
+                operation: "get__opt__from__bank",
+              }),
+            });
+      
+            const data = await response.json();
+            if (data[0]?.state === "YES") {
+              setCountdown(7 * 60);
+              toast({ description: "OTP sent. Please enter OTP." });
+      
+              const interval = setInterval(() => {
+                setCountdown((prev) => {
+                  if (prev <= 1) {
+                    clearInterval(interval);
+                    return 0;
+                  }
+                  return prev - 1;
+                });
+              }, 1000);
+            } else {
+              toast({ description: "OTP request failed.", variant: "destructive" });
+            }
+          } catch (error) {
+            console.error("OTP request error:", error);
+            toast({ description: "Error requesting OTP.", variant: "destructive" });
+          } finally {
+            setLoading(false);
+          }
+        };
+      
+        const submitPayment = async () => {
+          if (!otp) {
+            toast({ description: "OTP is required.", variant: "destructive" });
+            return;
+          }
+      
+          setLoading(true);
+          try {
+            const response = await fetch("https://cms.rsebl.org.bt/payment_gateway/payment_gateway.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                bfs_trans_id: bfsTransId,
+                otp: otp,
+                operation: "make__online__payment",
+              }),
+            });
+      
+            const data = await response.json();
+            if (data[0]?.http_code === 200 && data[0]?.bfs_code === "00") {
+              toast({ description: "Payment successful." });
+      
+              const form = document.createElement("form");
+              form.action = data[0].action_url;
+              form.method = "POST";
+      
+              Object.keys(data[0].form_data).forEach((key) => {
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = key;
+                input.value = data[0].form_data[key];
+                form.appendChild(input);
+              });
+      
+              document.body.appendChild(form);
+              form.submit();
+            } else {
+              toast({ description: "Payment failed.", variant: "destructive" });
+            }
+          } catch (error) {
+            console.error("Payment submission error:", error);
+            toast({ description: "Error submitting payment.", variant: "destructive" });
           } finally {
             setLoading(false);
           }
@@ -836,6 +972,7 @@ const ServicesIdPage = () => {
                     placeholder="Enter your phone number"
                     type="text"
                     required
+                    disabled
                   />
                   <label className="text-sm font-medium">Email</label>
                   <input
@@ -845,11 +982,32 @@ const ServicesIdPage = () => {
                     placeholder="Enter your email"
                     type="email"
                     required
+                    disabled
                   />
+                  <label className="text-sm font-medium">Amt</label>
+                  <input
+                    className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+                    value={50}
+                    disabled
+                    type="number"
+                  />
+                   <label className="text-sm font-medium mb-4">Select Bank</label>
+                  <Select onValueChange={setSelectedBank}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Bank" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {banks.map((bank) => (
+                        <SelectItem key={bank.bank_code} value={bank.bank_code}>{bank.bank_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <div className="flex justify-center">
-                    <Button variant="outline" size="lg" className="my-5">
-                      Submit
-                    </Button>
+                  <Button onClick={initiatePayment}>Start Payment</Button>
+                    {showOtpInput && <Button onClick={requestOtp}>Request OTP</Button>}
+                    {countdown > 0 && <p>Time left: {Math.floor(countdown / 60)}:{countdown % 60}</p>}
+                    {showOtpInput && <input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} />}
+                  <Button onClick={submitPayment}>Submit Payment</Button>
                   </div>
                 </>
               )}
