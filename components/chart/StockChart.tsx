@@ -24,14 +24,23 @@ export default function StockChart({ ticker }) {
         const data = await response.json();
         const matchedStock = data.find((stock) => stock.symbol === ticker);
         if (matchedStock) {
-          matchedStock.percentageChange = matchedStock.currentPrice
-            ? ((matchedStock.price / matchedStock.currentPrice) * 100).toFixed(2)
+          const currentPrice = matchedStock.currentPrice;
+          const priceChange = matchedStock.price;
+          const previousPrice = currentPrice - priceChange;
+        
+          // Correct percentage calculation
+          const percentageChange = previousPrice !== 0 
+            ? ((priceChange / previousPrice) * 100).toFixed(2)
             : "0.00";
-          matchedStock.percentageChange = matchedStock.percentageChange > 0 
-            ? `+${matchedStock.percentageChange}`
-            : matchedStock.percentageChange;
+        
+          // Add the "+" sign for positive percentage change
+          matchedStock.percentageChange = percentageChange > 0 
+            ? `+${percentageChange}`
+            : percentageChange;
+        
           setStockInfo(matchedStock);
         }
+        
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -110,7 +119,7 @@ export default function StockChart({ ticker }) {
                       : "text-muted-foreground font-semibold text-sm"
                   }
                 >
-                  {stockInfo.price > 0 ? `+${stockInfo.price}` : stockInfo.price} pts ({stockInfo.percentageChange}%)
+                  {stockInfo.price > 0 ? `+${stockInfo.price}` : stockInfo.price} ({stockInfo.percentageChange}%)
                 </span>
               </span>
             </div>

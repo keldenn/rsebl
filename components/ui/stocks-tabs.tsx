@@ -10,6 +10,8 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils"
+
 
 const StockTabs = () => {
   const [data, setData] = useState({
@@ -31,20 +33,34 @@ const StockTabs = () => {
         ]);
 
         setData({
-          risers: risersRes.map((stock) => ({
-            ticker: stock.symbol,
-            name: stock.name,
-            price: stock.currentPrice,
-            change: stock.price,
-            percent: `${((stock.price / (parseFloat(stock.currentPrice) - stock.price)) * 100).toFixed(2)}%`,
-          })),
-          fallers: fallersRes.map((stock) => ({
-            ticker: stock.symbol,
-            name: stock.name,
-            price: stock.price,
-            change: stock.changes,
-            percent: `${((parseFloat(stock.changes) / (parseFloat(stock.price) - stock.changes)) * 100).toFixed(2)}%`,
-          })),
+          risers: risersRes.map((stock) => {
+            const currentPrice = parseFloat(stock.currentPrice);
+            const priceChange = parseFloat(stock.price);
+            const previousPrice = currentPrice - priceChange;
+            const percentageChange = previousPrice !== 0 ? (priceChange / previousPrice) * 100 : 0;
+
+            return {
+              ticker: stock.symbol,
+              name: stock.name,
+              price: currentPrice.toFixed(2),
+              change: priceChange.toFixed(2),
+              percent: `${percentageChange.toFixed(2)}%`,
+            };
+          }),
+          fallers: fallersRes.map((stock) => {
+            const currentPrice = parseFloat(stock.price);
+            const priceChange = parseFloat(stock.changes);
+            const previousPrice = currentPrice - priceChange;
+            const percentageChange = previousPrice !== 0 ? (priceChange / previousPrice) * 100 : 0;
+
+            return {
+              ticker: stock.symbol,
+              name: stock.name,
+              price: currentPrice.toFixed(2),
+              change: priceChange.toFixed(2),
+              percent: `${percentageChange.toFixed(2)}%`,
+            };
+          }),
           volumeLeaders: volumeRes.map((stock) => ({
             ticker: stock.symbol,
             name: stock.name,
@@ -94,10 +110,9 @@ const StockTable = ({ stocks, selectedTab }) => (
         <TableRow>
           <TableHead>Sym</TableHead>
           <TableHead>Name</TableHead>
-          {/* Conditionally render Price column */}
           {selectedTab !== "volumeLeaders" && <TableHead>Price</TableHead>}
-          <TableHead>Change</TableHead>
-          {selectedTab !== "volumeLeaders" && <TableHead>%</TableHead>} {/* Conditionally render % column */}
+          {selectedTab === "volumeLeaders" ? <TableHead>Volume</TableHead> : <TableHead>Change</TableHead>}
+          {selectedTab !== "volumeLeaders" && <TableHead>% Change</TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -105,19 +120,29 @@ const StockTable = ({ stocks, selectedTab }) => (
           <TableRow key={index}>
             <TableCell>{stock.ticker}</TableCell>
             <TableCell>{stock.name}</TableCell>
-            {/* Conditionally render Price column */}
             {selectedTab !== "volumeLeaders" && <TableCell>{stock.price}</TableCell>}
             <TableCell
               className={stock.change.startsWith("-") ? "text-red-600" : "text-green-600"}
             >
               {stock.change}
             </TableCell>
-            {selectedTab !== "volumeLeaders" && ( // Conditionally render % column
-              <TableCell
-                className={stock.percent.startsWith("-") ? "text-red-600" : "text-green-600"}
-              >
-                {stock.percent}
-              </TableCell>
+            {selectedTab !== "volumeLeaders" && (
+              <TableCell>
+              <div className="flex">
+                <div
+                  className={cn(
+                    "w-[4rem] min-w-fit rounded-md px-2 py-0.5 text-right",
+                    parseFloat(stock.percent) > 0
+                      ? "bg-green-300 text-green-800 dark:bg-green-950 dark:text-green-400"
+                      : parseFloat(stock.percent) < 0
+                      ? "bg-red-300 text-red-800 dark:bg-red-950 dark:text-red-500"
+                      : "bg-gray-300 text-gray-800 dark:bg-gray-900 dark:text-gray-400" // Gray if value is zero
+                  )}
+                >
+                  {stock.percent}
+                </div>
+              </div>
+                      </TableCell>
             )}
           </TableRow>
         ))}
@@ -125,5 +150,6 @@ const StockTable = ({ stocks, selectedTab }) => (
     </Table>
   </div>
 );
+
 
 export default StockTabs;
