@@ -35,13 +35,19 @@ const keysToDisplay = [
 ]
 
 export default async function FinanceSummary({ ticker }: { ticker: string }) {
-  const financeSummaryData = await fetchQuoteSummaryNew(ticker)
+  let financeSummaryData = await fetchQuoteSummaryNew(ticker)
+  // Ensure we have marketPrice and EPS before calculating P/E
+  const marketPrice = parseFloat(financeSummaryData?.marketPrice || "0")
+  const eps = parseFloat(financeSummaryData?.trailingEps || "0")
 
+  // Calculate trailingPE and append to the data
+  financeSummaryData = {
+    ...financeSummaryData,
+    trailingPE: eps > 0 ? (marketPrice / eps).toFixed(2) : "N/A",
+  }
   return (
     <div className="grid grid-flow-col grid-rows-6 gap-4 md:grid-rows-3">
-      {keysToDisplay.map((item) => {
-        const section = item.section || "summaryDetail"
-  
+      {keysToDisplay.map((item) => {  
         const data = financeSummaryData?.[item.key] ?? undefined
         let formattedData = "N/A"
 
