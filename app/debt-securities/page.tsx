@@ -1,5 +1,5 @@
 "use client";
-
+import { cn } from "@/lib/utils";
 import React, { useEffect, useState, useCallback } from "react";
 import {
   ColumnDef,
@@ -94,6 +94,25 @@ const bondsColumns: ColumnDef<BondDataType>[] = [
   { accessorKey: "amount_issued", header: "Amount Issued" },
   { accessorKey: "start_date", header: "Effective Date" },
   { accessorKey: "end_date", header: "Maturity Date" },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.getValue("status");
+      const statusText = status === 1 ? "Active" : status === 2 ? "Redeemed" : "Unknown";
+      const statusClass = cn(
+        "w-[6rem] min-w-fit rounded-md px-2 py-0.5 text-center text-sm font-medium",
+        status === 1
+          ? "bg-green-300 text-green-800 dark:bg-green-950 dark:text-green-400"
+          : status === 2
+          ? "bg-red-300 text-red-800 dark:bg-red-950 dark:text-red-500"
+          : "bg-gray-300 text-gray-800 dark:bg-gray-900 dark:text-gray-400" // Default for unknown statuses
+      );
+
+      return <span className={statusClass}>{statusText}</span>;
+    },
+  }
+  
 ];
 
 const commercialPaperColumns: ColumnDef<CommercialPaperType>[] = [

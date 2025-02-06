@@ -38,7 +38,7 @@ function isMarketOpen() {
 
 async function fetchTickers() {
   try {
-    const response = await fetch("https://rsebl.org.bt/agm/api/fetch-listed-scripts");
+    const response = await fetch("https://rsebl.org.bt/agm/api/fetch-topbottom-volume");
     const data = await response.json();
 
     if (!Array.isArray(data) || data.length === 0) {
@@ -74,7 +74,7 @@ async function fetchTickers() {
 // Fetch stock price and history
 async function fetchStockData(symbol: string) {
   try {
-    const response = await fetch(`https://rsebl.org.bt/agm/api/fetch-price-movement/${symbol}`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-price-movement/${symbol}`)
     const data = await response.json()
 
     if (!Array.isArray(data) || data.length === 0) {

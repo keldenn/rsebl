@@ -45,7 +45,7 @@ export const columns: ColumnDef<any>[] = [
   },
   {
     accessorKey: "priceChange",
-    header: () => <div className="text-right">$ Change</div>,
+    header: () => <div className="text-right">% Change</div>,
     cell: (props) => {
       const { row } = props
       const priceChange = row.getValue("priceChange") as number | string

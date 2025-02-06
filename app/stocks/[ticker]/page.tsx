@@ -10,8 +10,6 @@ import {
 } from "@/lib/yahoo-finance/fetchChartData"
 import { Interval } from "@/types/yahoo-finance"
 import { Suspense } from "react"
-import type { Metadata } from "next"
-import { fetchQuote } from "@/lib/yahoo-finance/fetchQuote"
 import OrderBook from "./components/OrderBook"
 import CorporateDetails from "./components/CorporateDetails"
 
@@ -27,24 +25,6 @@ type Props = {
   }
 }
 
-// export async function generateMetadata({ params }: Props): Promise<Metadata> {
-//   const ticker = params.ticker
-
-//   const quoteData = await fetchQuote(ticker)
-//   const regularMarketPrice = quoteData.regularMarketPrice?.toLocaleString(
-//     "en-US",
-//     {
-//       style: "currency",
-//       currency: "USD",
-//     }
-//   )
-
-//   return {
-//     title: `${ticker} ${regularMarketPrice}`,
-//     description: `Stocks page for ${ticker}`,
-//     keywords: [ticker, "stocks"],
-//   }
-// }
 
 export default async function StocksPage({ params, searchParams }: Props) {
   const ticker = params.ticker
