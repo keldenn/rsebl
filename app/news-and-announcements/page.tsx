@@ -23,13 +23,13 @@ const NewsPage: React.FC = () => {
   const fetchNews = async () => {
     try {
       setLoadingNews(true);
-      const response = await fetch("https://rsebl.org.bt/agm/api/fetch-time-line-new");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-time-line-new`);
       const data = await response.json();
       const formattedNews = data.map((item: any) => ({
         title: item.title,
         description: item.content.replace(/<[^>]+>/g, ""), // Strip HTML tags
         date: new Date(item.year).toDateString(),
-        imageUrl: `https://rsebl.org.bt/agm/storage/${item.file_path}`,
+        imageUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${item.file_path}`,
         pdfUrl: null,
       }));
       setNewsArticles(formattedNews);
@@ -43,14 +43,14 @@ const NewsPage: React.FC = () => {
   const fetchAnnouncements = async () => {
     try {
       setLoadingAnnouncements(true);
-      const response = await fetch("https://rsebl.org.bt/agm/api/fetch-news");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-news`);
       const data = await response.json();
       const formattedAnnouncements = data.map((item: any) => ({
         title: item.title,
         description: item.announcement.replace(/<[^>]+>/g, ""), // Strip HTML tags
         date: new Date(item.created_at).toDateString(),
         imageUrl: null, // Announcements don't seem to have images
-        pdfUrl: `https://rsebl.org.bt/agm/storage/${item.file_path}`,
+        pdfUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${item.file_path}`,
       }));
       setAnnouncements(formattedAnnouncements);
     } catch (error) {

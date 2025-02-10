@@ -9,7 +9,7 @@ export default async function CompanySummaryCard({
 }) {
   // Fetch data from the custom API
   const response = await fetch(
-    `https://rsebl.org.bt/agm/api/fetch-single-script/${ticker}`
+    `${process.env.NEXT_PUBLIC_API_URL}/fetch-single-script/${ticker}`
   )
   const data = await response.json()
 

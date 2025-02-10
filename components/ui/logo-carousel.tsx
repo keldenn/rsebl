@@ -32,7 +32,7 @@ export default function LogoCarousel() {
         .marquee {
           display: flex;
           width: max-content;
-          animation: marquee 15s linear infinite;
+          animation: marquee 25s linear infinite;
         }
 
         @keyframes marquee {

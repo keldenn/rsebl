@@ -5,7 +5,7 @@ import DataTable from "./DataTable"; // Import the client component
 
 async function fetchDirectors(ticker: string) {
   try {
-    const response = await fetch(`https://rsebl.org.bt/agm/api/fetch-script-director/${ticker}`, { cache: "no-store" });
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-script-director/${ticker}`, { cache: "no-store" });
     if (!response.ok) throw new Error("Failed to fetch directors");
     return (await response.json()).reverse();
   } catch (error) {
@@ -16,7 +16,7 @@ async function fetchDirectors(ticker: string) {
 
 async function fetchCorporateActions(ticker: string) {
   try {
-    const response = await fetch(`https://rsebl.org.bt/agm/api/fetch-corporateActions/${ticker}`, { cache: "no-store" });
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-corporateActions/${ticker}`, { cache: "no-store" });
     if (!response.ok) throw new Error("Failed to fetch corporate actions");
     return (await response.json()).reverse();
   } catch (error) {
@@ -27,7 +27,7 @@ async function fetchCorporateActions(ticker: string) {
 
 async function fetchInterimReports(ticker: string) {
   try {
-    const response = await fetch(`https://rsebl.org.bt/agm/api/fetch-script-IR/${ticker}`, { cache: "no-store" });
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-script-IR/${ticker}`, { cache: "no-store" });
     if (!response.ok) throw new Error("Failed to fetch interim reports");
     return (await response.json()).reverse();
   } catch (error) {

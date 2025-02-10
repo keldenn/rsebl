@@ -38,7 +38,7 @@ function isMarketOpen() {
 
 async function fetchTickers() {
   try {
-    const response = await fetch("https://rsebl.org.bt/agm/api/fetch-topbottom-volume");
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-topbottom-volume`);
     const data = await response.json();
 
     if (!Array.isArray(data) || data.length === 0) {

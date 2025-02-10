@@ -78,7 +78,7 @@ const MarketTicker: React.FC = () => {
         .animate-marquee {
           display: flex;
           width: max-content;
-          animation: marquee 35s linear infinite;
+          animation: marquee 95s linear infinite;
         }
 
         @keyframes marquee {
