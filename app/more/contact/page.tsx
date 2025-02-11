@@ -5,17 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+
+
 
 export default function ContactUs() {
+
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
-    name: "",
+    full_name: "",
     email: "",
-    phone: "",
-    subject: "",
+    phone_number: "",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [contactDetails, setContactDetails] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -44,10 +49,11 @@ export default function ContactUs() {
   };
 
   const validateForm = () => {
-    if (!formData.name || !formData.email || !formData.phone || !formData.message) {
-      alert({
-        title: "Error",
+    if (!formData.full_name || !formData.email || !formData.phone_number || !formData.message) {
+      //setErrorMessage("All fields are required.");
+      toast({
         description: "All fields are required.",
+        variant: "destructive",
       });
       return false;
     }
@@ -62,21 +68,45 @@ export default function ContactUs() {
     }
 
     setIsSubmitting(true);
+    setSuccessMessage("");
+    setErrorMessage("");
 
     try {
-      // Simulating form submission
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      alert({
-        title: "Success",
-        description: "Thank you for reaching out! We'll get back to you soon.",
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/submitFeedback`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          full_name: formData.full_name,
+          email: formData.email,
+          phone_number: Number(formData.phone_number),
+          message: formData.message,
+        }),
       });
-      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === "200") {
+        //setSuccessMessage("Feedback submitted successfully.");
+        toast({
+          description: "Feedback submitted successfully."
+        });
+        setFormData({ full_name: "", email: "", phone_number: "", message: "" });
+      } else {
+        //setErrorMessage("Failed to submit feedback. Please try again.");
+        toast({
+          description: "Failed to submit feedback. Please try again.",
+          variant: "destructive",
+        });
+        
+      }
     } catch (error) {
-      alert({
-        title: "Error",
-        description: "Form submission failed. Please try again later.",
+      //setErrorMessage("Error submitting feedback. Please check your connection.");
+      toast({
+        description: "Error submitting feedback. Please check your connection.",
+        variant: "destructive",
       });
-      console.error("Form submission failed:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -88,21 +118,21 @@ export default function ContactUs() {
         {/* Contact Us Form */}
         <Card className="col-span-2 row-span-2">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold ">Contact Us</CardTitle>
-            <p className="text-sm ">We would love to hear from you! Fill out the form below to get in touch.</p>
+            <CardTitle className="text-2xl font-bold">Contact Us</CardTitle>
+            <p className="text-sm">We would love to hear from you! Fill out the form below to get in touch.</p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium mb-1">
+                <label htmlFor="full_name" className="block text-sm font-medium mb-1">
                   Full Name
                 </label>
                 <Input
-                  id="name"
-                  name="name"
+                  id="full_name"
+                  name="full_name"
                   type="text"
                   placeholder="Enter your full name"
-                  value={formData.name}
+                  value={formData.full_name}
                   onChange={handleChange}
                   required
                   className="text-sm"
@@ -126,15 +156,15 @@ export default function ContactUs() {
               </div>
 
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium mb-1">
+                <label htmlFor="phone_number" className="block text-sm font-medium mb-1">
                   Phone Number
                 </label>
                 <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
+                  id="phone_number"
+                  name="phone_number"
+                  type="number"
                   placeholder="Enter your phone number"
-                  value={formData.phone}
+                  value={formData.phone_number}
                   onChange={handleChange}
                   required
                   className="text-sm"
@@ -157,10 +187,11 @@ export default function ContactUs() {
               </div>
 
               {successMessage && <p className="text-green-500 text-center text-sm">{successMessage}</p>}
+              {errorMessage && <p className="text-red-500 text-center text-sm">{errorMessage}</p>}
             </form>
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Button onClick={handleSubmit} disabled={isSubmitting} className="text-sm font-semibold">
+            <Button type="submit" disabled={isSubmitting} onClick={handleSubmit} className="text-sm font-semibold">
               {isSubmitting ? "Submitting..." : "Submit"}
             </Button>
           </CardFooter>
@@ -173,7 +204,7 @@ export default function ContactUs() {
           contactDetails.map((detail) => (
             <Card key={detail.id}>
               <CardHeader>
-                <CardTitle className="text-lg font-bold ">{detail.title}</CardTitle>
+                <CardTitle className="text-lg font-bold">{detail.title}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div dangerouslySetInnerHTML={{ __html: detail.content }} />
