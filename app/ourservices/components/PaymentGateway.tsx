@@ -14,7 +14,7 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp"
-export default function PaymentGateway({service_code, setPaymentSuccess, setOrderNo}) {
+export default function PaymentGateway({service_code, setPaymentSuccess, setOrderNo, setAmount}) {
    const { toast } = useToast();
    const responseCodeMessages = {
     '00': 'Approved',
@@ -55,7 +55,6 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
   };
   
   const [loading, setLoading] = useState(false);
-
   const [bankCode, setBankCode] = useState('');
   const [accNumber, setAccNumber] = useState('');
   const [bankOtp, setBankOtp] = useState('');
@@ -64,7 +63,10 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
   const [bfsTransId, setBfsTransId] = useState('');
   const [showBankFields, setShowBankFields] = useState(false);
   const [showOtpField, setShowOtpField] = useState(false);
-  const amount = "0.01"; // Default amount
+  const [temp, setTemp] = useState();
+ 
+
+
   useEffect(() => {
     async function fetchBanks() {
       const response = await fetch('https://rsebl.org.bt/agm/api/fetch-all-banks');
@@ -74,6 +76,7 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
     fetchBanks();
     handleSubmit();
   }, []);
+
 
   useEffect(() => {
     if (showOtpField && countdown > 0) {
@@ -85,14 +88,7 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
   }, [countdown, showOtpField]);
 
   const handleSubmit = async () => {
-    if (!amount) {
-      toast({
-        title: "Error!",
-        description: "Required Amount",
-        variant: "destructive",
-      });
-      return;
-    }
+
     setLoading(true);
     setCountdown(0); // Stop the countdown
     setShowOtpField(false); // Hide OTP field
@@ -108,7 +104,7 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
         ('0' + now.getSeconds()).slice(-2);
   
       const formData = new URLSearchParams();
-      formData.append("amount", amount);
+      // formData.append("amount", amount);
       formData.append("service_code", service_code);
       formData.append("sys_date_time", sys_date_time);
       formData.append("operation", "get__transition_txt__id");
@@ -127,6 +123,8 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
           description: "Server error",
           variant: "destructive",
         });
+
+      
         throw new Error(`Server error: ${response.status} ${response.statusText}`);
       }
   
@@ -140,8 +138,15 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
   
       if (data?.data?.[1]?.bfs_bfsTxnId) {
         setShowBankFields(true);
-        console.log("bfs", data.data[1].bfs_bfsTxnId)
+        console.log("First payment_Gateway res trxn id: ", data)
+        setAmount(data.data[1].amount);
+        setOrderNo(data.data[1].order_no);
         setBfsTransId(data.data[1].bfs_bfsTxnId);
+        // insert data
+        if(service_code = "SS") {
+          // call function insert_into_database
+          
+        }
       }
     } catch (error) {
       toast({
@@ -180,7 +185,7 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
       try {
         const formData = new URLSearchParams();
         formData.append("bfs_trans_id", bfsTransId);
-        formData.append("amount", amount);
+        // formData.append("amount", amount);
         formData.append("bank_code", bankCode);
         formData.append("acc_number", accNumber);
         formData.append("operation", "get__opt__from__bank");
@@ -211,7 +216,6 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
           alert("Invalid response from server");
           return;
         }
-  
   
         if (Array.isArray(data) && data.length > 0 && data[0]?.state === "YES") {
           setShowOtpField(true);
@@ -307,43 +311,12 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
           toast({ title: "Success", description: 'Payment Done!' });
           if (bfsOrderNo.slice(0, 2) === "SS") {
             toast({ title: "Success", description: 'Payment Done2!' });
-            setOrderNo(bfsOrderNo)
+            // setOrderNo(bfsOrderNo)
             setPaymentSuccess(true);
             
             return;
           }
-          // else{
-          // // Proceed with form submission for other cases
-          // const form = document.createElement('form');
-          // form.action = data[0].action_url;
-          // form.method = 'POST';
-
-          // Object.keys(data[0].form_data).forEach((key) => {
-          //   const input = document.createElement('input');
-          //   input.type = 'hidden';
-          //   input.name = key;
-          //   input.value = data[0].form_data[key];
-          //   form.appendChild(input);
-          // });
-
-          // document.body.appendChild(form);
-          // form.submit();
-          // }
-
-        
-        //   if (data?.[0]?.bfs_orderNo?.startsWith("SS")) {
-        //     const successData = {
-        //         ...data[0],
-        //         successCode: 200
-        //     };
-        //     toast({
-        //       title: "Success",
-        //       description:'Payment Done!',
-              
-        //     });
-        //     return <ShareStatement data ={successData}></ShareStatement>
-
-        // }
+  
         } else {
           toast({
             title: "Transaction Failed",
@@ -377,6 +350,10 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
         <CardContent className="p-6">
           {showBankFields && (
             <>
+            <div className="">
+              You will be charged
+              {temp}
+            </div>
             <div className="flex flex-row">
             <div className="mb-4 w-1/2">
                 <label className="text-sm mb-1 text-gray-500">Bank</label>
@@ -393,7 +370,6 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
                   </SelectContent>
                 </Select>
               </div>
-
               <div className="mb-4 ms-4 w-1/2">
                 <label className=" mb-1 text-sm text-gray-500">Account No</label>
                 <Input type="number" value={accNumber} onChange={(e) => setAccNumber(e.target.value)} />

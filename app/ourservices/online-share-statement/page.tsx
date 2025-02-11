@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Drawer,
   DrawerClose,
@@ -27,6 +27,7 @@ export default function OnlineShareStatement() {
   const [otpVerified, setOtpVerified] = useState(false); // OTP verification state
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [orderNo, setOrderNo] = useState();
+  const [amount, setAmount] = useState();
   const { toast } = useToast();
 
   const handleAccountTypeChange = (e) => {
@@ -134,12 +135,14 @@ export default function OnlineShareStatement() {
     const stmnt = {
       cidNo: accountType === "I" ? cidNo : disnNo,
       phoneNo: phone,
-      email: email,
+      // email: email,
       otpNo: otp,
+      // orderNo: orderNo,
     };
 
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/sendPaymentForOSS`; // API URL for OTP verification
+
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/verify_otp_for_sharestatement`; // API URL for OTP verification
       const body = JSON.stringify(stmnt);
 
       const response = await fetch(url, {
@@ -155,13 +158,61 @@ export default function OnlineShareStatement() {
       if (response.status === 200) {
          // Mark OTP as verified
         toast({
-          description: "OTP verified successfully. Proceed to payment.",
+          description: data.message,
 
         });
         setOpen(true); // Open payment gateway drawer
       } else {
         toast({
-          description: data.message || "Invalid OTP. Please try again.",
+          description: data.message ,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      toast({
+        description: "Error verifying OTP. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  const afterBankInsert = async () => {
+
+    const stmnt = {
+      cidNo: accountType === "I" ? cidNo : disnNo,
+      phoneNo: phone,
+      email: email,
+      amount: amount,
+      orderNo: orderNo,
+    };
+
+    try {
+
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/insert_into_database`; // API URL for OTP verification
+      const body = JSON.stringify(stmnt);
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: body,
+      });
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+         // Mark OTP as verified
+        toast({
+          description: data.message,
+
+        });
+        setOpen(true); // Open payment gateway drawer
+      } else {
+        toast({
+          description: data.message ,
           variant: "destructive",
         });
       }
@@ -208,7 +259,12 @@ export default function OnlineShareStatement() {
       setLoading(false);
     }
   };
-
+  useEffect(() => {
+    if (orderNo?.startsWith("SS")) {
+      afterBankInsert();
+    }
+  }, [orderNo]); // Runs whenever orderNo changes
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
       <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4">
@@ -336,6 +392,7 @@ export default function OnlineShareStatement() {
     )}
       {/* Drawer - Payment Portal */}
       <Drawer open={open} onOpenChange={setOpen}>
+
         <DrawerTrigger>
           {/* <Button variant="outline">Open Drawer</Button> */}
         </DrawerTrigger>
@@ -346,7 +403,7 @@ export default function OnlineShareStatement() {
               <DrawerDescription>Royal Securities Exchange of Bhutan</DrawerDescription>
             </DrawerHeader>
             <div className=" h-[290px]">
-              <PaymentGateway service_code={"SS"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo}/>
+              <PaymentGateway service_code={"SS"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo} setAmount={setAmount}/>
             </div>
           </div>
         </DrawerContent>
