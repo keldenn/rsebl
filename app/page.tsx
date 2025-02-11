@@ -16,6 +16,7 @@ import NewsSection from "@/components/ui/news-section"
 import StatsSection from "@/components/ui/stats-section"
 import StockTabs from "@/components/ui/stocks-tabs"
 import LogoCarousel from "@/components/ui/logo-carousel"
+import MarketSentiment from "@/components/stocks/MarketSentiment"  // ✅ Import new component
 
 function isMarketOpen() {
   const now = new Date()
@@ -53,8 +54,6 @@ async function fetchTickers() {
       const previousPrice = currentPrice - price;
       const percentageChange = (price / previousPrice) * 100;
 
-      //console.log("percentageChange:",percentageChange);
-
       return {
         symbol,
         shortName: name,
@@ -70,8 +69,6 @@ async function fetchTickers() {
   }
 }
 
-
-// Fetch stock price and history
 async function fetchStockData(symbol: string) {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-price-movement/${symbol}`)
@@ -93,8 +90,6 @@ async function fetchStockData(symbol: string) {
   }
 }
 
-
-
 export default async function Home({
   searchParams,
 }: {
@@ -112,11 +107,9 @@ export default async function Home({
 
   const ticker = searchParams?.ticker?.toUpperCase() || tickers[0]?.symbol
 
-  // Fetch historical data for each stock symbol
   const stockDataPromises = tickers.map(({ symbol }) => fetchStockData(symbol))
   const stockDataResults = await Promise.all(stockDataPromises)
 
-  // Merge fetched tickers data with stock history
   const resultsWithTitles = tickers.map((tickerData) => {
     const stockData = stockDataResults.find((stock) => stock.symbol === tickerData.symbol) || { history: [] }
     return {
@@ -125,7 +118,6 @@ export default async function Home({
     }
   })
 
-  // Find selected stock data
   const selectedStock = resultsWithTitles.find((stock) => stock.symbol === ticker)
   const selectedStockHistory = selectedStock?.history || []
 
@@ -133,26 +125,6 @@ export default async function Home({
   const agmData = await agmResponse.json()
   const latestAGM = agmData.length > 0 ? agmData[0] : null
 
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-BSI`)
-  const data = await response.json()
-  const ptChange = data[0]?.ptChange || "0"
-  const marketSentiment = getMarketSentiment(ptChange)
-
-  function getMarketSentiment(ptChange: string) {
-    const change = parseFloat(ptChange)
-    if (change === 0) return "Neutral"
-    return change > 0 ? "bullish" : "bearish"
-  }
-
-  const sentimentColor =
-    marketSentiment === "bullish" ? "text-green-500" :
-    marketSentiment === "bearish" ? "text-red-500" :
-    "text-neutral-500"
-
-  const sentimentBackground =
-    marketSentiment === "bullish" ? "bg-green-500/10" :
-    marketSentiment === "bearish" ? "bg-red-300/50 dark:bg-red-950/50" :
-    "bg-neutral-500/10"
 
   return (
     <div className="flex flex-col gap-4">
@@ -163,9 +135,7 @@ export default async function Home({
         <div className="w-full lg:w-1/2">
           <Card className="relative flex h-full min-h-[15rem] flex-col justify-between overflow-hidden">
             <CardHeader>
-              <CardTitle className="z-50 w-fit rounded-full px-4 py-2 font-medium dark:bg-neutral-100/5">
-                The markets are <strong className={sentimentColor}>{marketSentiment}</strong>
-              </CardTitle>
+              <MarketSentiment />  {/* ✅ Replace old sentiment logic with the new component */}
             </CardHeader>
 
             {latestAGM && (
@@ -179,7 +149,6 @@ export default async function Home({
                 <p className="text-sm text-neutral-700 dark:text-neutral-400">{latestAGM.date}</p>
               </CardFooter>
             )}
-            <div className={`pointer-events-none absolute inset-0 z-0 h-[65%] w-[65%] -translate-x-[10%] -translate-y-[30%] rounded-full blur-3xl ${sentimentBackground}`} />
           </Card>
         </div>
 
@@ -196,17 +165,15 @@ export default async function Home({
           </Card>
         </div>
       </div>
+
       <div className="flex items-center justify-between py-4">
-      <h2 className="text-xl font-medium">Stocks</h2>
-
-      <Link className="text-custom-1 hover:underline text-sm font-medium" href="/screener">
-          
-        View all
-      </Link>
-
-
+        <h2 className="text-xl font-medium">Stocks</h2>
+        <Link className="text-custom-1 hover:underline text-sm font-medium" href="/screener">
+          View all
+        </Link>
       </div>
-      <div className="flex flex-col gap-4">
+
+      <div className="flex flex-col gap-4 mb-10">
         <Card className="flex flex-col gap-4 p-6 lg:flex-row">
           <div className="w-full lg:w-1/2">
             <Suspense fallback={<div>Loading...</div>}>
@@ -220,18 +187,15 @@ export default async function Home({
           </div>
         </Card>
       </div>
+
       <div className="flex items-center justify-between py-4">
-      <h2 className="text-xl font-medium">News & Announcements</h2>
-
-      <Link className="text-custom-1 hover:underline text-sm font-medium" href="/news-and-announcements">
-          
-        View more
-      </Link>
-
-
+        <h2 className="text-xl font-medium">News & Announcements</h2>
+        <Link className="text-custom-1 hover:underline text-sm font-medium" href="/news-and-announcements">
+          View more
+        </Link>
       </div>
-      <NewsSection />
 
+      <NewsSection />
       <h2 className="text-xl font-medium py-4">Stock Highlights</h2>
       <StockTabs />
       <LogoCarousel />
