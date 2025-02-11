@@ -14,34 +14,54 @@ const ShareStatement = ({ order_no }) => {
   const { toast } = useToast();
  
   useEffect(() => {
-    setReportDate(new Date().toLocaleDateString());
-    setReportLocalTime(new Date().toLocaleTimeString());
-    loadShareData();
-  }, []);
-  console.log("ShareStatement received order_no:", order_no);
+    if (order_no) {
+      setReportDate(new Date().toLocaleDateString());
+      setReportLocalTime(new Date().toLocaleTimeString());
+      loadShareData();
+    }
+  }, [order_no]);
+
+  console.log("ShareStatement received order_nooooo:", order_no);
   const loadShareData = async () => {
+    if (!order_no) {
+      toast({
+        title: "Error",
+        description: "Invalid order number.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
+  
+    setLoading(true);
+  
     try {
-    //   if (data.successCode === 200 && data.http_code === 200 && data.bfs_code === "00") {
-        const fetchedData = await fetchShareData(order_no);
-        setShareData(fetchedData);
-        if(fetchedData.status == 400){
-          toast({
-            title: "Failed",
-            description: fetchedData.message,
-            variant:  "destructive",
-
-             duration: 5000,
-          });
-          return;
-        }
-        setShowShareDetails(true);
-
+      const fetchedData = await fetchShareData(order_no);
+  
+      if (fetchedData.status === 400) {
         toast({
-          title: "Success",
+          title: "Failed",
           description: fetchedData.message,
+          variant: "destructive",
           duration: 5000,
         });
-     
+        return;
+      }
+
+      // ✅ Store both "client" & "data" properly
+      setShareData({
+        client: fetchedData.client, // Personal details
+        shares: fetchedData.data,   // Shares list
+      });
+
+      setShowShareDetails(true);
+  
+      toast({
+        title: "Success",
+        description: fetchedData.message || "Share details loaded successfully.",
+        duration: 5000,
+      });
+  
     } catch (err) {
       toast({
         title: "Error",
@@ -52,7 +72,9 @@ const ShareStatement = ({ order_no }) => {
     } finally {
       setLoading(false);
     }
-  };
+};
+
+  
 
   return (
     <main className="container mx-auto p-6">
@@ -63,23 +85,26 @@ const ShareStatement = ({ order_no }) => {
         <div className="flex justify-center">
           <Loader2 className="animate-spin" />
         </div>
-      ) : showShareDetails && shareData ? (
+      ) : showShareDetails && shareData?.client ? (
         <div id="reportContent">
           <Card>
             <CardContent>
-              <h3 className="text-center text-lg font-semibold">Royal Securities Exchange of Bhutan</h3>
+              <h3 className="text-center text-lg font-semibold">
+                Royal Securities Exchange of Bhutan
+              </h3>
               <p className="text-center">
                 Report generated on: {reportDate} {reportLocalTime}
               </p>
               <p>
-                CID/DISN/CD CODE: {shareData.cid_no}
+                CID/DISN/CD CODE: {shareData.client.ID}  
                 <br />
-                NAME: {shareData.full_name}
+                NAME: {shareData.client.f_name} {shareData.client.l_name}  
                 <br />
-                TPN No: {shareData.tpn_no}
+                TPN No: {shareData.client.tpn}  
                 <br />
-                ADDRESS: {shareData.address}
+                ADDRESS: {shareData.client.address}
               </p>
+      
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -92,20 +117,23 @@ const ShareStatement = ({ order_no }) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {shareData.shareLists.map((item, index) => (
+                  {shareData?.shares?.map((item, index) => (
                     <TableRow key={index}>
                       <TableCell>{index + 1}</TableCell>
                       <TableCell>{item.symbol}</TableCell>
                       <TableCell>{item.volume}</TableCell>
-                      <TableCell>{item.block_volume.toLocaleString()}</TableCell>
-                      <TableCell>{item.pledge_volume.toLocaleString()}</TableCell>
-                      <TableCell>{item.total.toLocaleString()}</TableCell>
+                      <TableCell>{item.block_volume}</TableCell>
+                      <TableCell>{item.pledge_volume}</TableCell>
+                      <TableCell>{item.total}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+      
               <hr />
-              <p className="text-center">THIS IS A COMPUTER-GENERATED REPORT AND REQUIRES NO SIGNATORY</p>
+              <p className="text-center">
+                THIS IS A COMPUTER-GENERATED REPORT AND REQUIRES NO SIGNATORY
+              </p>
             </CardContent>
           </Card>
         </div>

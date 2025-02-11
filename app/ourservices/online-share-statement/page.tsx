@@ -265,6 +265,11 @@ export default function OnlineShareStatement() {
     }
   }, [orderNo]); // Runs whenever orderNo changes
   
+  useEffect(() => {
+    if (paymentSuccess && orderNo) {
+      setOpen(false); // Close the drawer when payment is successful and order number is set
+    }
+  }, [paymentSuccess, orderNo]);
   return (
     <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
       <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4">
@@ -408,6 +413,7 @@ export default function OnlineShareStatement() {
           </div>
         </DrawerContent>
       </Drawer>
+      {/* <ShareStatement order_no={"SS2025021200084867ab9230e95b3"} /> */}
     </div>
   );
 }

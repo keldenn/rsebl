@@ -77,6 +77,29 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
     handleSubmit();
   }, []);
 
+  const updateStatusByOrderNo = async (orderNo) => {
+    try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/updateStatusByOrderNo`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ orderNo }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to update status");
+        }
+
+        console.log("Status Updated Successfully:", data);
+        return data;
+    } catch (error) {
+        console.error("Error updating status:", error.message);
+        return { status: "error", message: error.message };
+    }
+};
 
   useEffect(() => {
     if (showOtpField && countdown > 0) {
@@ -312,6 +335,12 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
           if (bfsOrderNo.slice(0, 2) === "SS") {
             toast({ title: "Success", description: 'Payment Done2!' });
             // setOrderNo(bfsOrderNo)
+            try {
+              const response = await updateStatusByOrderNo(bfsOrderNo);
+              console.log("Status Update Response:", response);
+          } catch (error) {
+              console.error("Error updating status:", error);
+          }
             setPaymentSuccess(true);
             
             return;
