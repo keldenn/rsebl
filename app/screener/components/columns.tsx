@@ -42,18 +42,19 @@ export const columns: ColumnDef<ScreenerQuote>[] = [
       const { row } = props
 
       const regularMarketPrice = row.original.regularMarketPrice
-      const epsTrailingTwelveMonths = row.original.epsTrailingTwelveMonths || 0
+      const trailingEps = row.original.trailingEps || 0
 
       if (
         regularMarketPrice === undefined ||
-        epsTrailingTwelveMonths === undefined ||
+        trailingEps === undefined ||
         regularMarketPrice === null ||
-        epsTrailingTwelveMonths === null
+        trailingEps === null ||
+        trailingEps === 0
       ) {
         return <div className="text-right">N/A</div>
       }
 
-      const pe = regularMarketPrice / epsTrailingTwelveMonths
+      const pe = regularMarketPrice / trailingEps
       if (pe < 0) {
         return <div className="text-right">N/A</div>
       }
@@ -116,8 +117,8 @@ export const columns: ColumnDef<ScreenerQuote>[] = [
                 : "bg-gray-300 text-gray-800 dark:bg-gray-950 dark:text-gray-400" // Add gray background for zero
             )}
           >
-            {marketChangePercent > 0 ? "+" : marketChangePercent < 0 ? "" : ""}
-            {marketChangePercent.toFixed(2)}
+            {marketChangePercent > 0 ? "+" : marketChangePercent  < 0 ? "" : ""}
+            {marketChangePercent.toFixed(2)}%
           </div>
         </div>
       );

@@ -46,9 +46,9 @@ export async function fetchScreenerStocks(query: string, count?: number) {
         regularMarketChange: priceChange, // Use priceChange directly
         regularMarketChangePercent: percentageChange, // Corrected calculation
         sector: item.sector,
-        // New fields
         lastTradedVol: item.lastTradedVolume,
         lastTradedVal: item.lastTradedVal,
+        trailingEps: parseFloat(item.trailingEps), // ✅ Added Trailing EPS
       };
     });
 

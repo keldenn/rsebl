@@ -42,7 +42,7 @@ function timeAgo(publishTime: string) {
 // Function to fetch AGM data
 async function fetchAgmData(ticker: string) {
   const response = await fetch(
-    `https://rsebl.org.bt/agm/api/fetch-agm-by-symbol/${ticker}`
+    `${process.env.NEXT_PUBLIC_API_URL}/fetch-agm-by-symbol/${ticker}`
   )
   if (!response.ok) {
     throw new Error("Failed to fetch AGM data")

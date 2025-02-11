@@ -11,13 +11,13 @@ export default function Page() {
   const fetchTimelineData = async () => {
     try {
       setLoading(true);
-      const response = await fetch("https://rsebl.org.bt/agm/api/fetch-time-line-new");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-time-line-new`);
       const data = await response.json();
       const formattedData = data.map((item: any) => ({
         date: item.year,
         title: item.title,
         description: item.content.replace(/<[^>]+>/g, ""), // Strip HTML tags
-        image: `https://rsebl.org.bt/agm/storage/${item.file_path}`,
+        image: `${process.env.NEXT_PUBLIC_BASE_URL}${item.file_path}`,
       }));
       setTimelineData(formattedData);
     } catch (err) {
