@@ -1,269 +1,356 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import PaymentGateway from "../components/PaymentGateway";
+import { useToast } from "@/hooks/use-toast";
+import ShareStatement from "../components/shareStatement";
+export default function OnlineShareStatement() {
+  const [open, setOpen] = useState(false);
+  const [accountType, setAccountType] = useState(""); // Account type: Individual or Corporate
+  const [cidNo, setCidNo] = useState("");
+  const [disnNo, setDisnNo] = useState("");
+  const [phone, setPhone] = useState(""); // Phone number state
+  const [email, setEmail] = useState(""); // Email state
+  const [loading, setLoading] = useState(false); // Loading state for buttons
+  const [fieldsVisible, setFieldsVisible] = useState(false); // Control visibility of phone/email fields
+  const [otp, setOtp] = useState(""); // OTP state
+  const [otpVerified, setOtpVerified] = useState(false); // OTP verification state
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [orderNo, setOrderNo] = useState();
+  const { toast } = useToast();
 
-export default function PaymentGateway() {
-  const [loading, setLoading] = useState(false);
-  const [amount, setAmount] = useState('');
-  const [bankCode, setBankCode] = useState('');
-  const [accNumber, setAccNumber] = useState('');
-  const [bankOtp, setBankOtp] = useState('');
-  const [countdown, setCountdown] = useState(420); // 7 minutes
-  const [banks, setBanks] = useState([]);
-  const [bfsTransId, setBfsTransId] = useState('');
-  const [showBankFields, setShowBankFields] = useState(false);
-  const [showOtpField, setShowOtpField] = useState(false);
-
-  useEffect(() => {
-    async function fetchBanks() {
-      const response = await fetch('https://rsebl.org.bt/agm/api/fetch-all-banks');
-      const data = await response.json();
-      setBanks(data);
-    }
-    fetchBanks();
-  }, []);
-
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [countdown]);
-
-  const handleSubmit = async () => {
-    if (!amount) {
-      alert("Required Amount");
+  const handleAccountTypeChange = (e) => {
+    setAccountType(e.target.value); // Update account type based on dropdown selection
+  };
+  const handleCidChange = (e) => {
+    setCidNo(e.target.value); // Update CID number
+  };
+  const handleDisnChange = (e) => setDisnNo(e.target.value); // Update DISN number
+  if(paymentSuccess){
+    console.log("page", orderNo)
+  }
+  const fetchData = async () => {
+    if (accountType === "I" && !cidNo) {
+      toast({
+        description: "CID number is required",
+        variant: "destructive",
+      });
       return;
     }
-    setLoading(true);
-  
-    try {
-      const now = new Date();
-      const sys_date_time =
-        now.getFullYear() +
-        ('0' + (now.getMonth() + 1)).slice(-2) +
-        ('0' + now.getDate()).slice(-2) +
-        ('0' + now.getHours()).slice(-2) +
-        ('0' + now.getMinutes()).slice(-2) +
-        ('0' + now.getSeconds()).slice(-2);
-  
-      const formData = new URLSearchParams();
-      formData.append("amount", amount);
-      formData.append("service_code", "OT");
-      formData.append("sys_date_time", sys_date_time);
-      formData.append("operation", "get__transition_txt__id");
-  
-      const response = await fetch('https://cms.rsebl.org.bt/payment_gateway/payment_gateway.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData.toString(), // Correctly format the body
+
+    if (accountType === "J" && !disnNo) {
+      toast({
+        description: "DISN number is required",
+        variant: "destructive",
       });
-  
-      console.log("res", response);
-  
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.status} ${response.statusText}`);
-      }
-  
-      const text = await response.text();
-      if (!text) {
-        throw new Error("Empty response from server");
-      }
-      
-      const data = JSON.parse(text);
-      setLoading(false);
-  
-      if (data?.data?.[1]?.bfs_bfsTxnId) {
-        setShowBankFields(true);
-        console.log("bfs", data.data[1].bfs_bfsTxnId)
-        setBfsTransId(data.data[1].bfs_bfsTxnId);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const apiURL = `https://rsebl.org.bt/agm/api/checkshareExistNew?${accountType === "I" ? `cidNo=${cidNo}` : `cidNo=${disnNo}`}&accType=${accountType}`;
+
+      const response = await fetch(apiURL);
+      const data = await response.json();
+
+      if (data.status === 200) {
+        setPhone(data.phone || "");
+        setEmail(data.email || "");
+        setFieldsVisible(true);
+        toast({
+          description: "If your Phone number/Email is incorrect, please contact RSEB office/Broker to update.",
+        });
+      } else {
+        toast({
+          description: data.message || "No data is available on holding any shares.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error("Error:", error.message);
-      alert(`An error occurred: ${error.message}`);
-      setLoading(false);
-    }
-  };
-  
-
-  const handleGetOtp = async () => {
-    if (!bankCode) {
-      alert("Select Bank");
-      return;
-    }
-    if (!accNumber) {
-      alert("Account No. Required");
-      return;
-    }
-    setLoading(true);
-  
-    setTimeout(async () => {
-      try {
-        const formData = new URLSearchParams();
-        formData.append("bfs_trans_id", bfsTransId);
-        formData.append("amount", amount);
-        formData.append("bank_code", bankCode);
-        formData.append("acc_number", accNumber);
-        formData.append("operation", "get__opt__from__bank");
-  
-        const response = await fetch(
-          "https://cms.rsebl.org.bt/payment_gateway/payment_gateway.php",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: formData.toString(),
-          }
-        );
-  
-        const text = await response.text();
-        setLoading(false);
-  
-        if (!text) {
-          alert("Empty response from server");
-          return;
-        }
-  
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (error) {
-          console.error("Invalid JSON response:", text);
-          alert("Invalid response from server");
-          return;
-        }
-  
-        console.log("OTP Response:", data); // Debugging log
-  
-        if (Array.isArray(data) && data.length > 0 && data[0]?.state === "YES") {
-          setShowOtpField(true);
-          setCountdown(420);
-        } else {
-          alert("Failed to get OTP");
-        }
-      } catch (error) {
-        console.error("Error fetching OTP:", error);
-        alert("An error occurred while getting OTP.");
-        setLoading(false);
-      }
-    }, 2000);
-  };
-  
-  
-  const handlePayment = async () => {
-    if (!bankOtp) {
-      alert("OTP Required");
-      return;
-    }
-    setLoading(true);
-  
-    setTimeout(async () => {
-      const formData = new URLSearchParams();
-      formData.append("bfs_trans_id", bfsTransId);
-      formData.append("otp", bankOtp);
-      formData.append("operation", "make__online__payment");
-  
-      const response = await fetch('https://cms.rsebl.org.bt/payment_gateway/payment_gateway.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData.toString(),
+      console.error("Error fetching data:", error);
+      toast({
+        description: "Error fetching data",
+        variant: "destructive",
       });
-  
-      const text = await response.text();
+    } finally {
       setLoading(false);
-  
-      if (!text) {
-        alert("Empty response from server");
-        return;
-      }
-  
-      const data = JSON.parse(text);
-  
-      if (data?.[0]?.http_code === 200 && data?.[0]?.bfs_code === '00') {
-        const form = document.createElement('form');
-        form.action = data[0].action_url;
-        form.method = 'POST';
-  
-        Object.keys(data[0].form_data).forEach((key) => {
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = key;
-          input.value = data[0].form_data[key];
-          form.appendChild(input);
-        });
-  
-        document.body.appendChild(form);
-        form.submit();
-      } else {
-        alert("Transaction Failed");
-      }
-    }, 2000);
+    }
   };
-  
+
+  async function sendOtpOperation(stmnt) {
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/sendOtpOperation`;
+    const body = JSON.stringify({
+      cidNo: stmnt.cidNo,
+      phoneNo: stmnt.phoneNo,
+      email: stmnt.email,
+    });
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: body,
+      });
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+        setOtpVerified(true);
+
+        return data; // Success
+      } else {
+        throw new Error(data.message || "Error sending OTP");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      throw error; // Error handling
+    }
+  }
+
+  // Handles OTP verification
+  const verifyOtp = async () => {
+    if (!otp) {
+      toast({
+        description: "Please enter the OTP.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true); // Show loading state during OTP verification
+
+    const stmnt = {
+      cidNo: accountType === "I" ? cidNo : disnNo,
+      phoneNo: phone,
+      email: email,
+      otpNo: otp,
+    };
+
+    try {
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/sendPaymentForOSS`; // API URL for OTP verification
+      const body = JSON.stringify(stmnt);
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: body,
+      });
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+         // Mark OTP as verified
+        toast({
+          description: "OTP verified successfully. Proceed to payment.",
+
+        });
+        setOpen(true); // Open payment gateway drawer
+      } else {
+        toast({
+          description: data.message || "Invalid OTP. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      toast({
+        description: "Error verifying OTP. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    // Prepare statement object for sending OTP
+    const stmnt = {
+      cidNo: accountType === "I" ? cidNo : disnNo,
+      phoneNo: phone,
+      email: email,
+    };
+
+    try {
+      setLoading(true);
+      const otpResponse = await sendOtpOperation(stmnt);
+
+      if (otpResponse && otpResponse.status === 200) {
+        toast({
+          description: "OTP sent successfully. Enter OTP to proceed.",
+        });
+      } else {
+        toast({
+          description: otpResponse?.message || "Error sending OTP, please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      toast({
+        description: "An error occurred while sending OTP. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      {loading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-70">
-          <Loader2 className="animate-spin w-10 h-10" />
-          <p className="ml-2">Processing. Please Wait...</p>
+    <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
+      <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4">
+        <h2 className="py-4 text-xl font-medium text-center">Online Share Statement</h2>
+
+        {/* Account Type Dropdown */}
+        <label className="text-sm font-medium">Account Type</label>
+        <select
+          className="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-base text-muted-foreground"
+          value={accountType}
+          onChange={handleAccountTypeChange}
+        >
+          <option value="">Select Account Type</option>
+          <option value="I">Individual</option>
+          <option value="J">Corporate/Association</option>
+        </select>
+
+        {/* CID No Input (for Individual) */}
+        {accountType === "I" &&  !paymentSuccess && (
+          <>
+            <label className="text-sm font-medium">CID No</label>
+            <input
+              className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+              placeholder="Enter your CID number"
+              type="text"
+              required
+              value={cidNo}
+              onChange={handleCidChange}
+            />
+          </>
+        )}
+
+        {/* DISN No Input (for Corporate/Association) */}
+        {accountType === "J" &&  !paymentSuccess &&(
+          <>
+            <label className="text-sm font-medium">DISN No</label>
+            <input
+              className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+              placeholder="Enter DISN number provided by RSEB"
+              type="text"
+              required
+              value={disnNo}
+              onChange={handleDisnChange}
+            />
+          </>
+        )}
+
+        {/* Fetch Button */}
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            size="lg"
+            className="my-5"
+            onClick={fetchData}
+            disabled={loading}
+          >
+            {loading ? "Fetching..." : "Fetch"}
+          </Button>
         </div>
-      )}
 
-      <h1 className="text-center text-2xl font-bold mb-6">Payment Gateway</h1>
-      <Card className="w-full max-w-md">
-        <CardContent className="p-6">
-          <div className="mb-4">
-            <label className="block mb-1">Amount</label>
-            <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} readOnly={showBankFields} />
+        {/* Phone and Email Fields */}
+        {fieldsVisible &&  !paymentSuccess &&(
+          <>
+            <label className="text-sm font-medium">Phone No</label>
+            <input
+              className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Enter your phone number"
+              type="text"
+              required
+            />
+            <label className="text-sm font-medium">Email</label>
+            <input
+              className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              type="email"
+              required
+            />
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                size="lg"
+                className="my-5"
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? "Sending OTP..." : "Send OTP "}
+              </Button>
+            </div>
+          </>
+        )}
+
+        {/* OTP Input and Verification */}
+        {fieldsVisible && otpVerified && !paymentSuccess &&(
+          <>
+            <label className="text-sm font-medium">Enter OTP number recieved from RSEB</label>
+            <input
+              className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              placeholder="Enter OTP"
+              type="text"
+              required
+            />
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                size="lg"
+                className="my-5"
+                onClick={verifyOtp}
+                disabled={loading}
+              >
+                {loading ? "Verifying OTP..." : "Verify OTP"}
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+      
+      {paymentSuccess && orderNo && (
+        <ShareStatement order_no={orderNo} />
+    )}
+      {/* Drawer - Payment Portal */}
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerTrigger>
+          {/* <Button variant="outline">Open Drawer</Button> */}
+        </DrawerTrigger>
+        <DrawerContent>
+          <div className="mx-auto w-full max-w-lg p-5 p-0-md">
+            <DrawerHeader className="m-0 px-0 flex flex-col justify-center items-center">
+              <DrawerTitle>Payment Portal</DrawerTitle>
+              <DrawerDescription>Royal Securities Exchange of Bhutan</DrawerDescription>
+            </DrawerHeader>
+            <div className=" h-[290px]">
+              <PaymentGateway service_code={"SS"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo}/>
+            </div>
           </div>
-
-          {!showBankFields && (
-            <Button onClick={handleSubmit} className="w-full mb-4">Submit</Button>
-          )}
-
-          {showBankFields && (
-            <>
-              <div className="mb-4">
-                <label className="block mb-1">Bank</label>
-                <Select onValueChange={setBankCode}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="--Select Bank--" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {banks.map((bank) => (
-                      <SelectItem key={bank.bank_code} value={bank.bank_code}>
-                        {bank.bank_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="mb-4">
-                <label className="block mb-1">Account No.</label>
-                <Input type="number" value={accNumber} onChange={(e) => setAccNumber(e.target.value)} />
-              </div>
-
-              {showOtpField ? (
-                <>
-                  <div className="mb-4">
-                    <label className="block mb-1">OTP</label>
-                    <Input type="number" value={bankOtp} onChange={(e) => setBankOtp(e.target.value)} />
-                  </div>
-                  <Button onClick={handlePayment} className="w-full">Submit Payment</Button>
-                </>
-              ) : (
-                <Button onClick={handleGetOtp} className="w-full">Get OTP</Button>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
