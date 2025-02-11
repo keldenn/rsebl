@@ -93,11 +93,7 @@ async function fetchStockData(symbol: string) {
   }
 }
 
-function getMarketSentiment(ptChange: string) {
-  const change = parseFloat(ptChange)
-  if (change === 0) return "Neutral"
-  return change > 0 ? "bullish" : "bearish"
-}
+
 
 export default async function Home({
   searchParams,
@@ -141,6 +137,12 @@ export default async function Home({
   const data = await response.json()
   const ptChange = data[0]?.ptChange || "0"
   const marketSentiment = getMarketSentiment(ptChange)
+
+  function getMarketSentiment(ptChange: string) {
+    const change = parseFloat(ptChange)
+    if (change === 0) return "Neutral"
+    return change > 0 ? "bullish" : "bearish"
+  }
 
   const sentimentColor =
     marketSentiment === "bullish" ? "text-green-500" :
