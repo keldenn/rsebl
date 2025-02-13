@@ -133,13 +133,11 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
       formData.append("operation", "get__transition_txt__id");
   
       const response = await fetch('http://localhost/payment_gateway/payment_gateway.php', {
-      
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString(), // Correctly format the body
       });
 
-  
       if (!response.ok) {
         toast({
           title: "Error!",
