@@ -124,6 +124,7 @@ export default function SharesDeclaration() {
       doc.text(`Name: ${client.f_name} ${client.l_name}`, 14, 40);
       doc.text(`Email: ${client.email}`, 14, 50);
       doc.text(`Phone: ${client.phone}`, 14, 60);
+      
     }
   
     // Table headers
@@ -141,12 +142,14 @@ export default function SharesDeclaration() {
     doc.save("holdings_statement.pdf");
   };
 
+  
+
   return (
     <div className="w-full flex flex-col justify-between items-center p-6 ">
-      <Card>
+      <Card className="w-full">
         <CardHeader>
-          <CardTitle>Shares Declaration</CardTitle>
-          <CardDescription>Enter details to proceed declaring your holdings</CardDescription>
+          <CardTitle className="text-xl text-center">Shares Declaration</CardTitle>
+          <CardDescription className="text-center">Enter details to proceed declaring your holdings</CardDescription>
         </CardHeader>
         <CardContent>
           <form>
@@ -210,68 +213,46 @@ export default function SharesDeclaration() {
         </AlertDialog>
       )}
       {holdings.length > 0 && (
-        <Card className="mt-4">
-          <CardContent className="p-6">
-
-          <div className="w-full flex flex-row justify-between items-center">
-            <div className="flex justify-between items-center w-full">
-              {/* Left: "Your Shares" */}
-              <div className="flex justify-start w-1/2">
-                <CardTitle>Your Shares</CardTitle>
-              </div>
-
-              {/* Right: Client Details HoverCard */}
-              <div className="flex justify-end w-1/2">
-                <HoverCard>
-                  <HoverCardTrigger asChild>
-                    <div className="flex text-sm cursor-pointer pb-2 mt-2">
-                      <span className="text-xs font-bold">View Client Details</span>
-                    </div>
-                  </HoverCardTrigger>
-                  <HoverCardContent className="w-80">
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-semibold">Client Information</h4>
-                      <p className="text-sm flex items-center">
-                        <User className="mr-2 h-4 w-4 opacity-70" />
-                        <strong>CID:</strong> {holdings[0]?.ID}
-                      </p>
-                      <p className="text-sm flex items-center">
-                        <User className="mr-2 h-4 w-4 opacity-70" />
-                        <strong>Name:</strong> {holdings[0]?.f_name} {holdings[0]?.l_name}
-                      </p>
-                      <p className="text-sm flex items-center">
-                        <Mail className="mr-2 h-4 w-4 opacity-70" />
-                        <strong>Email:</strong> {holdings[0]?.email}
-                      </p>
-                      <p className="text-sm flex items-center">
-                        <Phone className="mr-2 h-4 w-4 opacity-70" />
-                        <strong>Phone:</strong> {holdings[0]?.phone}
-                      </p>
-                    </div>
-                  </HoverCardContent>
-                </HoverCard>
-              </div>
+        <Card className="mt-4 w-full mx-auto shadow-lg rounded-xl p-6">
+          <CardContent>
+            <h3 className="text-center text-xl font-bold mb-2">
+              Royal Securities Exchange of Bhutan
+            </h3>
+            <p className="text-center text-gray-500 text-sm mb-4">
+              Report generated on: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
+            </p>
+            
+            <div className="bg-gray-100 p-4 rounded-lg mb-6">
+              <p className="text-sm font-medium">CID/DISN/CD CODE: <span className="font-semibold">{holdings[0]?.ID}</span></p>
+              <p className="text-sm font-medium">NAME: <span className="font-semibold">{holdings[0]?.f_name} {holdings[0]?.l_name}</span></p>
+              <p className="text-sm font-medium">Email: <span className="font-semibold">{holdings[0]?.email}</span></p>
+              <p className="text-sm font-medium">Phone: <span className="font-semibold">{holdings[0]?.phone}</span></p>
             </div>
-          </div>
-            {/* Display Holdings Table */}
-            <Table>
-              <TableHeader>
+            
+            <Table className="w-full border rounded-lg overflow-hidden">
+              <TableHeader className="bg-gray-200">
                 <TableRow>
-                  <TableHead>Symbol Name</TableHead>
-                  <TableHead>Total Volume</TableHead>
+                  <TableHead className="text-left px-4 py-2">Sl#</TableHead>
+                  <TableHead className="text-left px-4 py-2">Symbol</TableHead>
+                  <TableHead className="text-left px-4 py-2">Total Volume</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {holdings.map((holding, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{holding.symbol_name}</TableCell>
-                    <TableCell>{holding.total_vol}</TableCell>
+                  <TableRow key={index} className="border-b hover:bg-gray-100">
+                    <TableCell className="px-4 py-2">{index + 1}</TableCell>
+                    <TableCell className="px-4 py-2">{holding.symbol_name}</TableCell>
+                    <TableCell className="px-4 py-2 font-semibold">{holding.total_vol}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-
-            {/* Download Button */}
+            
+            <hr className="my-6" />
+            <p className="text-center text-sm text-gray-500">
+              THIS IS A COMPUTER-GENERATED REPORT AND REQUIRES NO SIGNATORY
+            </p>
+            
             <div className="flex justify-end">
               <Button className="mt-4" onClick={downloadStatement}>Download Statement</Button>
             </div>
