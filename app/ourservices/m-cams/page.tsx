@@ -8,6 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import PaymentGateway from '../components/PaymentGateway';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from '@/components/ui/label';
+
 export default function Page() {
   const [cid, setCid] = useState('');
   const [selectedBroker, setSelectedBroker] = useState('');
@@ -349,11 +352,29 @@ export default function Page() {
               ))}
             </SelectContent>
           </Select>
-          <Button className="w-full mt-4" onClick={handleFetchDetails}>Fetch Details</Button>
+          <Button className="w-full mt-4" variant={'outline'} onClick={handleFetchDetails}>Fetch Details</Button>
           {userDetails.name && (
             <>
               <Input className="w-full border p-2 my-2" value={userDetails.name} disabled />
-              <Button className="w-full mt-4" onClick={handleFinalSubmit}>Submit</Button>
+              <Input className="w-full border p-2 my-2" value={userDetails.phone} disabled />
+              <Input className="w-full border p-2 my-2" value={userDetails.email} disabled />
+              <Input className="w-full border p-2 my-2" value={userDetails.address} disabled />
+              <div className="flex items-center space-x-2 mt-4">
+              <Checkbox 
+                checked={isCheckboxChecked}
+                onCheckedChange={setIsCheckboxChecked} // ✅ Correct for ShadCN Checkbox
+                id="terms" 
+              />
+                <Label
+                  htmlFor="terms"
+                  className="text-xs leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  I agree to the <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                        terms and conditions
+                      </a>{" "} of RSEB for processing Online Terminal.
+                </Label>
+              </div>
+              <Button className="w-full mt-4" variant={'outline'} onClick={handleFinalSubmit}>Submit</Button>
             </>
           )}
         </CardContent>
@@ -366,11 +387,11 @@ export default function Page() {
         </CardHeader>
         <CardContent>
           <Input placeholder="Enter your Username" value={username} onChange={(e) => setUsername(e.target.value)} className="mb-4" />
-          <Button className="w-full" onClick={handleFetchDetailsRenew}>Fetch Details</Button>
+          <Button className="w-full" variant={'outline'} onClick={handleFetchDetailsRenew}>Fetch Details</Button>
           {userDetailsRenew.name && (
             <>
               <Input className="w-full border p-2 my-2" value={userDetailsRenew.name} disabled />
-              <Button className="w-full mt-4"onClick={handleFinalSubmitRenew}>Submit</Button>
+              <Button className="w-full mt-4" variant={'outline'} onClick={handleFinalSubmitRenew}>Submit</Button>
             </>
           )}
         </CardContent>

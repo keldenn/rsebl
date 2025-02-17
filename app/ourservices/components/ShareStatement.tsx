@@ -79,8 +79,8 @@ const ShareStatement = ({ order_no }) => {
   return (
 <main className="container mx-auto p-6">
   <div className="flex flex-col">
-    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Online Share Statement Report</h3>
-    <p className="text-gray-600 dark:text-gray-300">This report is generated only once.</p>
+    <h3 className="text-xl font-bold text-center text-gray-900 dark:text-white">Online Share Statement Report</h3>
+    <p className="text-gray-600 text-center dark:text-gray-300">This report is generated only once.</p>
   </div>
 
   {loading ? (
@@ -89,7 +89,7 @@ const ShareStatement = ({ order_no }) => {
     </div>
   ) : showShareDetails && shareData?.client ? (
     <div id="reportContent" className="my-5">
-      <Card className="max-w-3xl mx-auto shadow-lg rounded-xl p-6 bg-white dark:bg-gray-800">
+      <Card className="max-w-3xl mx-auto shadow-lg rounded-xl p-6 bg-white">
         <CardContent>
           <h3 className="text-center text-xl font-bold mb-2 text-gray-900 dark:text-white">
             Royal Securities Exchange of Bhutan
