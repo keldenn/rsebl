@@ -54,3 +54,46 @@ export default async function ServicesPage() {
     </div>
   );
 }
+
+// "use client"
+
+// import { useEffect, useState } from "react";
+// import ServicesCards from "./components/ServicesCards";
+
+// export default function ServicesPage() {
+//   const [servicesData, setServicesData] = useState([]);
+
+//   useEffect(() => {
+//     const fetchServices = async () => {
+//       try {
+//         const response = await fetch("https://rsebl.org.bt/agm/api/fetch-active-services");
+//         const data = await response.json();
+
+//         const formattedData = data.map((service: any) => ({
+//           description: service.name,
+//           image: `https://rsebl.org.bt/agm/storage/${service.logo}`,
+//           link: service.link,
+//         }));
+
+//         setServicesData(formattedData);
+//       } catch (error) {
+//         console.error("Error fetching services:", error);
+//       }
+//     };
+
+//     fetchServices();
+//   }, []);
+
+//   return (
+//     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-4">
+//       {servicesData.map((service, index) => (
+//         <ServicesCards
+//           key={index}
+//           description={service.description}
+//           image={service.image}
+//           link={service.link}
+//         />
+//       ))}
+//     </div>
+//   );
+// }

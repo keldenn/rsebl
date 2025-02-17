@@ -39,6 +39,10 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
+import { User, Mail, Phone } from "lucide-react"; // Icons for better UI
 
 export default function SharesDeclaration() {
   const [date, setDate] = useState<Date | undefined>();
@@ -53,6 +57,23 @@ export default function SharesDeclaration() {
       toast({
         title: "Error",
         description: "Both date and CID number are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (cid.length>11) {
+      toast({
+        title: "Error",
+        description: "CID should not exceed more than 11 digits",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (cid.length<11) {
+      toast({
+        title: "Error",
+        description: "CID should be of 11 digits",
         variant: "destructive",
       });
       return;
@@ -75,28 +96,54 @@ export default function SharesDeclaration() {
     setConfirmDialog(false);
     const formattedDate = format(date, "yyyy-MM-dd");
     const data = await fetchShareDeclarations(cid, formattedDate);
+    if (!data || data.length === 0) {
+      toast({
+        title: "Error",
+        description: "No share holding data available",
+        variant: "destructive",
+      });
+    }
     setHoldings(data);
     setLoading(false);
   };
 
   const downloadStatement = () => {
-    const csvContent = [
-      ["Symbol Name", "Total Volume"],
-      ...holdings.map(holding => [holding.symbol_name, holding.total_vol]),
-    ].map(e => e.join(",")).join("\n");
-    
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "holdings_statement.csv";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const doc = new jsPDF();
+  
+    // Add title
+    doc.setFontSize(16);
+    doc.text("Holdings Statement", 14, 20);
+  
+    // Ensure holdings array is not empty before accessing client details
+    if (holdings.length > 0) {
+      const client = holdings[0]; // Client details (same for all holdings)
+  
+      // Add Client Information
+      doc.setFontSize(12);
+      doc.text(`Client ID: ${client.ID}`, 14, 30);
+      doc.text(`Name: ${client.f_name} ${client.l_name}`, 14, 40);
+      doc.text(`Email: ${client.email}`, 14, 50);
+      doc.text(`Phone: ${client.phone}`, 14, 60);
+    }
+  
+    // Table headers
+    const tableColumn = ["Symbol Name", "Total Volume"];
+    const tableRows = holdings.map(holding => [holding.symbol_name, holding.total_vol]);
+  
+    // Add table using autoTable plugin
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 70, // Position table after client details
+    });
+  
+    // Save the PDF
+    doc.save("holdings_statement.pdf");
   };
 
   return (
     <div className="w-full flex flex-col justify-between items-center p-6 ">
-      <Card className="w-[600px]">
+      <Card>
         <CardHeader>
           <CardTitle>Shares Declaration</CardTitle>
           <CardDescription>Enter details to proceed declaring your holdings</CardDescription>
@@ -129,7 +176,7 @@ export default function SharesDeclaration() {
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="cid">CID Number</Label>
                 <Input
-                  type="text"
+                  type="number"
                   id="cid"
                   placeholder="Enter CID Number"
                   value={cid}
@@ -152,7 +199,7 @@ export default function SharesDeclaration() {
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmation</AlertDialogTitle>
               <AlertDialogDescription>
-                Declaring your shares will cost 50 BTN. Do you wish to proceed?
+                Declaring your shares will cost Nu 50. Do you wish to proceed?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -163,10 +210,50 @@ export default function SharesDeclaration() {
         </AlertDialog>
       )}
       {holdings.length > 0 && (
-        <Card className="mt-4 w-[600px]">
+        <Card className="mt-4">
           <CardContent className="p-6">
-           
-          <CardTitle>Your Shares</CardTitle>
+
+          <div className="w-full flex flex-row justify-between items-center">
+            <div className="flex justify-between items-center w-full">
+              {/* Left: "Your Shares" */}
+              <div className="flex justify-start w-1/2">
+                <CardTitle>Your Shares</CardTitle>
+              </div>
+
+              {/* Right: Client Details HoverCard */}
+              <div className="flex justify-end w-1/2">
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <div className="flex text-sm cursor-pointer pb-2 mt-2">
+                      <span className="text-xs font-bold">View Client Details</span>
+                    </div>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-80">
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold">Client Information</h4>
+                      <p className="text-sm flex items-center">
+                        <User className="mr-2 h-4 w-4 opacity-70" />
+                        <strong>CID:</strong> {holdings[0]?.ID}
+                      </p>
+                      <p className="text-sm flex items-center">
+                        <User className="mr-2 h-4 w-4 opacity-70" />
+                        <strong>Name:</strong> {holdings[0]?.f_name} {holdings[0]?.l_name}
+                      </p>
+                      <p className="text-sm flex items-center">
+                        <Mail className="mr-2 h-4 w-4 opacity-70" />
+                        <strong>Email:</strong> {holdings[0]?.email}
+                      </p>
+                      <p className="text-sm flex items-center">
+                        <Phone className="mr-2 h-4 w-4 opacity-70" />
+                        <strong>Phone:</strong> {holdings[0]?.phone}
+                      </p>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
+              </div>
+            </div>
+          </div>
+            {/* Display Holdings Table */}
             <Table>
               <TableHeader>
                 <TableRow>
@@ -183,10 +270,11 @@ export default function SharesDeclaration() {
                 ))}
               </TableBody>
             </Table>
+
+            {/* Download Button */}
             <div className="flex justify-end">
-            <Button className="mt-4" onClick={downloadStatement}>Download Statement</Button>
+              <Button className="mt-4" onClick={downloadStatement}>Download Statement</Button>
             </div>
-            
           </CardContent>
         </Card>
       )}
