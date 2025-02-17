@@ -13,12 +13,12 @@ import {
 import { Button } from "@/components/ui/button";
 import PaymentGateway from "../components/PaymentGateway";
 import { useToast } from "@/hooks/use-toast";
-import ShareStatement from "../components/shareStatement";
+import ShareStatement from "../components/ShareStatement";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
+
 
 export default function OnlineShareStatement() {
   const [open, setOpen] = useState(false);
@@ -325,7 +325,7 @@ export default function OnlineShareStatement() {
 
     {fieldsVisible && otpVerified && !paymentSuccess && (
       <>
-      <Label>OTP Number</Label>
+      <Label>RSEB OTP</Label>
       <Input className="mb-3" placeholder="OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
     </>
     )}

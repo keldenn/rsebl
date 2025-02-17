@@ -1,8 +1,19 @@
 "use client";
 import { fetchShareDeclarations } from "@/lib/yahoo-finance/fetchShareDeclaration";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import PaymentGateway from "../components/PaymentGateway";
+import html2canvas from 'html2canvas';
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import {
   Card,
   CardContent,
@@ -41,8 +52,6 @@ import {
 } from "@/components/ui/table";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
-import { User, Mail, Phone } from "lucide-react"; // Icons for better UI
 
 export default function SharesDeclaration() {
   const [date, setDate] = useState<Date | undefined>();
@@ -50,6 +59,14 @@ export default function SharesDeclaration() {
   const [holdings, setHoldings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [showOtpField, setShowOtpField] = useState(false)
+  const [open, setOpen] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [orderNo, setOrderNo] = useState();
+  const [amount, setAmount] = useState();
+
   const { toast } = useToast();
 
   const validateAndProceed = () => {
@@ -88,61 +105,161 @@ export default function SharesDeclaration() {
       return;
     }
 
-    setConfirmDialog(true);
+    
+  };
+  async function sendOtpOperation(stmnt) {
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/sendOtpOperation`;
+    const body = JSON.stringify({
+      cidNo: cid,
+      phoneNo: 17330827,
+      email: "keldennorbu13@gmail.com",
+    });
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: body,
+      });
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+        setShowOtpField(true);
+
+        return data; // Success
+      } else {
+        throw new Error(data.message || "Error sending OTP");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      throw error; // Error handling
+    }
+  }
+  // Handles OTP verification
+  const verifyOtp = async () => {
+    if (!otp) {
+      toast({
+        description: "Please enter the OTP.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true); // Show loading state during OTP verification
+
+    const stmnt = {
+      // cidNo: accountType === "I" ? cidNo : disnNo,
+      phoneNo: 17330827,
+      email: "keldennorbu13@gmail.com",
+      otpNo: otp,
+      // orderNo: orderNo,
+    };
+
+    try {
+
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/verify_otp_for_sharestatement`; // API URL for OTP verification
+      const body = JSON.stringify(stmnt);
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: body,
+      });
+
+      const data = await response.json();
+      console.log(data);
+      if (data.status === 200) {
+         // Mark OTP as verified
+         setOtpVerified(true)
+        toast({
+          description: data.message,
+
+        });
+        setConfirmDialog(true);
+  
+      }else if(data.status == 400){
+        setOpen(false);
+        toast({
+          description: data.message ,
+          variant: "destructive",
+        });
+      } 
+      else {
+     
+        toast({
+          description: data.message ,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      toast({
+        description: "Error verifying OTP. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSubmit = async () => {
     setLoading(true);
+    setOpen(true); 
     setConfirmDialog(false);
-    const formattedDate = format(date, "yyyy-MM-dd");
-    const data = await fetchShareDeclarations(cid, formattedDate);
-    if (!data || data.length === 0) {
-      toast({
-        title: "Error",
-        description: "No share holding data available",
-        variant: "destructive",
-      });
+    if(paymentSuccess && paymentSuccess == true){
+      const formattedDate = format(date, "yyyy-MM-dd");
+      const data = await fetchShareDeclarations(cid, formattedDate);
+      if (!data || data.length === 0) {
+        toast({
+          title: "Error",
+          description: "No share holding data available",
+          variant: "destructive",
+        });
+        return;
+      }
+      setOpen(true);
+      setHoldings(data);
+      setLoading(false);
     }
-    setHoldings(data);
-    setLoading(false);
+    
   };
 
   const downloadStatement = () => {
-    const doc = new jsPDF();
+    const input = document.getElementById('pdf-content');
   
-    // Add title
-    doc.setFontSize(16);
-    doc.text("Holdings Statement", 14, 20);
-  
-    // Ensure holdings array is not empty before accessing client details
-    if (holdings.length > 0) {
-      const client = holdings[0]; // Client details (same for all holdings)
-  
-      // Add Client Information
-      doc.setFontSize(12);
-      doc.text(`Client ID: ${client.ID}`, 14, 30);
-      doc.text(`Name: ${client.f_name} ${client.l_name}`, 14, 40);
-      doc.text(`Email: ${client.email}`, 14, 50);
-      doc.text(`Phone: ${client.phone}`, 14, 60);
+    html2canvas(input, {
+      scale: 2, // Increase resolution for better quality
+    }).then((canvas) => {
+      const imgData = canvas.toDataURL('image/png');
       
-    }
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
   
-    // Table headers
-    const tableColumn = ["Symbol Name", "Total Volume"];
-    const tableRows = holdings.map(holding => [holding.symbol_name, holding.total_vol]);
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
   
-    // Add table using autoTable plugin
-    doc.autoTable({
-      head: [tableColumn],
-      body: tableRows,
-      startY: 70, // Position table after client details
-    });
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
   
-    // Save the PDF
-    doc.save("holdings_statement.pdf");
-  };
+      const imgX = 0;
+      const imgY = 0;
+      const imgScaledWidth = imgWidth * ratio;
+      const imgScaledHeight = imgHeight * ratio;
+  
+      pdf.addImage(imgData, 'PNG', imgX, imgY, imgScaledWidth, imgScaledHeight);
 
-  
+      const formattedDate = date ? date.toLocaleDateString('en-CA') : 'unknown-date'; // 'YYYY-MM-DD'
+      const filename = `Shares_Declaration_${cid || 'unknown-cid'}_${formattedDate}.pdf`;
+      pdf.save(filename);
+    });
+  };
 
   return (
     <div className="w-full flex flex-col justify-between items-center p-6 ">
@@ -186,14 +303,31 @@ export default function SharesDeclaration() {
                   onChange={(e) => setCid(e.target.value)}
                 />
               </div>
+            {
+              showOtpField && (
+                <>
+                                <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="otp">OTP</Label>
+                <Input id="otp" type="number" placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
+              </div>
+              <Button onClick={verifyOtp} disabled={loading}>Verify OTP</Button>
+              
+                </>
+
+              )
+            }
+
             </div>
           </form>
         </CardContent>
         <CardFooter className="flex justify-end">
           {/* <Button variant="outline" disabled={loading}>Cancel</Button> */}
-          <Button onClick={validateAndProceed} disabled={loading}>
-            {loading ? "Fetching..." : "Declare"}
-          </Button>
+          {!showOtpField && (
+      <Button onClick={sendOtpOperation} disabled={loading}>
+      {loading ? "Verifying..." : "Send OTP"}
+    </Button>
+          )}
+    
         </CardFooter>
       </Card>
       {confirmDialog && (
@@ -213,14 +347,56 @@ export default function SharesDeclaration() {
         </AlertDialog>
       )}
       {holdings.length > 0 && (
-        <Card className="mt-4 w-full mx-auto shadow-lg rounded-xl p-6">
-          <CardContent>
+        <Card className="mt-4 w-full mx-auto shadow-lg rounded-xl py-2" >
+
+          <CardContent id="pdf-content">
+          
+          <CardHeader className="flex flex-row justify-center">
+            <div className="flex justify-center items-center">  <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width={113}
+                height={40}
+                viewBox="0 0 153 138"
+                fill="none"
+              >
+                <path
+                  d="M87.4225 91.3752L65.3705 70.9525C64.0985 69.7752 64.0985 67.8659 65.3705 66.6885L126.916 9.6912C128.187 8.51387 130.248 8.51387 131.518 9.6912L193.064 66.6885C194.336 67.8659 194.336 69.7752 193.064 70.9525L131.518 127.95C130.248 129.127 128.187 129.127 126.916 127.95L111.918 114.062"
+                  // stroke="#205A8A"
+                  className="stroke-[#205A8A] dark:stroke-white"
+                  strokeWidth="16.6253"
+                  strokeMiterlimit={10}
+                />
+                <mask
+                  id="mask0_2363_2582"
+                  style={{ maskType: "luminance" }}
+                  maskUnits="userSpaceOnUse"
+                  x={0}
+                  y={1}
+                  width={147}
+                  height={137}
+                >
+                  <path d="M0 0.999996H146.227V137.652H0V0.999996Z" fill="white" />
+                </mask>
+                <g mask="url(#mask0_2363_2582)">
+                  <path
+                    d="M114.908 46.7712L136.96 67.1939C138.232 68.3712 138.232 70.2805 136.96 71.4579L75.4147 128.455C74.1441 129.633 72.0827 129.633 70.8121 128.455L9.26674 71.4579C7.99474 70.2805 7.99474 68.3712 9.26674 67.1939L70.8121 10.1965C72.0827 9.01921 74.1441 9.01921 75.4147 10.1965L90.4121 24.0845"
+                    // stroke="#382E7A"
+                    className="stroke-[#382E7A] dark:stroke-white"
+                    strokeWidth="16.6253"
+                    strokeMiterlimit={10}
+                  />
+                </g>
+              </svg></div>
+            <div>
             <h3 className="text-center text-xl font-bold mb-2">
               Royal Securities Exchange of Bhutan
             </h3>
-            <p className="text-center text-gray-500 text-sm mb-4">
+             <p className=" text-gray-500 text-sm mb-4">
               Report generated on: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
             </p>
+            </div>
+        
+          </CardHeader>
             
             <div className="bg-gray-100 p-4 rounded-lg mb-6">
               <p className="text-sm font-medium">CID/DISN/CD CODE: <span className="font-semibold">{holdings[0]?.ID}</span></p>
@@ -230,11 +406,11 @@ export default function SharesDeclaration() {
             </div>
             
             <Table className="w-full border rounded-lg overflow-hidden">
-              <TableHeader className="bg-gray-200">
+              <TableHeader className="bg-custom-1 ">
                 <TableRow>
-                  <TableHead className="text-left px-4 py-2">Sl#</TableHead>
-                  <TableHead className="text-left px-4 py-2">Symbol</TableHead>
-                  <TableHead className="text-left px-4 py-2">Total Volume</TableHead>
+                  <TableHead className="text-left text-white px-4 py-2">Sl#</TableHead>
+                  <TableHead className="text-left text-white px-4 py-2">Symbol</TableHead>
+                  <TableHead className="text-left text-white px-4 py-2">Total Volume</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -252,13 +428,32 @@ export default function SharesDeclaration() {
             <p className="text-center text-sm text-gray-500">
               THIS IS A COMPUTER-GENERATED REPORT AND REQUIRES NO SIGNATORY
             </p>
-            
-            <div className="flex justify-end">
-              <Button className="mt-4" onClick={downloadStatement}>Download Statement</Button>
-            </div>
+          
           </CardContent>
+          <CardFooter  className="flex justify-end">
+  
+              <Button className="" onClick={downloadStatement}>Download Statement</Button>
+      
+          </CardFooter>
         </Card>
       )}
+      <Drawer open={open} onOpenChange={setOpen}>
+
+      <DrawerTrigger>
+        {/* <Button variant="outline">Open Drawer</Button> */}
+      </DrawerTrigger>
+      <DrawerContent>
+        <div className="mx-auto w-full max-w-lg p-5 p-0-md">
+          <DrawerHeader className="m-0 px-0 flex flex-col justify-center items-center">
+            <DrawerTitle>Payment Portal</DrawerTitle>
+            <DrawerDescription>Royal Securities Exchange of Bhutan</DrawerDescription>
+          </DrawerHeader>
+          <div className="h-[290px]">
+            <PaymentGateway service_code={"DS"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo} setAmount={setAmount}/>
+          </div>
+        </div>
+      </DrawerContent>
+      </Drawer>
     </div>
   );
 }
