@@ -87,7 +87,7 @@ const ShareStatement = ({ order_no }) => {
         </div>
       ) : showShareDetails && shareData?.client ? (
         <div id="reportContent" className="my-5">
-          <Card className="max-w-2xl mx-auto shadow-lg rounded-xl p-6 bg-white">
+          <Card className="max-w-3xl mx-auto shadow-lg rounded-xl p-6 bg-white">
       <CardContent>
         <h3 className="text-center text-xl font-bold mb-2">
           Royal Securities Exchange of Bhutan
