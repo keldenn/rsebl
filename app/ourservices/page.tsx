@@ -1,24 +1,24 @@
-import type { Metadata } from "next";
+// import type { Metadata } from "next";
 import ServicesCards from "./components/ServicesCards";
 //import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "Finly: Stock screener",
-  description: "Find the best stocks to buy now with the Finly stock screener.",
-};
+// export const metadata: Metadata = {
+//   title: "Finly: Stock screener",
+//   description: "Find the best stocks to buy now with the Finly stock screener.",
+// };
 
 const servicesData = [
   {
     description: "Online Client Terminal(mCaMs)",
     image: "	https://rsebl.org.bt/agm/storage/serviceLogo/acIVXa07xjQtrDGxNNWBS7B92PbGXaIC6ghdSRnx.png",
-    link: "/ourservices/mCaMs",
+    link: "/ourservices/m-cams",
   },
   {
     description: "Bhutan CrowdFunding",
     image: "https://rsebl.org.bt/agm/storage/serviceLogo/m3nZXM2akeYjqnW4LJfYc70imFhQrxxElJE0F6AZ.png",
     link: "https://bhutancrowdfunding.rsebl.org.bt/",
   },
-  {
+  { 
     description: "Agricultural Commodities Market Initiative",
     image: "https://rsebl.org.bt/agm/storage/serviceLogo/XSwvhhZIi5gvwXjnJVlsMVPdTnIETI3hjTmZfmnB.png",
     link: "https://www.services.rsebl.org.bt/BCMI/public/index.php",
@@ -36,7 +36,7 @@ const servicesData = [
   {
     description: "Online Share Statement",
     image: "https://rsebl.org.bt/agm/storage/serviceLogo/ailCgaN14Y12UzZefNYlHhLW3AgIO0gYrOCCmGSu.png",
-    link: "/ourservices/OnlineShareStmt",
+    link: "/ourservices/online-share-statement",
   }
 ];
 

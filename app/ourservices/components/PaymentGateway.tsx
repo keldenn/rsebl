@@ -1,13 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast"
-import ShareStatement from './shareStatement';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 import {
   InputOTP,
   InputOTPGroup,
@@ -58,24 +69,40 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
   const [bankCode, setBankCode] = useState('');
   const [accNumber, setAccNumber] = useState('');
   const [bankOtp, setBankOtp] = useState('');
-  const [countdown, setCountdown] = useState(5); // 7 minutes
+  const [countdown, setCountdown] = useState(60000); // 7 minutes
   const [banks, setBanks] = useState([]);
   const [bfsTransId, setBfsTransId] = useState('');
   const [showBankFields, setShowBankFields] = useState(false);
   const [showOtpField, setShowOtpField] = useState(false);
   const [temp, setTemp] = useState();
- 
-
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const isExecuted = useRef(false); // ✅ Declare useRef outside useEffect
 
   useEffect(() => {
     async function fetchBanks() {
-      const response = await fetch('https://rsebl.org.bt/agm/api/fetch-all-banks');
-      const data = await response.json();
-      setBanks(data);
+      try {
+        const response = await fetch("https://rsebl.org.bt/agm/api/fetch-all-banks");
+        const data = await response.json();
+        setBanks(data);
+      } catch (error) {
+        console.error("Error fetching banks:", error);
+      }
     }
-    fetchBanks();
-    handleSubmit();
-  }, []);
+
+    if (!isExecuted.current) {
+      isExecuted.current = true; // ✅ Ensure it runs only once
+      fetchBanks();
+      handleSubmit();
+    }
+  }, []); // Runs only on mount
+
+  const confirmSubmit = () => {
+    setIsAlertOpen(true);
+  };
+  const handleConfirmedSubmit = () => {
+    setIsAlertOpen(false);
+    handlePayment();
+  };
 
   const updateStatusByOrderNo = async (orderNo) => {
     try {
@@ -93,10 +120,10 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
             throw new Error(data.message || "Failed to update status");
         }
 
-        console.log("Status Updated Successfully:", data);
+        // console.log("Status Updated Successfully:", data);
         return data;
     } catch (error) {
-        console.error("Error updating status:", error.message);
+        // console.error("Error updating status:", error.message);
         return { status: "error", message: error.message };
     }
 };
@@ -132,7 +159,7 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
       formData.append("sys_date_time", sys_date_time);
       formData.append("operation", "get__transition_txt__id");
   
-      const response = await fetch('http://localhost/payment_gateway/payment_gateway.php', {
+      const response = await fetch('https://cms.rsebl.org.bt/payment_gateway/payment_terminal.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString(), // Correctly format the body
@@ -159,15 +186,11 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
   
       if (data?.data?.[1]?.bfs_bfsTxnId) {
         setShowBankFields(true);
-        console.log("First payment_Gateway res trxn id: ", data)
+        // console.log("First payment_Gateway res trxn id: ", data)
         setAmount(data.data[1].amount);
         setOrderNo(data.data[1].order_no);
         setBfsTransId(data.data[1].bfs_bfsTxnId);
-        // insert data
-        if(service_code = "SS") {
-          // call function insert_into_database
-          
-        }
+
       }
     } catch (error) {
       toast({
@@ -175,7 +198,7 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
         description: "An error occurred",
         variant: "destructive",
       });
-      console.error("Error:", error.message);
+      // console.error("Error:", error.message);
       alert(`An error occurred: ${error.message}`);
 
       setLoading(false);
@@ -200,66 +223,63 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
       });
       return;
     }
-    setLoading(true);
-  
-    setTimeout(async () => {
+    try {
+      setLoading(true); // Ensure loading state is set at the start
+
+      const formData = new URLSearchParams();
+      formData.append("bfs_trans_id", bfsTransId);
+      formData.append("bank_code", bankCode);
+      formData.append("acc_number", accNumber);
+      formData.append("operation", "get__opt__from__bank");
+    
+      const response = await fetch("https://cms.rsebl.org.bt/payment_gateway/payment_terminal.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData.toString(),
+      });
+    
+      const text = await response.text();
+      setLoading(false);
+    
+      if (!text) {
+        alert("Empty response from server");
+        return;
+      }
+    
+      let data;
       try {
-        const formData = new URLSearchParams();
-        formData.append("bfs_trans_id", bfsTransId);
-        // formData.append("amount", amount);
-        formData.append("bank_code", bankCode);
-        formData.append("acc_number", accNumber);
-        formData.append("operation", "get__opt__from__bank");
-  
-        const response = await fetch(
-          "http://localhost/payment_gateway/payment_gateway.php",
-          {
-            
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: formData.toString(),
-          }
-        );
-  
-        const text = await response.text();
-        setLoading(false);
-  
-        if (!text) {
-          alert("Empty response from server");
-          return;
-        }
-  
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (error) {
-          console.error("Invalid JSON response:", text);
-          alert("Invalid response from server");
-          return;
-        }
-  
-        if (Array.isArray(data) && data.length > 0 && data[0]?.state === "YES") {
-          setShowOtpField(true);
-          setCountdown(420);
-        } else {
-          toast({
-            title: "Error!",
-            description: "Failed to get OTP!, Please check your Account no and Bank",
-            variant: "destructive",
-          });
-        }
+        data = JSON.parse(text);
       } catch (error) {
+        // console.error("Invalid JSON response:", text);
+        alert("Invalid response from server");
+        return;
+      }
+    
+      if (Array.isArray(data) && data.length > 0 && data[0]?.state === "YES") {
+        setShowOtpField(true);
+        setCountdown(420);
+      } else {
         toast({
           title: "Error!",
-          description: "Error fetching OTP",
+          description: "Failed to get OTP! Please check your Account number and Bank",
           variant: "destructive",
         });
-        alert("An error occurred while getting OTP.");
-        setLoading(false);
       }
-    }, 2000);
+    } catch (error) {
+      console.error("Error fetching OTP:", data[0]?.error); // <-- Log the actual error to the console
+      
+      toast({
+        title: "Error!",
+        description: `Error fetching OTP: ${data[0]?.error || error}`,
+        variant: "destructive",
+      });
+    
+      alert(`Error from server: ${data[0]?.error || "Unknown error"}`);
+
+      setLoading(false);
+    }
+    
   };
-  
   
   const handlePayment = async () => {
     if (!bankOtp) {
@@ -279,88 +299,82 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
       return;
     }
   
-    setLoading(true);
- 
+    try {
+      setLoading(true); // Ensure loading state is set at the start
     
-    setTimeout(async () => {
       const formData = new URLSearchParams();
-      console.log("bfs:OTP", bfsTransId, bankOtp)
+      // console.log("bfs:OTP", bfsTransId, bankOtp);
       formData.append("bfs_trans_id", bfsTransId);
       formData.append("otp", bankOtp);
       formData.append("operation", "make__online__payment");
-  
-      try {
-        const response = await fetch('http://localhost/payment_gateway/payment_gateway.php', {
-        
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: formData.toString(),
-        });
-  
-        const text = await response.text();
-        setLoading(false);
-  
-        if (!text) {
-          toast({
-            title: "Error!",
-            description: "Empty response from server",
-            variant: "destructive",
-          });
-          return;
-        }
-  
-        // **Check if the response is valid JSON**
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (error) {
-          console.error("Invalid JSON response:", text);
-          toast({
-            title: "Error!",
-            description: "Unexpected server response. Please try again later.",
-            variant: "destructive",
-          });
-          return;
-        }
-  
-        console.log("Parsed JSON Response:", data);
-      
-        const bfsCode = data?.[0]?.bfs_code;
-        const bfsOrderNo = data?.[0]?.form_data?.bfs_orderNo;
-        
-        if (data?.[0]?.http_code === 200 && bfsCode === '00') {
-          toast({ title: "Success", description: 'Payment Done!' });
-          if (bfsOrderNo.slice(0, 2) === "SS") {
-            toast({ title: "Success", description: 'Payment Done2!' });
-            // setOrderNo(bfsOrderNo)
-            try {
-              const response = await updateStatusByOrderNo(bfsOrderNo);
-              console.log("Status Update Response:", response);
-          } catch (error) {
-              console.error("Error updating status:", error);
-          }
-            setPaymentSuccess(true);
-            
-            return;
-          }
-  
-        } else {
-          toast({
-            title: "Transaction Failed",
-            description: responseCodeMessages[bfsCode] || 'Unknown error occurred',
-            variant: "destructive",
-          });
-        }
-      } catch (error) {
-        console.error("Error:", error);
+    
+      const response = await fetch('https://cms.rsebl.org.bt/payment_gateway/payment_terminal.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString(),
+      });
+    
+      const text = await response.text();
+      setLoading(false);
+    
+      if (!text) {
         toast({
           title: "Error!",
-          description: "A network or server error occurred. Please try again.",
+          description: "Empty response from server",
           variant: "destructive",
         });
-        setLoading(false);
+        return;
       }
-    }, 20000);
+    
+      // **Check if the response is valid JSON**
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (error) {
+        // console.error("Invalid JSON response:", text);
+        toast({
+          title: "Error!",
+          description: "Unexpected server response. Please try again later.",
+          variant: "destructive",
+        });
+        return;
+      }
+    
+      // console.log("Parsed JSON Response:", data);
+    
+      const bfsCode = data?.[0]?.bfs_code;
+      const bfsOrderNo = data?.[0]?.form_data?.bfs_orderNo;
+    
+      if (data?.[0]?.http_code === 200 && bfsCode === '00') {    
+        if (bfsOrderNo.slice(0, 2) === "SS") {
+          toast({ title: "Success", description: 'Payment Done' });
+          // setOrderNo(bfsOrderNo)
+          try {
+            const response = await updateStatusByOrderNo(bfsOrderNo);
+            // console.log("Status Update Response:", response);
+          } catch (error) {
+            console.error("Error updating status:", error);
+          }
+          setPaymentSuccess(true);
+          return;
+        }
+      } else {
+        toast({
+          title: "Transaction Failed",
+          description: responseCodeMessages[bfsCode] || 'Unknown error occurred',
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast({
+        title: "Error!",
+        description: "A network or server error occurred. Please try again.",
+        variant: "destructive",
+      });
+      setLoading(false);
+    }
+    
   };
   
 
@@ -377,10 +391,7 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
         <CardContent className="p-6">
           {showBankFields && (
             <>
-            <div className="">
-              You will be charged
-              {temp}
-            </div>
+  
             <div className="flex flex-row">
             <div className="mb-4 w-1/2">
                 <label className="text-sm mb-1 text-gray-500">Bank</label>
@@ -403,26 +414,6 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
               </div>
             </div>
 
-              {/* {showOtpField && (
-                    <div className="mb-2 w-full ">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm text-red-500 font-semibold">
-                        OTP Verification Timer : 
-                          {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}
-                        </span>
-                      </div>
-                      <div className="relative pt-1">
-                        <div className="flex mb-1 items-center justify-between">
-                          <div className="w-full bg-gray-200 h-1 rounded-full">
-                            <div
-                              className="h-1 bg-custom-1 rounded-full transition-all"
-                              style={{ width: `${(countdown / 420) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )} */}
 
               {showOtpField ? (
                 <>
@@ -464,7 +455,8 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
                     </div>
                   
                   </div>
-                  <Button onClick={handlePayment} className="w-full ">Submit Payment</Button>
+                  <Button onClick={confirmSubmit} className="w-full ">Submit Payment</Button>
+
                 </>
               ) : (
                 <Button onClick={handleGetOtp} className="w-full ">Get OTP</Button>
@@ -473,6 +465,22 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
           )}
         </CardContent>
       </Card>
+      {/* Alert */}
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Generating your share statement will cost Nu 50. Do you wish to proceed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmedSubmit}>Proceed</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+  
     </div>
   );
 }

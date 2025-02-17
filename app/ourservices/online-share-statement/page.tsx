@@ -38,7 +38,7 @@ export default function OnlineShareStatement() {
   };
   const handleDisnChange = (e) => setDisnNo(e.target.value); // Update DISN number
   if(paymentSuccess){
-    console.log("page", orderNo)
+    // console.log("page", orderNo)
   }
   const fetchData = async () => {
     if (accountType === "I" && !cidNo) {
@@ -155,14 +155,23 @@ export default function OnlineShareStatement() {
 
       const data = await response.json();
 
-      if (response.status === 200) {
+      if (data.status === 200) {
          // Mark OTP as verified
+
         toast({
           description: data.message,
 
         });
         setOpen(true); // Open payment gateway drawer
-      } else {
+      }else if(data.status == 400){
+        setOpen(false);
+        toast({
+          description: data.message ,
+          variant: "destructive",
+        });
+      } 
+      else {
+     
         toast({
           description: data.message ,
           variant: "destructive",
@@ -205,17 +214,18 @@ export default function OnlineShareStatement() {
 
       if (response.status === 200) {
          // Mark OTP as verified
-        toast({
-          description: data.message,
+        // toast({
+        //   description: data.message,
 
-        });
+        // });
         setOpen(true); // Open payment gateway drawer
-      } else {
-        toast({
-          description: data.message ,
-          variant: "destructive",
-        });
-      }
+      } 
+      // else {
+      //   toast({
+      //     description: data.message ,
+      //     variant: "destructive",
+      //   });
+      // }
     } catch (error) {
       console.error("Error verifying OTP:", error);
       toast({
@@ -272,126 +282,131 @@ export default function OnlineShareStatement() {
   }, [paymentSuccess, orderNo]);
   return (
     <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
+      {!paymentSuccess && !orderNo && (
       <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4">
-        <h2 className="py-4 text-xl font-medium text-center">Online Share Statement</h2>
+      <h2 className="py-4 text-xl font-medium text-center">Online Share Statement</h2>
 
-        {/* Account Type Dropdown */}
-        <label className="text-sm font-medium">Account Type</label>
-        <select
-          className="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-base text-muted-foreground"
-          value={accountType}
-          onChange={handleAccountTypeChange}
+      {/* Account Type Dropdown */}
+      <label className="text-sm font-medium">Account Type</label>
+      <select
+        className="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-base text-muted-foreground"
+        value={accountType}
+        onChange={handleAccountTypeChange}
+      >
+        <option value="">Select Account Type</option>
+        <option value="I">Individual</option>
+        <option value="J">Corporate/Association</option>
+      </select>
+
+      {/* CID No Input (for Individual) */}
+      {accountType === "I" &&  !paymentSuccess && (
+        <>
+          <label className="text-sm font-medium">CID No</label>
+          <input
+            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+            placeholder="Enter your CID number"
+            type="text"
+            required
+            value={cidNo}
+            onChange={handleCidChange}
+          />
+        </>
+      )}
+
+      {/* DISN No Input (for Corporate/Association) */}
+      {accountType === "J" &&  !paymentSuccess &&(
+        <>
+          <label className="text-sm font-medium">DISN No</label>
+          <input
+            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+            placeholder="Enter DISN number provided by RSEB"
+            type="text"
+            required
+            value={disnNo}
+            onChange={handleDisnChange}
+          />
+        </>
+      )}
+
+      {/* Fetch Button */}
+      <div className="flex justify-center">
+        <Button
+          variant="outline"
+          size="lg"
+          className="my-5"
+          onClick={fetchData}
+          disabled={loading}
         >
-          <option value="">Select Account Type</option>
-          <option value="I">Individual</option>
-          <option value="J">Corporate/Association</option>
-        </select>
-
-        {/* CID No Input (for Individual) */}
-        {accountType === "I" &&  !paymentSuccess && (
-          <>
-            <label className="text-sm font-medium">CID No</label>
-            <input
-              className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
-              placeholder="Enter your CID number"
-              type="text"
-              required
-              value={cidNo}
-              onChange={handleCidChange}
-            />
-          </>
-        )}
-
-        {/* DISN No Input (for Corporate/Association) */}
-        {accountType === "J" &&  !paymentSuccess &&(
-          <>
-            <label className="text-sm font-medium">DISN No</label>
-            <input
-              className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
-              placeholder="Enter DISN number provided by RSEB"
-              type="text"
-              required
-              value={disnNo}
-              onChange={handleDisnChange}
-            />
-          </>
-        )}
-
-        {/* Fetch Button */}
-        <div className="flex justify-center">
-          <Button
-            variant="outline"
-            size="lg"
-            className="my-5"
-            onClick={fetchData}
-            disabled={loading}
-          >
-            {loading ? "Fetching..." : "Fetch"}
-          </Button>
-        </div>
-
-        {/* Phone and Email Fields */}
-        {fieldsVisible &&  !paymentSuccess &&(
-          <>
-            <label className="text-sm font-medium">Phone No</label>
-            <input
-              className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="Enter your phone number"
-              type="text"
-              required
-            />
-            <label className="text-sm font-medium">Email</label>
-            <input
-              className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              type="email"
-              required
-            />
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                size="lg"
-                className="my-5"
-                onClick={handleSubmit}
-                disabled={loading}
-              >
-                {loading ? "Sending OTP..." : "Send OTP "}
-              </Button>
-            </div>
-          </>
-        )}
-
-        {/* OTP Input and Verification */}
-        {fieldsVisible && otpVerified && !paymentSuccess &&(
-          <>
-            <label className="text-sm font-medium">Enter OTP number recieved from RSEB</label>
-            <input
-              className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              placeholder="Enter OTP"
-              type="text"
-              required
-            />
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                size="lg"
-                className="my-5"
-                onClick={verifyOtp}
-                disabled={loading}
-              >
-                {loading ? "Verifying OTP..." : "Verify OTP"}
-              </Button>
-            </div>
-          </>
-        )}
+          {loading ? "Fetching..." : "Fetch"}
+        </Button>
       </div>
-      
+
+      {/* Phone and Email Fields */}
+      {fieldsVisible &&  !paymentSuccess &&(
+        <>
+          <label className="text-sm font-medium">Phone No</label>
+          <input
+            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="Enter your phone number"
+            type="text"
+            required
+          />
+          <label className="text-sm font-medium">Email</label>
+          <input
+            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+            type="email"
+            required
+          />
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              size="lg"
+              className="my-5"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? "Sending OTP..." : "Send OTP "}
+            </Button>
+          </div>
+        </>
+      )}
+
+      {/* OTP Input and Verification */}
+      {fieldsVisible && otpVerified && !paymentSuccess &&(
+        <>
+          <label className="text-sm font-medium">Enter OTP number recieved from RSEB</label>
+          <input
+            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            placeholder="Enter OTP"
+            type="text"
+            required
+          />
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              size="lg"
+              className="my-5"
+              onClick={verifyOtp}
+              disabled={loading}
+            >
+              {loading ? "Verifying OTP..." : "Verify OTP"}
+            </Button>
+          </div>
+        </>
+      )}
+    </div>
+      )
+
+      }
+
+{/* <ShareStatement order_no={"SS2025021411432467aed8193acef"} /> */}
       {paymentSuccess && orderNo && (
         <ShareStatement order_no={orderNo} />
     )}
@@ -407,13 +422,12 @@ export default function OnlineShareStatement() {
               <DrawerTitle>Payment Portal</DrawerTitle>
               <DrawerDescription>Royal Securities Exchange of Bhutan</DrawerDescription>
             </DrawerHeader>
-            <div className=" h-[290px]">
+            <div className="h-[290px]">
               <PaymentGateway service_code={"SS"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo} setAmount={setAmount}/>
             </div>
           </div>
         </DrawerContent>
       </Drawer>
-      {/* <ShareStatement order_no={"SS2025021200084867ab9230e95b3"} /> */}
     </div>
   );
 }

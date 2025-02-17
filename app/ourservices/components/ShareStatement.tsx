@@ -21,12 +21,12 @@ const ShareStatement = ({ order_no }) => {
     }
   }, [order_no]);
 
-  console.log("ShareStatement received order_nooooo:", order_no);
+  // console.log("ShareStatement received order_nooooo:", order_no);
   const loadShareData = async () => {
     if (!order_no) {
       toast({
         title: "Error",
-        description: "Invalid order number.",
+        description: "No order number.",
         variant: "destructive",
         duration: 5000,
       });
@@ -86,56 +86,54 @@ const ShareStatement = ({ order_no }) => {
           <Loader2 className="animate-spin" />
         </div>
       ) : showShareDetails && shareData?.client ? (
-        <div id="reportContent">
-          <Card>
-            <CardContent>
-              <h3 className="text-center text-lg font-semibold">
-                Royal Securities Exchange of Bhutan
-              </h3>
-              <p className="text-center">
-                Report generated on: {reportDate} {reportLocalTime}
-              </p>
-              <p>
-                CID/DISN/CD CODE: {shareData.client.ID}  
-                <br />
-                NAME: {shareData.client.f_name} {shareData.client.l_name}  
-                <br />
-                TPN No: {shareData.client.tpn}  
-                <br />
-                ADDRESS: {shareData.client.address}
-              </p>
-      
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Sl#</TableHead>
-                    <TableHead>Symbol</TableHead>
-                    <TableHead>Volume</TableHead>
-                    <TableHead>Block Volume</TableHead>
-                    <TableHead>Pledged Volume</TableHead>
-                    <TableHead>Total Volume</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {shareData?.shares?.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>{item.symbol}</TableCell>
-                      <TableCell>{item.volume}</TableCell>
-                      <TableCell>{item.block_volume}</TableCell>
-                      <TableCell>{item.pledge_volume}</TableCell>
-                      <TableCell>{item.total}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-      
-              <hr />
-              <p className="text-center">
-                THIS IS A COMPUTER-GENERATED REPORT AND REQUIRES NO SIGNATORY
-              </p>
-            </CardContent>
-          </Card>
+        <div id="reportContent" className="my-5">
+          <Card className="max-w-2xl mx-auto shadow-lg rounded-xl p-6 bg-white">
+      <CardContent>
+        <h3 className="text-center text-xl font-bold mb-2">
+          Royal Securities Exchange of Bhutan
+        </h3>
+        <p className="text-center text-gray-500 text-sm mb-4">
+          Report generated on: {reportDate} {reportLocalTime}
+        </p>
+        
+        <div className="bg-gray-100 p-4 rounded-lg mb-6">
+          <p className="text-sm font-medium">CID/DISN/CD CODE: <span className="font-semibold">{shareData.client.ID}</span></p>
+          <p className="text-sm font-medium">NAME: <span className="font-semibold">{shareData.client.f_name} {shareData.client.l_name}</span></p>
+          <p className="text-sm font-medium">TPN No: <span className="font-semibold">{shareData.client.tpn}</span></p>
+          <p className="text-sm font-medium">ADDRESS: <span className="font-semibold">{shareData.client.address}</span></p>
+        </div>
+        
+        <Table className="w-full border rounded-lg overflow-hidden">
+          <TableHeader className="bg-gray-200">
+            <TableRow>
+              <TableHead className="text-left px-4 py-2">Sl#</TableHead>
+              <TableHead className="text-left px-4 py-2">Symbol</TableHead>
+              <TableHead className="text-left px-4 py-2">Volume</TableHead>
+              <TableHead className="text-left px-4 py-2">Block Volume</TableHead>
+              <TableHead className="text-left px-4 py-2">Pledged Volume</TableHead>
+              <TableHead className="text-left px-4 py-2">Total Volume</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {shareData?.shares?.map((item, index) => (
+              <TableRow key={index} className="border-b hover:bg-gray-100">
+                <TableCell className="px-4 py-2">{index + 1}</TableCell>
+                <TableCell className="px-4 py-2">{item.symbol}</TableCell>
+                <TableCell className="px-4 py-2">{item.volume}</TableCell>
+                <TableCell className="px-4 py-2">{item.block_volume}</TableCell>
+                <TableCell className="px-4 py-2">{item.pledge_volume}</TableCell>
+                <TableCell className="px-4 py-2 font-semibold">{item.total}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        
+        <hr className="my-6" />
+        <p className="text-center text-sm text-gray-500">
+          THIS IS A COMPUTER-GENERATED REPORT AND REQUIRES NO SIGNATORY
+        </p>
+      </CardContent>
+    </Card>
         </div>
       ) : null}
     </main>
