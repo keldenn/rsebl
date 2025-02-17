@@ -14,6 +14,12 @@ import { Button } from "@/components/ui/button";
 import PaymentGateway from "../components/PaymentGateway";
 import { useToast } from "@/hooks/use-toast";
 import ShareStatement from "../components/shareStatement";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+
 export default function OnlineShareStatement() {
   const [open, setOpen] = useState(false);
   const [accountType, setAccountType] = useState(""); // Account type: Individual or Corporate
@@ -31,12 +37,12 @@ export default function OnlineShareStatement() {
   const { toast } = useToast();
 
   const handleAccountTypeChange = (e) => {
-    setAccountType(e.target.value); // Update account type based on dropdown selection
+    setAccountType(e?.target?.value ?? e); // Update account type based on dropdown selection
   };
   const handleCidChange = (e) => {
-    setCidNo(e.target.value); // Update CID number
+    setCidNo(e?.target?.value ?? e); // Update CID number
   };
-  const handleDisnChange = (e) => setDisnNo(e.target.value); // Update DISN number
+  const handleDisnChange = (e) => setDisnNo(e?.target?.value ?? e); // Update DISN number
   if(paymentSuccess){
     // console.log("page", orderNo)
   }
@@ -280,131 +286,64 @@ export default function OnlineShareStatement() {
       setOpen(false); // Close the drawer when payment is successful and order number is set
     }
   }, [paymentSuccess, orderNo]);
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
-      {!paymentSuccess && !orderNo && (
-      <div className="rounded-xl h-auto border bg-card text-card-foreground shadow p-4">
-      <h2 className="py-4 text-xl font-medium text-center">Online Share Statement</h2>
+     {!paymentSuccess && !orderNo && (
+ <Card>
+        <CardHeader>
+        <CardTitle>Online Share Statement</CardTitle>
+        <CardDescription>Enter your details to proceed</CardDescription>
+      </CardHeader>
+    <CardContent className="">
+    <Label>Account Type</Label>
+    <Select value={accountType} onValueChange={handleAccountTypeChange}>
+      <SelectTrigger className="w-full mb-3">
+        <SelectValue placeholder="Select Account Type" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="I">Individual</SelectItem>
+        <SelectItem value="J">Corporate/Association</SelectItem>
+      </SelectContent>
+    </Select>
 
-      {/* Account Type Dropdown */}
-      <label className="text-sm font-medium">Account Type</label>
-      <select
-        className="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-base text-muted-foreground"
-        value={accountType}
-        onChange={handleAccountTypeChange}
+    {accountType === "I" && (
+      <><Label>CID No</Label><Input className="mb-3"placeholder="Enter your CID number" value={cidNo} onChange={handleCidChange} /></>
+    )}
+    {accountType === "J" && (
+      <><Label>DISN No</Label><Input className="mb-3"placeholder="Enter DISN number" value={disnNo} onChange={handleDisnChange} /></>
+    )}
+
+    {fieldsVisible && !paymentSuccess && (
+      <>
+      <Label>Phone No</Label>
+      <Input className="mb-3"placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <Label>Email</Label>
+      <Input className="mb-3"placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+    </>
+    )}
+
+    {fieldsVisible && otpVerified && !paymentSuccess && (
+      <>
+      <Label>OTP Number</Label>
+      <Input className="mb-3" placeholder="OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
+    </>
+    )}
+      </CardContent>
+
+      <CardFooter className="flex justify-center">
+      <Button
+        variant="outline"
+        size="lg"
+        className="my-1"
+        onClick={fieldsVisible ? (otpVerified ? verifyOtp : handleSubmit) : fetchData}
+        disabled={loading}
       >
-        <option value="">Select Account Type</option>
-        <option value="I">Individual</option>
-        <option value="J">Corporate/Association</option>
-      </select>
-
-      {/* CID No Input (for Individual) */}
-      {accountType === "I" &&  !paymentSuccess && (
-        <>
-          <label className="text-sm font-medium">CID No</label>
-          <input
-            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
-            placeholder="Enter your CID number"
-            type="text"
-            required
-            value={cidNo}
-            onChange={handleCidChange}
-          />
-        </>
-      )}
-
-      {/* DISN No Input (for Corporate/Association) */}
-      {accountType === "J" &&  !paymentSuccess &&(
-        <>
-          <label className="text-sm font-medium">DISN No</label>
-          <input
-            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
-            placeholder="Enter DISN number provided by RSEB"
-            type="text"
-            required
-            value={disnNo}
-            onChange={handleDisnChange}
-          />
-        </>
-      )}
-
-      {/* Fetch Button */}
-      <div className="flex justify-center">
-        <Button
-          variant="outline"
-          size="lg"
-          className="my-5"
-          onClick={fetchData}
-          disabled={loading}
-        >
-          {loading ? "Fetching..." : "Fetch"}
-        </Button>
-      </div>
-
-      {/* Phone and Email Fields */}
-      {fieldsVisible &&  !paymentSuccess &&(
-        <>
-          <label className="text-sm font-medium">Phone No</label>
-          <input
-            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="Enter your phone number"
-            type="text"
-            required
-          />
-          <label className="text-sm font-medium">Email</label>
-          <input
-            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            type="email"
-            required
-          />
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              size="lg"
-              className="my-5"
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? "Sending OTP..." : "Send OTP "}
-            </Button>
-          </div>
-        </>
-      )}
-
-      {/* OTP Input and Verification */}
-      {fieldsVisible && otpVerified && !paymentSuccess &&(
-        <>
-          <label className="text-sm font-medium">Enter OTP number recieved from RSEB</label>
-          <input
-            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 mt-2 mb-2"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            placeholder="Enter OTP"
-            type="text"
-            required
-          />
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              size="lg"
-              className="my-5"
-              onClick={verifyOtp}
-              disabled={loading}
-            >
-              {loading ? "Verifying OTP..." : "Verify OTP"}
-            </Button>
-          </div>
-        </>
-      )}
-    </div>
-      )
-
-      }
+        {loading ? (fieldsVisible ? (otpVerified ? "Verifying OTP..." : "Sending OTP...") : "Fetching...") : (fieldsVisible ? (otpVerified ? "Verify OTP" : "Send OTP") : "Fetch")}
+      </Button>
+      </CardFooter>
+    </Card>
+)     }
 
 {/* <ShareStatement order_no={"SS2025021411432467aed8193acef"} /> */}
       {paymentSuccess && orderNo && (
