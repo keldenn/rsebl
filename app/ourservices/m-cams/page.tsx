@@ -10,6 +10,16 @@ import { useToast } from '@/hooks/use-toast';
 import PaymentGateway from '../components/PaymentGateway';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from '@/components/ui/label';
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+
 
 export default function Page() {
   const [cid, setCid] = useState('');
@@ -17,6 +27,7 @@ export default function Page() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [orderNo, setOrderNo] = useState();
   const [amount, setAmount] = useState();
+  const [open, setOpen] = useState(false);
   const [userDetails, setUserDetails] = useState({
       name: "",
       phone: "",
@@ -42,6 +53,8 @@ export default function Page() {
   const [error, setError] = useState(null);
   const [detailsError, setDetailsError] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   const [brokerageFirms, setBrokerageFirms] = useState();
   const { toast } = useToast();
   
@@ -107,61 +120,193 @@ export default function Page() {
       setDetailsLoading(false);
     }
   };
+  useEffect(() => {
+    console.log(paymentSuccess, orderNo)
+    if (paymentSuccess && orderNo) {
+      // Prepare the payload for the API request
+      const payload = {
+        orderNo: orderNo, // Use the order number from the state
+        cidNo: cid,
+        cd_code: userDetails.cd_code,
+        broker: selectedBroker,
+        name: userDetails.name,
+        phoneNo: userDetails.phone,
+        email: userDetails.email,
+        address: userDetails.address,
+        declaration: true,
+        userName: userDetails.user_name,
+        status: "SUB",
+        fee: 500, // Include the fee value
+      };
 
-  const handleFinalSubmit = async () => {
-    if (!isCheckboxChecked) {
-      toast({
-        description: "Please agree to the terms and conditions before submitting.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const payload = {
-      cidNo: cid,
-      address: userDetails.address,
-      broker: selectedBroker,
-      cd_code: userDetails.cd_code,
-      declaration: true,
-      email: userDetails.email,
-      fee: 500,
-      name: userDetails.name,
-      phoneNo: userDetails.phone,
-      status: "SUB",
-      userName: userDetails.user_name,
-    };
-
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/submitUserDetails`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
+      //console.log('payment:', payload);
+  
+      // Call the API after payment success
+      const submitPaymentSuccess = async () => {
+        try {
+          const response = await fetch('https://rsebl.org.bt/agm/api/paymentSuccessOT', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+  
+          const data = await response.json();
+  
+          if (response.ok && data.status === '200') {
+            toast({
+              description: "Payment processed successfully.",
+              variant: "success",
+            });
+          } else {
+            toast({
+              description: data.message || "Failed to process payment.",
+              variant: "destructive",
+            });
+          }
+        } catch (err) {
+          toast({
+            description: "An error occurred while processing the payment.",
+            variant: "destructive",
+          });
         }
-      );
+      };
+  
+      submitPaymentSuccess();
+      
+      // Close the drawer after the API call is triggered
+      setOpen(false);
+    }
+  }, [paymentSuccess, orderNo, cid, userDetails, selectedBroker, toast]);
+  
 
-      const data = await response.json();
+// inside your `handleFinalSubmit` function:
+const handleFinalSubmit = () => {
+  if (!isCheckboxChecked) {
+    toast({
+      description: "Please agree to the terms and conditions before submitting.",
+      variant: "destructive",
+    });
+    return;
+  }
 
-      if (response.ok && data.status === "200") {
-        // Redirect to the payment gateway
-        // initiatePayment(data.data);
-        <PaymentGateway service_code={"OT"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo} setAmount={setAmount}/>
-      } else {
+  // Open the drawer first (no API call yet)
+  setIsDrawerOpen(true);
+};
+
+// useEffect hook for handling submission with API call when drawer opens
+useEffect(() => {
+  if (isDrawerOpen && orderNo) { // Ensure orderNo is available
+    const submitUserDetails = async () => {
+      const payload = {
+        cidNo: cid,
+        address: userDetails.address,
+        broker: selectedBroker,
+        cd_code: userDetails.cd_code,
+        declaration: true,
+        email: userDetails.email,
+        fee: 500,
+        name: userDetails.name,
+        phoneNo: userDetails.phone,
+        status: "SUB",
+        userName: userDetails.user_name,
+        orderNo: orderNo, // Add the orderNo here to be passed to the backend
+      };
+
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/submitUserDetailsNew`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+
+        const data = await response.json();
+
+        if (response.ok && data.status === "200") {
+          toast({
+            description: "Details submitted successfully. Proceed with payment.",
+          });
+        } else {
+          toast({
+            description: data.message || "Failed to submit application. Please try again.",
+            variant: "destructive",
+          });
+        }
+      } catch (err) {
         toast({
-          description: data.message || "Failed to submit application. Please try again.",
+          description: "An error occurred while submitting the application. Please try again.",
           variant: "destructive",
         });
       }
-    } catch (err) {
-      toast({
-        description: "An error occurred while submitting the application. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+    };
+
+    // Trigger the submission when the drawer opens and orderNo is set
+    submitUserDetails();
+  }
+}, [isDrawerOpen, orderNo]); // This will trigger only when orderNo is set
+
+  
+
+  
+  // useEffect(() => {
+  //   if (isDrawerOpen) {
+  //     const submitUserDetails = async () => {
+  //       const payload = {
+  //         cidNo: cid,
+  //         address: userDetails.address,
+  //         broker: selectedBroker,
+  //         cd_code: userDetails.cd_code,
+  //         declaration: true,
+  //         email: userDetails.email,
+  //         fee: 500,
+  //         name: userDetails.name,
+  //         phoneNo: userDetails.phone,
+  //         status: "SUB",
+  //         userName: userDetails.user_name,
+  //       };
+  
+  //       try {
+  //         const response = await fetch(
+  //           `${process.env.NEXT_PUBLIC_API_URL}/submitUserDetailsNew`,
+  //           {
+  //             method: "POST",
+  //             headers: {
+  //               "Content-Type": "application/json",
+  //             },
+  //             body: JSON.stringify(payload),
+  //           }
+  //         );
+  
+  //         const data = await response.json();
+  
+  //         if (response.ok && data.status === "200") {
+  //           toast({
+  //             description: "Details submitted successfully. Proceed with payment.",
+  //           });
+  //         } else {
+  //           toast({
+  //             description: data.message || "Failed to submit application. Please try again.",
+  //             variant: "destructive",
+  //           });
+  //         }
+  //       } catch (err) {
+  //         toast({
+  //           description: "An error occurred while submitting the application. Please try again.",
+  //           variant: "destructive",
+  //         });
+  //       }
+  //     };
+  
+  //     submitUserDetails();
+  //   }
+  // }, [isDrawerOpen]); // Runs when the drawer opens
+  
   const handleFetchDetailsRenew = async () => {
     if (!username) {
       toast({
@@ -355,9 +500,13 @@ export default function Page() {
           <Button className="w-full mt-4" variant={'outline'} onClick={handleFetchDetails}>Fetch Details</Button>
           {userDetails.name && (
             <>
+              <Label>Name:</Label>
               <Input className="w-full border p-2 my-2" value={userDetails.name} disabled />
+              <Label>Phone Number:</Label>
               <Input className="w-full border p-2 my-2" value={userDetails.phone} disabled />
+              <Label>Email:</Label>
               <Input className="w-full border p-2 my-2" value={userDetails.email} disabled />
+              <Label>Address:</Label>
               <Input className="w-full border p-2 my-2" value={userDetails.address} disabled />
               <div className="flex items-center space-x-2 mt-4">
               <Checkbox 
@@ -379,6 +528,21 @@ export default function Page() {
           )}
         </CardContent>
       </Card>
+      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <DrawerContent>
+          <div className="mx-auto w-full max-w-lg p-5 p-0-md">
+            <DrawerHeader className="m-0 px-0 flex flex-col justify-center items-center">
+              <DrawerTitle>Payment Portal</DrawerTitle>
+              <DrawerDescription>Royal Securities Exchange of Bhutan</DrawerDescription>
+            </DrawerHeader>
+            <div className="h-[290px]">
+              <PaymentGateway service_code={"OT"} setPaymentSuccess={setPaymentSuccess} setOrderNo={setOrderNo} setAmount={setAmount} />
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+
 
       {/* Renew Section */}
       <Card>
@@ -390,12 +554,50 @@ export default function Page() {
           <Button className="w-full" variant={'outline'} onClick={handleFetchDetailsRenew}>Fetch Details</Button>
           {userDetailsRenew.name && (
             <>
+              <Label>Name:</Label>
               <Input className="w-full border p-2 my-2" value={userDetailsRenew.name} disabled />
+              <Label>CID:</Label>
+              <Input className="w-full border p-2 my-2" value={userDetailsRenew.cid} disabled />
+              <Label>CD Code:</Label>
+              <Input className="w-full border p-2 my-2" value={userDetailsRenew.client_code} disabled />
+              <Label>Phone Number:</Label>
+              <Input className="w-full border p-2 my-2" value={userDetailsRenew.phone} disabled />
+              <Label>Email:</Label>
+              <Input className="w-full border p-2 my-2" value={userDetailsRenew.email} disabled />
+              <div className="flex items-center space-x-2 mt-4">
+              <Checkbox 
+                checked={isCheckboxCheckedRenew}
+                onCheckedChange={setIsCheckboxCheckedRenew}
+                id="terms" 
+              />
+                <Label
+                  htmlFor="terms"
+                  className="text-xs leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  I agree to the <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                        terms and conditions
+                      </a>{" "} of RSEB for processing Online Terminal.
+                </Label>
+              </div>
               <Button className="w-full mt-4" variant={'outline'} onClick={handleFinalSubmitRenew}>Submit</Button>
             </>
           )}
         </CardContent>
       </Card>
+      {/* <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <DrawerContent>
+          <div className="mx-auto w-full max-w-lg p-5 p-0-md">
+            <DrawerHeader className="m-0 px-0 flex flex-col justify-center items-center">
+              <DrawerTitle>Payment Portal</DrawerTitle>
+              <DrawerDescription>Royal Securities Exchange of Bhutan</DrawerDescription>
+            </DrawerHeader>
+            <div className="h-[290px]">
+              <PaymentGateway service_code={"OT"} setPaymentSuccess={setPaymentSuccess} setOrderNo={setOrderNo} setAmount={setAmount} />
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer> */}
+
     </div>
   </div>
   );
