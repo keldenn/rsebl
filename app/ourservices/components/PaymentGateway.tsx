@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"; 
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +26,8 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp"
-export default function PaymentGateway({service_code, setPaymentSuccess, setOrderNo, setAmount}) {
+export default function PaymentGateway({service_code, setPaymentSuccess, setOrderNo, setAmount, MERCHANT_CHECKOUT_URL}) {
+  const router = useRouter();
    const { toast } = useToast();
    const responseCodeMessages = {
     '00': 'Approved',
@@ -63,8 +65,9 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
     '55': 'Incorrect OTP',
     '91': 'Switch Bank',
     'IE': 'PG Internal Error',
+    'EC': 'Bank Validation Failed', 
   };
-  
+  const [tempAmt, setTempAmt] = useState(0);
   const [loading, setLoading] = useState(false);
   const [bankCode, setBankCode] = useState('');
   const [accNumber, setAccNumber] = useState('');
@@ -76,7 +79,48 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
   const [showOtpField, setShowOtpField] = useState(false);
   const [temp, setTemp] = useState();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [inactiveTimeout, setInactiveTimeout] = useState(null);
   const isExecuted = useRef(false); // ✅ Declare useRef outside useEffect
+
+// Checkout Time = 5 Min
+const startInactivityTimer = () => {
+  if (inactiveTimeout) clearTimeout(inactiveTimeout);
+
+  const timeout = setTimeout(() => {
+    toast({
+      title: "Session Timeout!",
+      description: "Session expired due to inactivity",
+      variant: "destructive",
+    });
+    window.location.href = MERCHANT_CHECKOUT_URL; // Redirect to merchant checkout
+  }, 300000); // 5 minutes (300,000 milliseconds)
+
+  setInactiveTimeout(timeout);
+};
+
+const resetTimer = () => {
+  startInactivityTimer(); // Reset the timer on any user activity
+};
+useEffect(() => {
+  startInactivityTimer(); // Start the timeout when the component mounts
+
+  // Add event listeners for user interactions
+  window.addEventListener("mousemove", resetTimer);
+  window.addEventListener("keydown", resetTimer);
+  window.addEventListener("touchstart", resetTimer);
+
+  return () => {
+    // Cleanup listeners when component unmounts
+    window.removeEventListener("mousemove", resetTimer);
+    window.removeEventListener("keydown", resetTimer);
+    window.removeEventListener("touchstart", resetTimer);
+    if (inactiveTimeout) clearTimeout(inactiveTimeout);
+  };
+}, []);
+
+
+
+
 
   useEffect(() => {
     async function fetchBanks() {
@@ -128,14 +172,21 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
     }
 };
 
-  useEffect(() => {
-    if (showOtpField && countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    }else{
-      setShowOtpField(false);
-    }
-  }, [countdown, showOtpField]);
+useEffect(() => {
+  if (showOtpField && countdown > 0) {
+    const timer = setTimeout(() => { 
+      setCountdown(countdown - 1);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }else if(countdown == 0){
+    window.location.href  = MERCHANT_CHECKOUT_URL;
+  } else {
+    setShowOtpField(false);
+    // window.location.href = MERCHANT_CHECKOUT_URL;
+  }
+}, [showOtpField, countdown]);
+
 
   const handleSubmit = async () => {
 
@@ -188,6 +239,7 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
         setShowBankFields(true);
         // console.log("First payment_Gateway res trxn id: ", data)
         setAmount(data.data[1].amount);
+        setTempAmt(data.data[1].amount);
         setOrderNo(data.data[1].order_no);
         setBfsTransId(data.data[1].bfs_bfsTxnId);
 
@@ -259,11 +311,25 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
         setShowOtpField(true);
         setCountdown(420);
       } else {
+
+
         toast({
           title: "Error!",
-          description: "Failed to get OTP! Please check your Account number and Bank",
+          description: `${responseCodeMessages[data[0]?.bfs_msgType] ? responseCodeMessages[data[0]?.bfs_msgType] : data[0]?.bfs_msgType} Please check your Account number and Bank`,
           variant: "destructive",
         });
+        console.log(data[0]?.bfs_msgType);
+        // const responseCode = data[0]?.data?.bfs_msgType;
+
+        // console.log("failed", responseCode , responseCodeMessages[responseCode]);
+        setTimeout(() => {
+          window.location.href = MERCHANT_CHECKOUT_URL; // Redirect to merchant checkout
+          // console.log("Redirecting to:", MERCHANT_CHECKOUT_URL);
+          // router.replace("/ourservices/online-share-statement");
+          // window.location.reload(); // This fully reloads the page
+          // router.push(`?error=${data[0]?.data?.bfs_msgType}`);
+          // router.replace(MERCHANT_CHECKOUT_URL);
+        }, 4000);
       }
     } catch (error) {
       console.error("Error fetching OTP:", data[0]?.error); // <-- Log the actual error to the console
@@ -355,6 +421,18 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
           } catch (error) {
             console.error("Error updating status:", error);
           }
+          setPaymentSuccess(true);
+          return;
+        }else if (bfsOrderNo.slice(0, 2) === "OT" ){
+          toast({ title: "Success", description: 'Payment Done' });
+          setPaymentSuccess(true);
+          return;
+        }else if (bfsOrderNo.slice(0, 2) === "OR" ){
+          toast({ title: "Success", description: 'Payment Done' });
+          setPaymentSuccess(true);
+          return;
+        }else if (bfsOrderNo.slice(0, 2) === "DS" ){
+          toast({ title: "Success", description: 'Payment Done' });
           setPaymentSuccess(true);
           return;
         }
@@ -471,7 +549,7 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmation</AlertDialogTitle>
             <AlertDialogDescription>
-              Generating your share statement will cost Nu 50. Do you wish to proceed?
+              Generating your share statement will cost Nu {tempAmt && tempAmt}. Do you wish to proceed?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

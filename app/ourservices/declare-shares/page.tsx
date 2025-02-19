@@ -56,6 +56,7 @@ import "jspdf-autotable";
 export default function SharesDeclaration() {
   const [date, setDate] = useState<Date | undefined>();
   const [cid, setCid] = useState("");
+  const [userDetails, setUserDetails] = useState(null);
   const [holdings, setHoldings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState(false);
@@ -69,7 +70,7 @@ export default function SharesDeclaration() {
 
   const { toast } = useToast();
 
-  const validateAndProceed = () => {
+  const validateAndProceed = async () => {
     if (!date || !cid) {
       toast({
         title: "Error",
@@ -78,24 +79,16 @@ export default function SharesDeclaration() {
       });
       return;
     }
-
-    if (cid.length>11) {
+  
+    if (cid.length !== 11) {
       toast({
         title: "Error",
-        description: "CID should not exceed more than 11 digits",
+        description: "CID should be exactly 11 digits",
         variant: "destructive",
       });
       return;
     }
-    if (cid.length<11) {
-      toast({
-        title: "Error",
-        description: "CID should be of 11 digits",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  
     if (isAfter(date, new Date())) {
       toast({
         title: "Error",
@@ -104,15 +97,27 @@ export default function SharesDeclaration() {
       });
       return;
     }
-
-    
+  
+    try {
+      // Wait for user details before sending OTP
+      await fetchUserContactDetails();
+      return;
+    } catch (error) {
+      console.error("Validation error:", error);
+    }
   };
-  async function sendOtpOperation(stmnt) {
+  // useEffect(() => {
+  //   if (userDetails && showOtpField) {
+  //     sendOtpOperation();
+  //   }
+  // }, [userDetails, showOtpField]);
+  
+  async function sendOtpOperation(data) {
     const url = `${process.env.NEXT_PUBLIC_API_URL}/sendOtpOperation`;
     const body = JSON.stringify({
       cidNo: cid,
-      phoneNo: 17330827,
-      email: "keldennorbu13@gmail.com",
+      phoneNo: data?.phone,
+      email: data?.email,
     });
 
     try {
@@ -128,7 +133,6 @@ export default function SharesDeclaration() {
 
       if (response.status === 200) {
         setShowOtpField(true);
-
         return data; // Success
       } else {
         throw new Error(data.message || "Error sending OTP");
@@ -151,11 +155,10 @@ export default function SharesDeclaration() {
     setLoading(true); // Show loading state during OTP verification
 
     const stmnt = {
-      // cidNo: accountType === "I" ? cidNo : disnNo,
-      phoneNo: 17330827,
-      email: "keldennorbu13@gmail.com",
+      cidNo: cid,
+      phoneNo: userDetails?.phone,
+      email: userDetails?.email,
       otpNo: otp,
-      // orderNo: orderNo,
     };
 
     try {
@@ -181,13 +184,14 @@ export default function SharesDeclaration() {
 
         });
         setConfirmDialog(true);
-  
+        setLoading(false);
       }else if(data.status == 400){
         setOpen(false);
         toast({
           description: data.message ,
           variant: "destructive",
         });
+        setLoading(false);
       } 
       else {
      
@@ -195,7 +199,9 @@ export default function SharesDeclaration() {
           description: data.message ,
           variant: "destructive",
         });
+        setLoading(false);
       }
+
     } catch (error) {
       console.error("Error verifying OTP:", error);
       toast({
@@ -226,6 +232,25 @@ export default function SharesDeclaration() {
     }
     
   };
+  useEffect(() => {
+    if (paymentSuccess && orderNo) {
+      setOpen(false); // Close the drawer when payment is successful
+      const formattedDate = format(date, "yyyy-MM-dd");
+  
+      fetchShareDeclarations(cid, formattedDate).then((data) => {
+        if (!data || data.length === 0) {
+          toast({
+            title: "Error",
+            description: "No share holding data available",
+            variant: "destructive",
+          });
+          return;
+        }
+        setHoldings(data);
+        setLoading(false);
+      });
+    }
+  }, [paymentSuccess, orderNo]);
 
   const downloadStatement = () => {
     const input = document.getElementById('pdf-content');
@@ -260,7 +285,38 @@ export default function SharesDeclaration() {
       pdf.save(filename);
     });
   };
+  const fetchUserContactDetails = async () => {
+    setLoading(true);
 
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/get-user-details-acc`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ cid }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.status === "200") {
+
+        setUserDetails(data.data);
+        sendOtpOperation(data.data);
+        console.log('data', userDetails.name)
+      } else {
+        toast(data.message);
+      }
+   
+    } catch (err) {
+      toast("Failed to fetch user details. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="w-full flex flex-col justify-between items-center p-6 ">
       <Card className="w-full">
@@ -323,8 +379,8 @@ export default function SharesDeclaration() {
         <CardFooter className="flex justify-end">
           {/* <Button variant="outline" disabled={loading}>Cancel</Button> */}
           {!showOtpField && (
-      <Button onClick={sendOtpOperation} disabled={loading}>
-      {loading ? "Verifying..." : "Send OTP"}
+      <Button onClick={validateAndProceed} disabled={loading}>
+      {loading ? "Verifying..." : "Verify"}
     </Button>
           )}
     
@@ -346,7 +402,8 @@ export default function SharesDeclaration() {
           </AlertDialogContent>
         </AlertDialog>
       )}
-      {holdings.length > 0 && (
+
+      {paymentSuccess && orderNo &&(
         <Card className="mt-4 w-full mx-auto shadow-lg rounded-xl py-2" >
 
           <CardContent id="pdf-content">
