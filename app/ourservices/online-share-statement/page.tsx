@@ -362,7 +362,7 @@ export default function OnlineShareStatement() {
               <DrawerDescription>Royal Securities Exchange of Bhutan</DrawerDescription>
             </DrawerHeader>
             <div className="h-[290px]">
-              <PaymentGateway service_code={"SS"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo} setAmount={setAmount}/>
+              <PaymentGateway service_code={"SS"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo} setAmount={setAmount} MERCHANT_CHECKOUT_URL={"/ourservices/online-share-statement"}/>
             </div>
           </div>
         </DrawerContent>
