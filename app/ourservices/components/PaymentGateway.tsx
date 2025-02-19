@@ -179,8 +179,6 @@ useEffect(() => {
     }, 1000);
     
     return () => clearTimeout(timer);
-  }else if(countdown == 0){
-    window.location.href  = MERCHANT_CHECKOUT_URL;
   } else {
     setShowOtpField(false);
     // window.location.href = MERCHANT_CHECKOUT_URL;
