@@ -28,6 +28,7 @@ export default function Page() {
   const [orderNo, setOrderNo] = useState();
   const [amount, setAmount] = useState();
   const [open, setOpen] = useState(false);
+  const [renewopen, setRenewOpen] = useState(false);
   const [userDetails, setUserDetails] = useState({
       name: "",
       phone: "",
@@ -53,7 +54,7 @@ export default function Page() {
   const [error, setError] = useState(null);
   const [detailsError, setDetailsError] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  //const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const [brokerageFirms, setBrokerageFirms] = useState();
   const { toast } = useToast();
@@ -120,9 +121,11 @@ export default function Page() {
       setDetailsLoading(false);
     }
   };
+
   useEffect(() => {
-    console.log(paymentSuccess, orderNo)
-    if (paymentSuccess && orderNo) {
+    //console.log(paymentSuccess, orderNo)
+    if (orderNo?.slice(0, 2)==="OT"){
+      if (paymentSuccess && orderNo) {
       // Prepare the payload for the API request
       const payload = {
         orderNo: orderNo, // Use the order number from the state
@@ -136,7 +139,7 @@ export default function Page() {
         declaration: true,
         userName: userDetails.user_name,
         status: "SUB",
-        fee: 500, // Include the fee value
+        fee: amount, // Include the fee value
       };
 
       //console.log('payment:', payload);
@@ -177,8 +180,72 @@ export default function Page() {
       
       // Close the drawer after the API call is triggered
       setOpen(false);
+      }
     }
-  }, [paymentSuccess, orderNo, cid, userDetails, selectedBroker, toast]);
+
+  }, [paymentSuccess, orderNo]);
+
+  useEffect(() => {
+    //console.log(paymentSuccess, orderNo)
+    if (orderNo?.slice(0, 2)==="OR"){
+      if (paymentSuccess && orderNo) {
+      // Prepare the payload for the API request
+      const payload = {
+        cidNo: cid,
+        address: userDetailsRenew.address,
+        cdCode: userDetailsRenew.client_code,
+        declaration: true,
+        email: userDetailsRenew.email,
+        fee: amount,
+        name: userDetailsRenew.name,
+        phoneNo: userDetailsRenew.phone,
+        userName: userDetailsRenew.username,
+        orderNo: orderNo,
+      };
+
+      //console.log('payment:', payload);
+  
+      // Call the API after payment success
+      const submitPaymentSuccess = async () => {
+        try {
+          const response = await fetch('https://rsebl.org.bt/agm/api/paymentSuccessOR', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+  
+          const data = await response.json();
+  
+          if (response.ok && data.status === '200') {
+            toast({
+              description: "Payment processed successfully.",
+              variant: "success",
+            });
+          } else {
+            toast({
+              description: data.message || "Failed to process payment.",
+              variant: "destructive",
+            });
+          }
+        } catch (err) {
+          toast({
+            description: "An error occurred while processing the payment.",
+            variant: "destructive",
+          });
+        }
+      };
+  
+      submitPaymentSuccess();
+      
+      // Close the drawer after the API call is triggered
+      setRenewOpen(false);
+      }
+    }
+
+  }, [paymentSuccess, orderNo]);
+
   
 
 // inside your `handleFinalSubmit` function:
@@ -192,120 +259,63 @@ const handleFinalSubmit = () => {
   }
 
   // Open the drawer first (no API call yet)
-  setIsDrawerOpen(true);
+  setOpen(true);
 };
 
-// useEffect hook for handling submission with API call when drawer opens
-useEffect(() => {
-  if (isDrawerOpen && orderNo) { // Ensure orderNo is available
-    const submitUserDetails = async () => {
-      const payload = {
-        cidNo: cid,
-        address: userDetails.address,
-        broker: selectedBroker,
-        cd_code: userDetails.cd_code,
-        declaration: true,
-        email: userDetails.email,
-        fee: 500,
-        name: userDetails.name,
-        phoneNo: userDetails.phone,
-        status: "SUB",
-        userName: userDetails.user_name,
-        orderNo: orderNo, // Add the orderNo here to be passed to the backend
-      };
+  // useEffect hook for handling submission with API call when drawer opens
+  useEffect(() => {
+    if (open && orderNo) { // Ensure orderNo is available
+      const submitUserDetails = async () => {
+        const payload = {
+          cidNo: cid,
+          address: userDetails.address,
+          broker: selectedBroker,
+          cd_code: userDetails.cd_code,
+          declaration: true,
+          email: userDetails.email,
+          fee: amount,
+          name: userDetails.name,
+          phoneNo: userDetails.phone,
+          status: "SUB",
+          userName: userDetails.user_name,
+          orderNo: orderNo, // Add the orderNo here to be passed to the backend
+        };
 
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/submitUserDetailsNew`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/submitUserDetailsNew`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(payload),
+            }
+          );
+
+          const data = await response.json();
+
+          if (response.ok && data.status === "200") {
+          } else {
+            toast({
+              description: data.message || "Failed to submit application. Please try again.",
+              variant: "destructive",
+            });
           }
-        );
-
-        const data = await response.json();
-
-        if (response.ok && data.status === "200") {
+        } catch (err) {
           toast({
-            description: "Details submitted successfully. Proceed with payment.",
-          });
-        } else {
-          toast({
-            description: data.message || "Failed to submit application. Please try again.",
+            description: "An error occurred while submitting the application. Please try again.",
             variant: "destructive",
           });
         }
-      } catch (err) {
-        toast({
-          description: "An error occurred while submitting the application. Please try again.",
-          variant: "destructive",
-        });
-      }
-    };
+      };
 
-    // Trigger the submission when the drawer opens and orderNo is set
-    submitUserDetails();
-  }
-}, [isDrawerOpen, orderNo]); // This will trigger only when orderNo is set
+      // Trigger the submission when the drawer opens and orderNo is set
+      submitUserDetails();
+    }
+  }, [open, orderNo]); // This will trigger only when orderNo is set
 
   
-
-  
-  // useEffect(() => {
-  //   if (isDrawerOpen) {
-  //     const submitUserDetails = async () => {
-  //       const payload = {
-  //         cidNo: cid,
-  //         address: userDetails.address,
-  //         broker: selectedBroker,
-  //         cd_code: userDetails.cd_code,
-  //         declaration: true,
-  //         email: userDetails.email,
-  //         fee: 500,
-  //         name: userDetails.name,
-  //         phoneNo: userDetails.phone,
-  //         status: "SUB",
-  //         userName: userDetails.user_name,
-  //       };
-  
-  //       try {
-  //         const response = await fetch(
-  //           `${process.env.NEXT_PUBLIC_API_URL}/submitUserDetailsNew`,
-  //           {
-  //             method: "POST",
-  //             headers: {
-  //               "Content-Type": "application/json",
-  //             },
-  //             body: JSON.stringify(payload),
-  //           }
-  //         );
-  
-  //         const data = await response.json();
-  
-  //         if (response.ok && data.status === "200") {
-  //           toast({
-  //             description: "Details submitted successfully. Proceed with payment.",
-  //           });
-  //         } else {
-  //           toast({
-  //             description: data.message || "Failed to submit application. Please try again.",
-  //             variant: "destructive",
-  //           });
-  //         }
-  //       } catch (err) {
-  //         toast({
-  //           description: "An error occurred while submitting the application. Please try again.",
-  //           variant: "destructive",
-  //         });
-  //       }
-  //     };
-  
-  //     submitUserDetails();
-  //   }
-  // }, [isDrawerOpen]); // Runs when the drawer opens
   
   const handleFetchDetailsRenew = async () => {
     if (!username) {
@@ -371,7 +381,7 @@ useEffect(() => {
       setDetailsLoading(false);
     }
   };
-  const handleFinalSubmitRenew = async () => {
+  const handleFinalSubmitRenew = () => {
     if (!isCheckboxCheckedRenew) {
       toast({
         description: "Please agree to the terms and conditions before submitting.",
@@ -379,50 +389,62 @@ useEffect(() => {
       });
       return;
     }
-
-    const payloadRenew = {
-      cidNo: cid,
-      address: userDetailsRenew.address,
-      cdCode: userDetailsRenew.client_code,
-      declaration: true,
-      email: userDetailsRenew.email,
-      fee: 500,
-      name: userDetailsRenew.name,
-      phoneNo: userDetailsRenew.phone,
-      userName: userDetailsRenew.username,
-    };
-
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/submitFormCaMSRenewal`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payloadRenew),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok && data.status === "200") {
-        // Redirect to the payment gateway
-        // initiatePayment(data.data);
-         <PaymentGateway service_code={"OR"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo} setAmount={setAmount}/>
-      } else {
-        toast({
-          description: data.message || "Failed to submit application. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } catch (err) {
-      toast({
-        description: "An error occurred while submitting the application. Please try again.",
-        variant: "destructive",
-      });
-    }
+  
+    // Open the drawer first (no API call yet)
+    setRenewOpen(true);
   };
+
+  useEffect(() => {
+    if (renewopen && orderNo) { // Ensure orderNo is available
+      const submitUserDetailsRenew = async () => {
+        const payload = {
+          cidNo: cid,
+          address: userDetailsRenew.address,
+          cdCode: userDetailsRenew.client_code,
+          declaration: true,
+          email: userDetailsRenew.email,
+          fee: 500,
+          name: userDetailsRenew.name,
+          phoneNo: userDetailsRenew.phone,
+          userName: userDetailsRenew.username,
+          orderNo: orderNo, // Add the orderNo here to be passed to the backend
+        };
+
+        console.log(payload);
+  
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/submitFormCaMSRenewalNew`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(payload),
+            }
+          );
+  
+          const data = await response.json();
+  
+          if (response.ok && data.status === "200") {
+          } else {
+            toast({
+              description: data.message || "Failed to submit application. Please try again.",
+              variant: "destructive",
+            });
+          }
+        } catch (err) {
+          toast({
+            description: "An error occurred while submitting the application. Please try again.",
+            variant: "destructive",
+          });
+        }
+      };
+  
+      // Trigger the submission when the drawer opens and orderNo is set
+      submitUserDetailsRenew();
+    }
+  }, [renewopen, orderNo]); // This will trigger only when orderNo is set
   useEffect(() => {
     const fetchBrokerageFirms = async () => {
       try {
@@ -479,7 +501,8 @@ useEffect(() => {
     
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
       {/* Register Section */}
-      <Card>
+      {!orderNo && (
+              <Card>
         <CardHeader>
           <CardTitle>Register For mCaMs</CardTitle>
         </CardHeader>
@@ -528,7 +551,9 @@ useEffect(() => {
           )}
         </CardContent>
       </Card>
-      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+      )}
+
+      <Drawer open={open} onOpenChange={setOpen}>
         <DrawerContent>
           <div className="mx-auto w-full max-w-lg p-5 p-0-md">
             <DrawerHeader className="m-0 px-0 flex flex-col justify-center items-center">
@@ -536,7 +561,7 @@ useEffect(() => {
               <DrawerDescription>Royal Securities Exchange of Bhutan</DrawerDescription>
             </DrawerHeader>
             <div className="h-[290px]">
-              <PaymentGateway service_code={"OT"} setPaymentSuccess={setPaymentSuccess} setOrderNo={setOrderNo} setAmount={setAmount} />
+              <PaymentGateway service_code={"OT"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo} setAmount={setAmount} MERCHANT_CHECKOUT_URL={"http://localhost:3000/ourservices/m-cams"}/>
             </div>
           </div>
         </DrawerContent>
@@ -545,7 +570,8 @@ useEffect(() => {
 
 
       {/* Renew Section */}
-      <Card>
+      {!orderNo && (
+              <Card>
         <CardHeader>
           <CardTitle>Renew my mCaMs account</CardTitle>
         </CardHeader>
@@ -584,7 +610,9 @@ useEffect(() => {
           )}
         </CardContent>
       </Card>
-      {/* <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+      )}
+
+      <Drawer open={renewopen} onOpenChange={setRenewOpen}>
         <DrawerContent>
           <div className="mx-auto w-full max-w-lg p-5 p-0-md">
             <DrawerHeader className="m-0 px-0 flex flex-col justify-center items-center">
@@ -592,11 +620,11 @@ useEffect(() => {
               <DrawerDescription>Royal Securities Exchange of Bhutan</DrawerDescription>
             </DrawerHeader>
             <div className="h-[290px]">
-              <PaymentGateway service_code={"OT"} setPaymentSuccess={setPaymentSuccess} setOrderNo={setOrderNo} setAmount={setAmount} />
+              <PaymentGateway service_code={"OR"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo} setAmount={setAmount} MERCHANT_CHECKOUT_URL={"http://localhost:3000/ourservices/m-cams"}/>
             </div>
           </div>
         </DrawerContent>
-      </Drawer> */}
+      </Drawer>
 
     </div>
   </div>
