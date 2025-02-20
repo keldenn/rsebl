@@ -275,6 +275,7 @@ export default function OnlineShareStatement() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     if (orderNo?.startsWith("SS")) {
       afterBankInsert();
@@ -362,7 +363,7 @@ export default function OnlineShareStatement() {
               <DrawerDescription>Royal Securities Exchange of Bhutan</DrawerDescription>
             </DrawerHeader>
             <div className="h-[290px]">
-              <PaymentGateway service_code={"SS"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo} setAmount={setAmount} MERCHANT_CHECKOUT_URL={"/ourservices/online-share-statement"}/>
+              <PaymentGateway service_code={"SS"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo} setAmount={setAmount} MERCHANT_CHECKOUT_URL={"http://localhost:3000/ourservices/online-share-statement"}/>
             </div>
           </div>
         </DrawerContent>

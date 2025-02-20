@@ -67,6 +67,15 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
     'IE': 'PG Internal Error',
     'EC': 'Bank Validation Failed', 
   };
+  const bankAccountLengths = {
+    "1050": 12, // Bhutan Development Bank (BDBL)
+    "1020": 9,  // Bhutan National Bank Limited (BNBL)
+    "1010": 9,  // Bank of Bhutan Limited (BOBL)
+    "1030": 12, // Druk PNBL (DPNBL)
+    "1040": 9,  // Tashi Bank (TBank)
+    "1060": 12, // DK BANK
+  };
+  
   const [tempAmt, setTempAmt] = useState(0);
   const [loading, setLoading] = useState(false);
   const [bankCode, setBankCode] = useState('');
@@ -87,13 +96,17 @@ const startInactivityTimer = () => {
   if (inactiveTimeout) clearTimeout(inactiveTimeout);
 
   const timeout = setTimeout(() => {
+    window.location.href = MERCHANT_CHECKOUT_URL; // Redirect to merchant checkout  
     toast({
       title: "Session Timeout!",
       description: "Session expired due to inactivity",
       variant: "destructive",
+      duration: 999999
+
     });
-    window.location.href = MERCHANT_CHECKOUT_URL; // Redirect to merchant checkout
+    
   }, 300000); // 5 minutes (300,000 milliseconds)
+// console.log("Timeout set for:", timeout); 
 
   setInactiveTimeout(timeout);
 };
@@ -115,11 +128,9 @@ useEffect(() => {
     window.removeEventListener("keydown", resetTimer);
     window.removeEventListener("touchstart", resetTimer);
     if (inactiveTimeout) clearTimeout(inactiveTimeout);
+
   };
 }, []);
-
-
-
 
 
   useEffect(() => {
@@ -171,16 +182,21 @@ useEffect(() => {
         return { status: "error", message: error.message };
     }
 };
-
 useEffect(() => {
   if (showOtpField && countdown > 0) {
-    const timer = setTimeout(() => { 
-      setCountdown(countdown - 1);
+    const timer = setInterval(() => {
+      setCountdown((prev) => prev - 1);
     }, 1000);
-    
-    return () => clearTimeout(timer);
-  } else {
+
+    return () => clearInterval(timer);
+  } else if (countdown && countdown === 0) {
     setShowOtpField(false);
+    toast({
+      title: "Session Timeout!",
+      description: "OTP Session expired",
+      variant: "destructive",
+    });
+    // Redirect or reset OTP process
     // window.location.href = MERCHANT_CHECKOUT_URL;
   }
 }, [showOtpField, countdown]);
@@ -269,6 +285,15 @@ useEffect(() => {
       toast({
         title: "Error!",
         description: "Account No requried!",
+        variant: "destructive",
+      });
+      return;
+    }
+    const requiredLength = bankAccountLengths[bankCode];
+    if (requiredLength && accNumber.length !== requiredLength) {
+      toast({
+        title: "Error!",
+        description: `Invalid account number length! It should be ${requiredLength} digits for the selected bank.`,
         variant: "destructive",
       });
       return;
@@ -411,7 +436,7 @@ useEffect(() => {
     
       if (data?.[0]?.http_code === 200 && bfsCode === '00') {    
         if (bfsOrderNo.slice(0, 2) === "SS") {
-          toast({ title: "Success", description: 'Payment Done' });
+          toast({ title: "Success", description: 'Payment Done', duration: 5000 });
           // setOrderNo(bfsOrderNo)
           try {
             const response = await updateStatusByOrderNo(bfsOrderNo);
@@ -422,15 +447,15 @@ useEffect(() => {
           setPaymentSuccess(true);
           return;
         }else if (bfsOrderNo.slice(0, 2) === "OT" ){
-          toast({ title: "Success", description: 'Payment Done' });
+          toast({ title: "Success", description: 'Payment Done', duration: 5000});
           setPaymentSuccess(true);
           return;
         }else if (bfsOrderNo.slice(0, 2) === "OR" ){
-          toast({ title: "Success", description: 'Payment Done' });
+          toast({ title: "Success", description: 'Payment Done',duration: 5000 });
           setPaymentSuccess(true);
           return;
         }else if (bfsOrderNo.slice(0, 2) === "DS" ){
-          toast({ title: "Success", description: 'Payment Done' });
+          toast({ title: "Success", description: 'Payment Done',duration: 5000 });
           setPaymentSuccess(true);
           return;
         }
@@ -439,7 +464,11 @@ useEffect(() => {
           title: "Transaction Failed",
           description: responseCodeMessages[bfsCode] || 'Unknown error occurred',
           variant: "destructive",
+          duration: 4000
         });
+        setTimeout(() => {
+          window.location.href = MERCHANT_CHECKOUT_URL; 
+        }, 4000);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -501,6 +530,8 @@ useEffect(() => {
                         <span className="text-sm text-red-500 font-semibold">
                         Expiry timer :  
                           {" " + Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}
+
+                          {/* countdonw: {countdown} */}
                         </span>
                       </div>
                     </div>
@@ -545,9 +576,9 @@ useEffect(() => {
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmation</AlertDialogTitle>
-            <AlertDialogDescription>
-              Generating your share statement will cost Nu {tempAmt && tempAmt}. Do you wish to proceed?
+            <AlertDialogTitle>Payment Confirmation</AlertDialogTitle>
+            <AlertDialogDescription >
+            Proceeding with this action will incur a fee of Nu <span className='text-black font-bold'>{tempAmt && tempAmt}</span> . Do you wish to proceed?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
