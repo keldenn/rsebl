@@ -31,16 +31,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import {
   Table,
@@ -106,6 +96,7 @@ export default function SharesDeclaration() {
       console.error("Validation error:", error);
     }
   };
+  
   // useEffect(() => {
   //   if (userDetails && showOtpField) {
   //     sendOtpOperation();
@@ -177,15 +168,16 @@ export default function SharesDeclaration() {
       const data = await response.json();
       console.log(data);
       if (data.status === 200) {
-         // Mark OTP as verified
-         setOtpVerified(true)
+        setOtpVerified(true);
         toast({
+          title : "Success",
           description: data.message,
-
+          duration: 1000
         });
-        setConfirmDialog(true);
+        handleSubmit();
         setLoading(false);
-      }else if(data.status == 400){
+      }
+      else if(data.status == 400){
         setOpen(false);
         toast({
           description: data.message ,
@@ -312,96 +304,84 @@ export default function SharesDeclaration() {
       }
    
     } catch (err) {
-      toast("Failed to fetch user details. Please try again.");
+      toast(err.message);
     } finally {
       setLoading(false);
     }
   };
   return (
     <div className="w-full flex flex-col justify-between items-center p-6 ">
+      {!orderNo && (
       <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-xl text-center">Shares Declaration</CardTitle>
-          <CardDescription className="text-center">Enter details to proceed declaring your holdings</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form>
-            <div className="grid w-full items-center gap-4">
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="date">Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="cid">CID Number</Label>
-                <Input
-                  type="number"
-                  id="cid"
-                  placeholder="Enter CID Number"
-                  value={cid}
-                  onChange={(e) => setCid(e.target.value)}
-                />
-              </div>
-            {
-              showOtpField && (
-                <>
-                                <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="otp">OTP</Label>
-                <Input id="otp" type="number" placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
-              </div>
-              <Button onClick={verifyOtp} disabled={loading}>Verify OTP</Button>
-              
-                </>
-
-              )
-            }
-
+      <CardHeader>
+        <CardTitle className="text-xl text-center">Shares Declaration</CardTitle>
+        <CardDescription className="text-center">Enter details to proceed declaring your holdings</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form>
+          <div className="grid w-full items-center gap-4">
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="date">Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-end">
-          {/* <Button variant="outline" disabled={loading}>Cancel</Button> */}
-          {!showOtpField && (
-      <Button onClick={validateAndProceed} disabled={loading}>
-      {loading ? "Verifying..." : "Verify"}
-    </Button>
-          )}
-    
-        </CardFooter>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="cid">CID Number</Label>
+              <Input
+                type="number"
+                id="cid"
+                placeholder="Enter CID Number"
+                value={cid}
+                onChange={(e) => setCid(e.target.value)}
+              />
+            </div>
+          {
+            showOtpField && (
+              <>
+                              <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="otp">OTP</Label>
+              <Input id="otp" type="number" placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
+            </div>
+            <Button onClick={verifyOtp} disabled={loading}>Verify OTP</Button>
+            
+              </>
+
+            )
+          }
+
+          </div>
+        </form>
+      </CardContent>
+      <CardFooter className="flex justify-end">
+        {/* <Button variant="outline" disabled={loading}>Cancel</Button> */}
+        {!showOtpField && (
+    <Button onClick={validateAndProceed} disabled={loading}>
+    {loading ? "Verifying..." : "Verify"}
+  </Button>
+        )}
+  
+      </CardFooter>
       </Card>
-      {confirmDialog && (
-        <AlertDialog open={confirmDialog} onOpenChange={setConfirmDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirmation</AlertDialogTitle>
-              <AlertDialogDescription>
-                Declaring your shares will cost Nu 50. Do you wish to proceed?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleSubmit}>Proceed</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
+      )
+      }
+
 
       {paymentSuccess && orderNo &&(
         <Card className="mt-4 w-full mx-auto shadow-lg rounded-xl py-2" >
@@ -475,7 +455,7 @@ export default function SharesDeclaration() {
                   <TableRow key={index} className="border-b hover:bg-gray-100">
                     <TableCell className="px-4 py-2">{index + 1}</TableCell>
                     <TableCell className="px-4 py-2">{holding.symbol_name}</TableCell>
-                    <TableCell className="px-4 py-2 font-semibold">{holding.total_vol}</TableCell>
+                    <TableCell className="px-4 py-2 font-semibold">{holding?.total_vol}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -489,7 +469,7 @@ export default function SharesDeclaration() {
           </CardContent>
           <CardFooter  className="flex justify-end">
   
-              <Button className="" onClick={downloadStatement}>Download Statement</Button>
+              <Button variant={"outline"} onClick={downloadStatement}>Download Statement</Button>
       
           </CardFooter>
         </Card>
@@ -506,7 +486,7 @@ export default function SharesDeclaration() {
             <DrawerDescription>Royal Securities Exchange of Bhutan</DrawerDescription>
           </DrawerHeader>
           <div className="h-[290px]">
-            <PaymentGateway service_code={"DS"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo} setAmount={setAmount}/>
+            <PaymentGateway service_code={"DS"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo} setAmount={setAmount}  MERCHANT_CHECKOUT_URL={"http://localhost:3000/ourservices/declare-shares"}/>
           </div>
         </div>
       </DrawerContent>
