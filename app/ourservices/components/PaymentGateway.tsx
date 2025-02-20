@@ -92,45 +92,45 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
   const isExecuted = useRef(false); // ✅ Declare useRef outside useEffect
 
 // Checkout Time = 5 Min
-const startInactivityTimer = () => {
-  if (inactiveTimeout) clearTimeout(inactiveTimeout);
+// const startInactivityTimer = () => {
+//   if (inactiveTimeout) clearTimeout(inactiveTimeout);
 
-  const timeout = setTimeout(() => {
-    window.location.href = MERCHANT_CHECKOUT_URL; // Redirect to merchant checkout  
-    toast({
-      title: "Session Timeout!",
-      description: "Session expired due to inactivity",
-      variant: "destructive",
-      duration: 999999
+//   const timeout = setTimeout(() => {
+//     // window.location.href = MERCHANT_CHECKOUT_URL; // Redirect to merchant checkout  
+//     toast({
+//       title: "Session Timeout!",
+//       description: "Session expired due to inactivity",
+//       variant: "destructive",
+//       duration: 999999
 
-    });
+//     });
     
-  }, 300000); // 5 minutes (300,000 milliseconds)
-// console.log("Timeout set for:", timeout); 
+//   }, 300000); // 5 minutes (300,000 milliseconds)
+// // console.log("Timeout set for:", timeout); 
 
-  setInactiveTimeout(timeout);
-};
+//   setInactiveTimeout(timeout);
+// };
 
-const resetTimer = () => {
-  startInactivityTimer(); // Reset the timer on any user activity
-};
-useEffect(() => {
-  startInactivityTimer(); // Start the timeout when the component mounts
+// const resetTimer = () => {
+//   startInactivityTimer(); // Reset the timer on any user activity
+// };
+// useEffect(() => {
+//   startInactivityTimer(); // Start the timeout when the component mounts
 
-  // Add event listeners for user interactions
-  window.addEventListener("mousemove", resetTimer);
-  window.addEventListener("keydown", resetTimer);
-  window.addEventListener("touchstart", resetTimer);
+//   // Add event listeners for user interactions
+//   window.addEventListener("mousemove", resetTimer);
+//   window.addEventListener("keydown", resetTimer);
+//   window.addEventListener("touchstart", resetTimer);
 
-  return () => {
-    // Cleanup listeners when component unmounts
-    window.removeEventListener("mousemove", resetTimer);
-    window.removeEventListener("keydown", resetTimer);
-    window.removeEventListener("touchstart", resetTimer);
-    if (inactiveTimeout) clearTimeout(inactiveTimeout);
+//   return () => {
+//     // Cleanup listeners when component unmounts
+//     window.removeEventListener("mousemove", resetTimer);
+//     window.removeEventListener("keydown", resetTimer);
+//     window.removeEventListener("touchstart", resetTimer);
+//     if (inactiveTimeout) clearTimeout(inactiveTimeout);
 
-  };
-}, []);
+//   };
+// }, []);
 
 
   useEffect(() => {
@@ -346,7 +346,7 @@ useEffect(() => {
 
         // console.log("failed", responseCode , responseCodeMessages[responseCode]);
         setTimeout(() => {
-          window.location.href = MERCHANT_CHECKOUT_URL; // Redirect to merchant checkout
+          // window.location.href = MERCHANT_CHECKOUT_URL; // Redirect to merchant checkout
           // console.log("Redirecting to:", MERCHANT_CHECKOUT_URL);
           // router.replace("/ourservices/online-share-statement");
           // window.location.reload(); // This fully reloads the page
@@ -467,7 +467,7 @@ useEffect(() => {
           duration: 4000
         });
         setTimeout(() => {
-          window.location.href = MERCHANT_CHECKOUT_URL; 
+          // window.location.href = MERCHANT_CHECKOUT_URL; 
         }, 4000);
       }
     } catch (error) {
