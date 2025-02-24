@@ -33,6 +33,7 @@
     --ring: 0 0% 3.9%;
 
     --radius: 0.5rem;
+    
   }
   .hide-scrollbar {
     -ms-overflow-style: none; /* Internet Explorer and Edge */
@@ -131,5 +132,16 @@ body {
   100% {
     -webkit-transform: translateX(0);
     transform: translateX(0);
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }
