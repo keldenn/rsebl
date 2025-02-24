@@ -39,19 +39,21 @@ const VideoGrid = () => {
   }
 
   return (
-    <div className="container mx-auto my-5">
-      <div className="grid grid-cols-3 gap-4">
+<div className="container mx-auto my-5 px-4">
+
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {videos.map((video, index) => (
           <div
             key={video.id}
             className={`embed-responsive rounded shadow-lg overflow-hidden ${
-              index === 0 ? 'row-span-2 col-span-2' : ''
-            }`}
+              index === 0 ? 'sm:col-span-2 sm:row-span-2' : ''
+            }`}            
           >
             <iframe
               src={video.link}
               title={video.topic}
-              className="w-full h-full"
+              className="w-full aspect-video"
+
               allowFullScreen
             ></iframe>
             <div className="bg-gray-100 p-2">

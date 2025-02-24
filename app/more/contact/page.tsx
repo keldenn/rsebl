@@ -114,9 +114,9 @@ export default function ContactUs() {
 
   return (
     <div className="flex flex-col justify-center items-center my-5 w-full">
-      <div className="grid grid-cols-3 gap-4">
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full px-4">
         {/* Contact Us Form */}
-        <Card className="col-span-2 row-span-2">
+        <Card className="col-span-1 md:col-span-2 lg:col-span-2 row-span-2 w-full">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold">Contact Us</CardTitle>
             <p className="text-sm">We would love to hear from you! Fill out the form below to get in touch.</p>
@@ -191,7 +191,7 @@ export default function ContactUs() {
             </form>
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Button type="submit" disabled={isSubmitting} onClick={handleSubmit} className="text-sm font-semibold">
+          <Button type="submit" disabled={isSubmitting} onClick={handleSubmit} className="text-sm font-semibold w-full md:w-auto">
               {isSubmitting ? "Submitting..." : "Submit"}
             </Button>
           </CardFooter>
@@ -202,7 +202,7 @@ export default function ContactUs() {
           <p className="text-center col-span-3">Loading...</p>
         ) : (
           contactDetails.map((detail) => (
-            <Card key={detail.id}>
+            <Card key={detail.id} className="w-full">
               <CardHeader>
                 <CardTitle className="text-lg font-bold">{detail.title}</CardTitle>
               </CardHeader>

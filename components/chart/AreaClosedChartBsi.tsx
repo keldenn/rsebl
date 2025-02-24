@@ -275,7 +275,7 @@ export default function AreaClosedChartBsi({ chartQuotes }: any) {
     .replace(":", ".")
 
   return (
-    <div className="w-full min-w-fit">
+    <div className="w-full min-w-fit ">
       <div
         suppressHydrationWarning
         className={
