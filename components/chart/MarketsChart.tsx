@@ -45,7 +45,7 @@ export default function MarketsChart({ data, ticker }) {
       <div className="mb-0.5 font-medium">
         {ticker} - {formattedDate} {/* Display today's date */}
       </div>
-      <div className="relative h-[300px] md:h-[400px]">
+      <div className="relative h-[400px] md:h-[400px]">
         {filteredData.length > 0 ? (
           <AreaClosedChartBsi chartQuotes={filteredData} range={selectedTimeFilter} />
         ) : (

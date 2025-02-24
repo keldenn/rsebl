@@ -128,7 +128,7 @@ export default function DynamicStockChart() {
 
       
 
-      <div className="relative h-[300px] md:h-[400px]">
+      <div className="relative h-[400px] md:h-[400px]">
         {isLoading ? (
           <div className="flex h-full items-center justify-center text-center text-neutral-500">
             Loading data...
