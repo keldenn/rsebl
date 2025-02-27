@@ -7,6 +7,7 @@ import Navigation from "@/components/ui/navigation"
 import Footer from "@/components/ui/footer"
 import {NextUIProvider} from "@nextui-org/react";
 import { Toaster } from "@/components/ui/toaster"
+import Chat from "@/components/chatbot/chat-bot"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -38,6 +39,9 @@ export default function RootLayout({
             <main className="container">{children}</main>
             <Toaster />
             <Footer />
+            <div className="fixed bottom-4 right-4">
+                <Chat /> 
+              </div>
           </ThemeProvider>
      
           </NextUIProvider>

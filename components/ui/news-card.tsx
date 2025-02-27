@@ -27,7 +27,7 @@ interface NewsCardProps {
   
     return (
       <div className="relative p-4 rounded-xl border bg-card text-card-foreground shadow flex flex-col justify-between">
-        <div className="relative z-10">
+        <div className="relative ">
           <h3 className="text-lg font-semibold mb-2">
             {truncateText(title, titleLimit)}
           </h3>
@@ -54,7 +54,7 @@ interface NewsCardProps {
           <Button
             variant="outline"
             size="sm"
-            className="absolute bottom-4 right-4 z-10"
+            className="absolute bottom-4 right-4"
           >
             <a href={pdfUrl} download>
               Download PDF
