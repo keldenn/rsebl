@@ -157,7 +157,7 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row justify-between items-center text-sm text-gray-600 dark:text-gray-400">
           <p>
             Copyright © 2025{" "}
-            <a href="www.rsebl.org.bt" className="text-custom-1 dark:text-custom-1 hover:underline">
+            <a className="text-custom-1 dark:text-custom-1 hover:underline">
               Royal Securities Exchange of Bhutan
             </a>
             . All rights reserved.

@@ -64,7 +64,7 @@ interface NewsCardProps {
           <Button
             variant="outline"
             size="sm"
-            className="absolute bottom-4 right-4 z-10"
+            className="absolute bottom-4 right-4"
             disabled
           >
             <a href={pdfUrl} download>
@@ -72,7 +72,7 @@ interface NewsCardProps {
             </a>
           </Button>
         )}
-        <p className="absolute bottom-6 left-4 text-xs text-gray-600 z-10">
+        <p className="absolute bottom-6 left-4 text-xs text-gray-600">
           {date}
         </p>
       </div>

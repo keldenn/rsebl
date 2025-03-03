@@ -151,7 +151,7 @@ export default function PriceComparison() {
             <button
               key={filter}
               onClick={() => handleTimeFilterChange(filter)}
-              className={`px-4 py-2 rounded-md ${
+              className={`px-3 py-2 rounded-md text-sm ${
                 selectedTimeFilter === filter ? "bg-custom-1 text-white" : "border"
               }`}
             >
@@ -164,9 +164,6 @@ export default function PriceComparison() {
       <Card>
         <CardHeader>
           <CardTitle>Price Comparison</CardTitle>
-          <CardDescription>
-            Showing the price movement for selected sector over time
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig}>
@@ -179,13 +176,13 @@ export default function PriceComparison() {
               }}
             >
               <CartesianGrid vertical={false} />
-              <XAxis
+              {/* <XAxis
                 dataKey="month"
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
                 tickFormatter={(value) => value.slice(0, 3)}
-              />
+              /> */}
               <ChartTooltip
                 cursor={false}
                 content={<ChartTooltipContent indicator="dot" />}
@@ -205,15 +202,6 @@ export default function PriceComparison() {
             </AreaChart>
           </ChartContainer>
         </CardContent>
-        <CardFooter>
-          <div className="flex w-full items-start gap-2 text-sm">
-            <div className="grid gap-2">
-              <div className="flex items-center gap-2 leading-none text-muted-foreground">
-                January - June 2024
-              </div>
-            </div>
-          </div>
-        </CardFooter>
       </Card>
     </div>
   );
