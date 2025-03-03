@@ -68,28 +68,27 @@ export default function Navigation() {
               )}
         
         {/* Hamburger Menu */}
-{/* Hamburger Menu */}
-<button
-  className="lg:hidden relative w-8 h-8 focus:outline-none"
-  onClick={() => setIsOpen(!isOpen)}
-  aria-label="Toggle menu"
->
-  <span
-    className={`absolute top-1 left-1/2 w-6 h-1 rounded bg-custom-1 dark:bg-white transform transition duration-300 ease-in-out ${
-      isOpen ? "rotate-45 translate-y-3 -translate-x-1/2" : "-translate-x-1/2"
-    }`}
-  ></span>
-  <span
-    className={`absolute top-3 left-1/2 w-6 h-1 rounded bg-custom-1 dark:bg-white transform transition duration-300 ease-in-out ${
-      isOpen ? "opacity-0" : "-translate-x-1/2"
-    }`}
-  ></span>
-  <span
-    className={`absolute top-5  left-1/2 w-6 rounded h-1 bg-custom-1 dark:bg-white transform transition duration-300 ease-in-out ${
-      isOpen ? "-rotate-45 -translate-y-1 -translate-x-1/2" : "-translate-x-1/2"
-    }`}
-  ></span>
-</button>
+        <button
+          className="lg:hidden relative w-8 h-8 focus:outline-none"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="Toggle menu"
+        >
+          <span
+            className={`absolute top-1 left-1/2 w-6 h-1 rounded bg-custom-1 dark:bg-white transform transition duration-300 ease-in-out ${
+              isOpen ? "rotate-45 translate-y-3 -translate-x-1/2" : "-translate-x-1/2"
+            }`}
+          ></span>
+          <span
+            className={`absolute top-3 left-1/2 w-6 h-1 rounded bg-custom-1 dark:bg-white transform transition duration-300 ease-in-out ${
+              isOpen ? "opacity-0" : "-translate-x-1/2"
+            }`}
+          ></span>
+          <span
+            className={`absolute top-5  left-1/2 w-6 rounded h-1 bg-custom-1 dark:bg-white transform transition duration-300 ease-in-out ${
+              isOpen ? "-rotate-45 -translate-y-1 -translate-x-1/2" : "-translate-x-1/2"
+            }`}
+          ></span>
+        </button>
 
 
           <div className="hidden lg:flex flex-row items-center gap-2">

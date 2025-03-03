@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   ColumnDef,
   flexRender,
@@ -224,7 +224,14 @@ export default function FinancialPublicationPage() {
     nextPage: () => {},
     prevPage: () => {},
   });
+  const scrollRef = useRef<HTMLDivElement>(null);
 
+  const scrollTabs = (offset: number) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft += offset;
+    }
+  };
+  
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-office-reports`)
       .then((res) => res.json())
@@ -249,13 +256,41 @@ export default function FinancialPublicationPage() {
 
   return (
     <Tabs defaultValue="annual-reports">
-      <TabsList>
-        <TabsTrigger value="annual-reports">Annual Reports</TabsTrigger>
-        <TabsTrigger value="regulations">Regulations</TabsTrigger>
-        <TabsTrigger value="forms">Forms</TabsTrigger>
-        <TabsTrigger value="audit-reports">Audited Reports</TabsTrigger>
-      </TabsList>
 
+     <div className="header">
+     <div className="relative flex items-center w-full">
+      {/* Left Scroll Button (Hidden on large screens) */}
+      <button className="absolute left-0  rounded-lg hover:bg-gray-300 block sm:hidden w-6 h-6 bg-opacity-50 backdrop-blur-lg"
+        onClick={() => document.getElementById("tabs-container")?.scrollBy({ left: -100, behavior: "smooth" })}
+      >
+        ‹
+      </button>
+
+        {/* Scrollable Tabs Container */}
+        <div id="tabs-container" className="w-full overflow-x-auto scroll-smooth flex space-x-2 px-2">
+          <TabsList className="flex w-max items-center space-x-2">
+            <TabsTrigger value="annual-reports" className="text-xs sm:text-sm">
+              Annual Reports
+            </TabsTrigger>
+            <TabsTrigger value="regulations" className="text-xs sm:text-sm">
+              Regulations
+            </TabsTrigger>
+            <TabsTrigger value="forms" className="text-xs sm:text-sm">
+              Forms
+            </TabsTrigger>
+            <TabsTrigger value="audit-reports" className="text-xs sm:text-sm">
+              Audited Reports
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        {/* Right Scroll Button (Hidden on large screens) */}
+        <button  className="absolute right-0  rounded-lg hover:bg-gray-300 block sm:hidden w-6 h-6 bg-opacity-50 backdrop-blur-lg"
+          onClick={() => document.getElementById("tabs-container")?.scrollBy({ left: 100, behavior: "smooth" })}
+        >
+          ›
+        </button>
+      </div>
       {/* Search Input - Placed above the card */}
       <div className="flex justify-between items-center my-4">
         <Input
@@ -265,6 +300,7 @@ export default function FinancialPublicationPage() {
           className="max-w-md"
         />
       </div>
+     </div>
 
       {/* Annual Reports Tab */}
       <TabsContent value="annual-reports">
