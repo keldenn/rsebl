@@ -51,7 +51,7 @@ export default function MarketSentiment() {
 
   return (
     <>
-    <CardTitle className="z-50 w-fit rounded-full px-4 py-2 font-medium dark:bg-neutral-100/5">
+    <CardTitle className=" w-fit rounded-full px-4 py-2 font-medium dark:bg-neutral-100/5">
     The markets are <strong className={sentimentColor}>{marketSentiment}</strong>
   </CardTitle>
   <div className={`pointer-events-none absolute inset-0 z-0 h-[95%] w-[85%] -translate-x-[10%] -translate-y-[30%] rounded-full blur-3xl ${sentimentBackground}`} />

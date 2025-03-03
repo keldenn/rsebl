@@ -1,4 +1,5 @@
 "use client";
+
 import { fetchShareDeclarations } from "@/lib/yahoo-finance/fetchShareDeclaration";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -92,7 +93,10 @@ export default function SharesDeclaration() {
     try {
       // Wait for user details before sending OTP
       await fetchUserContactDetails();
-      return;
+      return toast({
+        title: "Success",
+        description: "OTP send successfully",
+      });
     } catch (error) {
       console.error("Validation error:", error);
     }
@@ -225,12 +229,33 @@ export default function SharesDeclaration() {
     }
     
   };
+  // useEffect(() => {
+  //   if (paymentSuccess && orderNo) {
+  //     setOpen(false); // Close the drawer when payment is successful
+  //     const formattedDate = format(date, "yyyy-MM-dd");
+  
+  //     fetchShareDeclarations(cid, formattedDate).then((data) => {
+  //       if (!data || data.length === 0) {
+  //         toast({
+  //           title: "Error",
+  //           description: "No share holding data available",
+  //           variant: "destructive",
+  //         });
+  //         return;
+  //       }
+  //       setHoldings(data);
+  //       console.log('data:', data);
+  //       setLoading(false);
+  //     });
+  //   }
+  // }, [paymentSuccess, orderNo]);
+
   useEffect(() => {
     if (paymentSuccess && orderNo) {
       setOpen(false); // Close the drawer when payment is successful
       const formattedDate = format(date, "yyyy-MM-dd");
   
-      fetchShareDeclarations(cid, formattedDate).then((data) => {
+      fetchShareDeclarations(cid, formattedDate).then(async (data) => {
         if (!data || data.length === 0) {
           toast({
             title: "Error",
@@ -239,11 +264,37 @@ export default function SharesDeclaration() {
           });
           return;
         }
+  
         setHoldings(data);
         setLoading(false);
+  
+        // Prepare data for API
+        const payloadACC = {
+          name: `${data[0].f_name} ${data[0].l_name}`,  // Combine first and last name
+          identity: data[0].ID,                      // ID as identity
+          totalnumber: data[0].total_vol,            // Total volume
+          companyname: data[0].symbol_name           // Symbol name
+        };
+        console.log(payloadACC);
+  
+        try {
+          const response = await fetch("https://adsndi.itechnologies.cloud/api/push-data/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payloadACC),
+          });
+  
+          const result = await response.json();
+          console.log("API Response:", result);
+        } catch (error) {
+          console.error("Error posting data:", error);
+        }
       });
     }
   }, [paymentSuccess, orderNo]);
+  
 
   const downloadStatement = () => {
     setDownloading(true);
@@ -336,7 +387,7 @@ export default function SharesDeclaration() {
 
         setUserDetails(data.data);
         sendOtpOperation(data.data);
-        console.log('data', userDetails.name)
+        //console.log('data', userDetails.name)
       } else {
         toast(data.message);
       }

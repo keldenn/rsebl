@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Card, CardHeader, CardBody, CardFooter } from "@nextui-org/react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 interface ServicesCardProps {
@@ -26,9 +26,9 @@ const ServicesCards: React.FC<ServicesCardProps> = ({ description, image, link }
       </CardHeader>
 
       {/* Card Body */}
-      <CardBody className="p-4 space-y-2">
+      <CardContent className="p-4 space-y-2">
         <p className="text-sm text-gray-600 dark:text-gray-400 text-center">{description}</p>
-      </CardBody>
+      </CardContent>
 
       {/* Card Footer */}
       <CardFooter className="p-4">

@@ -2,6 +2,7 @@
 
 export async function fetchShareDeclarations(cid: string, date: string) {
   try {
+    console.log(date);
     const response = await fetch(
       `https://rsebl.org.bt/agm/api/client-holdings/${cid}/${date}`,
       { cache: "no-store" } // Ensures fresh data, prevents caching
