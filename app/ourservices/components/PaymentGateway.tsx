@@ -492,12 +492,12 @@ useEffect(() => {
         </div>
       )}
 
-      <Card className="w-full ">
-        <CardContent className="p-6">
+      <Card className="w-full">
+        <CardContent className="p-6 ">
           {showBankFields && (
             <>
   
-            <div className="flex flex-row">
+            <div className="flex flex-row ">
             <div className="mb-4 w-1/2">
                 <label className="text-sm mb-1 text-gray-500">Bank</label>
                 <Select onValueChange={setBankCode}>
@@ -545,18 +545,18 @@ useEffect(() => {
                       className="w-full"
                     >
                       <InputOTPGroup>
-                          <InputOTPSlot className="w-14" index={0} />
-                          <InputOTPSlot className="w-14" index={1} />
+                          <InputOTPSlot className="w-11 sm:w-14" index={0} />
+                          <InputOTPSlot className="w-11 sm:w-14" index={1} />
                         </InputOTPGroup>
-                        <InputOTPSeparator />
+                        <InputOTPSeparator className="hidden sm:block" />
                         <InputOTPGroup>
-                          <InputOTPSlot className="w-14" index={2} />
-                          <InputOTPSlot className="w-14" index={3} />
+                          <InputOTPSlot className="w-11 sm:w-14" index={2} />
+                          <InputOTPSlot className="w-11 sm:w-14" index={3} />
                         </InputOTPGroup>
-                        <InputOTPSeparator />
+                        <InputOTPSeparator  className="hidden sm:block"/>
                         <InputOTPGroup>
-                          <InputOTPSlot className="w-14" index={4} />
-                          <InputOTPSlot className="w-14" index={5} />
+                          <InputOTPSlot className="w-11 sm:w-14" index={4} />
+                          <InputOTPSlot className="w-11 sm:w-14" index={5} />
                         </InputOTPGroup>
                     </InputOTP>
                     </div>
@@ -578,7 +578,7 @@ useEffect(() => {
           <AlertDialogHeader>
             <AlertDialogTitle>Payment Confirmation</AlertDialogTitle>
             <AlertDialogDescription >
-            Proceeding with this action will incur a fee of Nu <span className='text-black font-bold'>{tempAmt && tempAmt}</span> . Do you wish to proceed?
+            Proceeding with this action will incur a fee of Nu <span className='text-black font-bold dark:text-white'>{tempAmt && tempAmt}</span> . Do you wish to proceed?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
