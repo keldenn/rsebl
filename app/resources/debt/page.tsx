@@ -80,13 +80,16 @@ export default function FinancialTabsPage() {
   return (
     <div className="w-full p-4 max-w-full mx-auto space-y-4">
       <Tabs defaultValue="Bonds" className="space-y-4">
-        <TabsList>
-          {tabs.map((tab) => (
-            <TabsTrigger key={tab.id} value={tab.title}>
-              {tab.title}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="w-full overflow-x-auto scroll-smooth flex space-x-2 px-2">
+          <TabsList>
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab.id} value={tab.title}>
+                {tab.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+
         {chapters.map((chapter) => (
           <TabsContent value="Bonds">
             <Card key={chapter.id} className="mb-5">

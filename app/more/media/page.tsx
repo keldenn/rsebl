@@ -201,7 +201,7 @@ export default function PublicationPage() {
   return (
     <div className="w-full p-4 max-w-full mx-auto space-y-4">
       <Tabs defaultValue="Newsletter" className="space-y-4">
-        <div className="flex justify-between w-full">
+        <div className="w-full overflow-x-auto scroll-smooth flex space-x-2 px-2">
           <TabsList className="">
             <TabsTrigger value="Newsletter">Newsletter</TabsTrigger>
             <TabsTrigger value="PressRelease">Press Release</TabsTrigger>

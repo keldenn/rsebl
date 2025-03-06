@@ -38,13 +38,16 @@ export default function EquityPage() {
     <div className="w-full p-4 max-w-full mx-auto space-y-4">
       {tabs.length > 0 && (
         <Tabs defaultValue={tabs[0]?.title} className="space-y-4">
-          <TabsList>
-            {tabs.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.title}>
-                {tab.title}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          {/* Scrollable Tabs Container */}
+          <div className="w-full overflow-x-auto scroll-smooth flex space-x-2 px-2">
+            <TabsList className="flex space-x-2">
+              {tabs.map((tab) => (
+                <TabsTrigger key={tab.id} value={tab.title}>
+                  {tab.title}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
 
           {tabs.map((tab) => (
             <TabsContent key={tab.id} value={tab.title}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,26 +14,40 @@ export default function Chat() {
     { text: "I can't log in.", sender: "user" },
   ]);
   const [input, setInput] = useState("");
-  const [isOpen, setIsOpen] = useState(false); // Toggle chat visibility
+  const [isOpen, setIsOpen] = useState(false);
+  const chatEndRef = useRef(null);
 
   const sendMessage = (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-    setMessages([...messages, { text: input, sender: "user" }]);
+    
+    const newMessages = [...messages, { text: input, sender: "user" }];
+    setMessages(newMessages);
     setInput("");
+    
+    // Simulate bot response after a short delay
+    setTimeout(() => {
+      setMessages((prevMessages) => [...prevMessages, { text: "Let me check that for you!", sender: "agent" }]);
+    }, 1000);
   };
+
+  // Auto-scroll to the latest message
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      {/* Chat Toggle Button */}
       <Button
         onClick={() => setIsOpen(!isOpen)}
         className="h-12 w-12 rounded-full bg-primary text-white shadow-lg"
+        aria-label="Open chat"
       >
         💬
       </Button>
 
-      {/* Chat Window */}
       {isOpen && (
         <Card className="absolute bottom-16 right-0 w-80 rounded-xl border bg-card text-card-foreground shadow-lg p-4">
           <div className="flex flex-row items-center pb-4">
@@ -56,6 +70,7 @@ export default function Chat() {
               variant="outline"
               className="ml-auto h-9 w-9 rounded-full"
               onClick={() => setIsOpen(false)}
+              aria-label="Close chat"
             >
               ✖
             </Button>
@@ -72,6 +87,7 @@ export default function Chat() {
                 {msg.text}
               </div>
             ))}
+            <div ref={chatEndRef} />
           </div>
 
           <form className="flex items-center space-x-2" onSubmit={sendMessage}>
@@ -81,8 +97,9 @@ export default function Chat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="flex-1"
+              aria-label="Message input"
             />
-            <Button type="submit" className="h-9 w-9 p-0">
+            <Button type="submit" className="h-9 w-9 p-0" aria-label="Send message">
               →
             </Button>
           </form>

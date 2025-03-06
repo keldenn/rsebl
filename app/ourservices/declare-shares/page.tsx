@@ -93,10 +93,6 @@ export default function SharesDeclaration() {
     try {
       // Wait for user details before sending OTP
       await fetchUserContactDetails();
-      return toast({
-        title: "Success",
-        description: "OTP send successfully",
-      });
     } catch (error) {
       console.error("Validation error:", error);
     }
@@ -129,8 +125,19 @@ export default function SharesDeclaration() {
 
       if (response.status === 200) {
         setShowOtpField(true);
+        toast({
+          title: "Success",
+          description: "OTP send successfully",
+        });
         return data; // Success
-      } else {
+      } else if(response.status === 204) {
+        toast({
+          title: "Error",
+          description: "No share holding data available",
+          variant: "destructive"
+        });
+      }
+      else {
         throw new Error(data.message || "Error sending OTP");
       }
     } catch (error) {
@@ -208,92 +215,183 @@ export default function SharesDeclaration() {
     }
   };
 
+  useEffect(() => {
+    if (orderNo?.startsWith("DS")) {
+      handleSubmit();
+    }
+  }, [orderNo]); // Runs whenever orderNo changes
   const handleSubmit = async () => {
     setLoading(true);
-    setOpen(true); 
+    setOpen(true);
     setConfirmDialog(false);
-    if(paymentSuccess && paymentSuccess == true){
-      const formattedDate = format(date, "yyyy-MM-dd");
-      const data = await fetchShareDeclarations(cid, formattedDate);
-      if (!data || data.length === 0) {
-        toast({
-          title: "Error",
-          description: "No share holding data available",
-          variant: "destructive",
-        });
-        return;
-      }
-      setOpen(true);
-      setHoldings(data);
-      setLoading(false);
-    }
-    
-  };
-  // useEffect(() => {
-  //   if (paymentSuccess && orderNo) {
-  //     setOpen(false); // Close the drawer when payment is successful
-  //     const formattedDate = format(date, "yyyy-MM-dd");
-  
-  //     fetchShareDeclarations(cid, formattedDate).then((data) => {
-  //       if (!data || data.length === 0) {
-  //         toast({
-  //           title: "Error",
-  //           description: "No share holding data available",
-  //           variant: "destructive",
-  //         });
-  //         return;
-  //       }
-  //       setHoldings(data);
-  //       console.log('data:', data);
-  //       setLoading(false);
-  //     });
-  //   }
-  // }, [paymentSuccess, orderNo]);
 
-  useEffect(() => {
-    if (paymentSuccess && orderNo) {
-      setOpen(false); // Close the drawer when payment is successful
-      const formattedDate = format(date, "yyyy-MM-dd");
+        const formattedDate = format(date, "yyyy-MM-dd");
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/check-client-holdings/${cid}/${formattedDate}`,
+          {
+            method: "GET", // Assuming GET is correct for fetching details
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+    
+        if (response.status === 200) {
+          const data = await response.json();
+          setHoldings(Array.isArray(data) ? data : [data]);
+
+          const holding = data;
+
+          // console.log(orderNo);
+          // console.log(amount);
   
-      fetchShareDeclarations(cid, formattedDate).then(async (data) => {
-        if (!data || data.length === 0) {
+          const payload = {
+              cidNo: holding.cidNo,
+              date: holding.date,
+              phoneNo: holding.phone,
+              email: holding.email,
+              amount: amount,
+              status: 0,
+              orderNo: orderNo,
+          };
+  
+          //console.log("Payload to be sent to API:", payload);
+          if ((orderNo !== undefined && orderNo !== null) && (amount !== undefined && amount !== null)){
+            try {
+              const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/insert-share-data`, {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(payload),
+              });
+  
+              const result = await response.json();
+              //console.log("API Response:", result);
+  
+              if (response.status === 200) {
+                  toast({
+                      title: "Success",
+                      description: result.message || "Data inserted successfully.",
+                  });
+              } else {
+                  toast({
+                      title: "Error",
+                      description: result.message || "Failed to insert data.",
+                      variant: "destructive",
+                  });
+              }
+          } catch (error) {
+              console.error("Error inserting shareholding data:", error);
+              toast({
+                  title: "Error",
+                  description: "Failed to insert data. Please try again.",
+                  variant: "destructive",
+              });
+          }
+          }
+
+        } else if (response.status === 204) {
           toast({
-            title: "Error",
-            description: "No share holding data available",
+            description: "No shareholding data found.",
+            variant: "destructive"
+          });
+        } else {
+          const errorData = await response.json();
+          toast(errorData.message || "An error occurred.");
+        }
+
+        setLoading(false);
+};
+
+
+useEffect(() => {
+  if (paymentSuccess && orderNo) {
+    setOpen(false); // Close the drawer when payment is successful
+    const formattedDate = format(date, "yyyy-MM-dd");
+
+    // Step 1: Update Payment Status First
+    const updatePaymentStatus = async () => {
+      try {
+        const paymentResponse = await fetch("https://rsebl.org.bt/agm/api/update-payment-status-DS", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ orderNo }),
+        });
+
+        const paymentResult = await paymentResponse.json();
+        //console.log("Payment Update Response:", paymentResult);
+
+        if (paymentResult.status !== 200) {
+          toast({
+            title: "Payment Update Failed",
+            description: paymentResult.message || "Something went wrong",
             variant: "destructive",
           });
           return;
         }
+
+        // Step 2: Fetch Share Declarations after successful payment update
+        fetchShareDeclarations(cid, formattedDate).then(async (data) => {
+          if (!data || data.length === 0) {
+            toast({
+              title: "Error",
+              description: "No share holding data available",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          setHoldings(data);
+          setLoading(false);
+
+          // Prepare data for API
+          const payloadACC = {
+            name: `${data[0].f_name} ${data[0].l_name}`,  // Combine first and last name
+            cid: data[0].ID,                             // ID as the customer ID
+            data: data.map(item => ({
+              symbol: item.symbol,                   // Symbol name as 'symbol'
+              companyname: item.symbol_name,         // Use the symbol name as company name
+              total_vol: item.total_vol              // Total volume
+            }))
+          };
+
+          //console.log("Payload for Push Data API:", payloadACC);
+
+          try {
+            const response = await fetch("https://adsndi.itechnologies.cloud/api/push-data/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(payloadACC),
+            });
+
+            const result = await response.json();
+            //console.log("Push Data API Response:", result);
+          } catch (error) {
+            console.error("Error posting data:", error);
+          }
+        });
+
+      } catch (error) {
+        console.error("Error updating payment status:", error);
+        toast({
+          title: "Network Error",
+          description: "Failed to update payment status",
+          variant: "destructive",
+        });
+      }
+    };
+
+    updatePaymentStatus(); // Call the function
+  }
+}, [paymentSuccess, orderNo]);
+
   
-        setHoldings(data);
-        setLoading(false);
-  
-        // Prepare data for API
-        const payloadACC = {
-          name: `${data[0].f_name} ${data[0].l_name}`,  // Combine first and last name
-          identity: data[0].ID,                      // ID as identity
-          totalnumber: data[0].total_vol,            // Total volume
-          companyname: data[0].symbol_name           // Symbol name
-        };
-        console.log(payloadACC);
-  
-        try {
-          const response = await fetch("https://adsndi.itechnologies.cloud/api/push-data/", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payloadACC),
-          });
-  
-          const result = await response.json();
-          console.log("API Response:", result);
-        } catch (error) {
-          console.error("Error posting data:", error);
-        }
-      });
-    }
-  }, [paymentSuccess, orderNo]);
   
 
   const downloadStatement = () => {
@@ -368,36 +466,53 @@ export default function SharesDeclaration() {
   
   const fetchUserContactDetails = async () => {
     setLoading(true);
-
+  
     try {
+      if (!cid || !date) {
+        toast({
+          description: "Please enter CID and select a date.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+  
+      // Format the date before sending it to the API
+      const formattedDate = format(date, "yyyy-MM-dd");
+  
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/get-user-details-acc`,
+        `${process.env.NEXT_PUBLIC_API_URL}/check-client-holdings/${cid}/${formattedDate}`,
         {
-          method: "POST",
+          method: "GET", // Assuming GET is correct for fetching details
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ cid }),
         }
       );
-
-      const data = await response.json();
-
-      if (data.status === "200") {
-
-        setUserDetails(data.data);
-        sendOtpOperation(data.data);
-        //console.log('data', userDetails.name)
+  
+      if (response.status === 200) {
+        const data = await response.json();
+        setUserDetails(data);
+        sendOtpOperation(data); // Send OTP only if data is found
+      } else if (response.status === 204) {
+        toast({
+          description: "No shareholding data found.",
+          variant: "destructive"
+        });
       } else {
-        toast(data.message);
+        const errorData = await response.json();
+        toast(errorData.message || "An error occurred.");
       }
-   
     } catch (err) {
       toast(err.message);
     } finally {
       setLoading(false);
     }
   };
+  
+
+ // console.log('holdings:', holdings);
+  
   return (
     <div className="w-full flex flex-col justify-between items-center p-6 ">
       {!orderNo && (

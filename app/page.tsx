@@ -173,7 +173,7 @@ export default async function Home({
         </Link>
       </div>
 
-      <div className="flex flex-col gap-4 mb-10">
+      <div className="flex flex-col gap-4">
         <Card className="flex flex-col gap-4 p-6 lg:flex-row">
           <div className="w-full lg:w-1/2">
             <Suspense fallback={<div>Loading...</div>}>
