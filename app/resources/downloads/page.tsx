@@ -260,14 +260,14 @@ export default function FinancialPublicationPage() {
      <div className="header">
      <div className="relative flex items-center w-full">
       {/* Left Scroll Button (Hidden on large screens) */}
-      <button className="absolute left-0  rounded-lg hover:bg-gray-300 block sm:hidden w-6 h-6 bg-opacity-50 backdrop-blur-lg"
+      {/* <button className="absolute left-0  rounded-lg hover:bg-gray-300 block sm:hidden w-6 h-6 bg-opacity-50 backdrop-blur-lg"
         onClick={() => document.getElementById("tabs-container")?.scrollBy({ left: -100, behavior: "smooth" })}
       >
         ‹
-      </button>
+      </button> */}
 
         {/* Scrollable Tabs Container */}
-        <div id="tabs-container" className="w-full overflow-x-auto scroll-smooth flex space-x-2 px-2">
+        <div className="w-full overflow-x-auto scroll-smooth flex space-x-2 px-2">
           <TabsList className="flex w-max items-center space-x-2">
             <TabsTrigger value="annual-reports" className="text-xs sm:text-sm">
               Annual Reports
@@ -285,11 +285,11 @@ export default function FinancialPublicationPage() {
         </div>
 
         {/* Right Scroll Button (Hidden on large screens) */}
-        <button  className="absolute right-0  rounded-lg hover:bg-gray-300 block sm:hidden w-6 h-6 bg-opacity-50 backdrop-blur-lg"
+        {/* <button  className="absolute right-0  rounded-lg hover:bg-gray-300 block sm:hidden w-6 h-6 bg-opacity-50 backdrop-blur-lg"
           onClick={() => document.getElementById("tabs-container")?.scrollBy({ left: 100, behavior: "smooth" })}
         >
           ›
-        </button>
+        </button> */}
       </div>
       {/* Search Input - Placed above the card */}
       <div className="flex justify-between items-center my-4">
