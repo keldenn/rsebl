@@ -48,7 +48,7 @@ const MarketTicker: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-custom-1 text-white py-2 overflow-hidden">
+    <div className="bg-custom-1 text-white  py-2 overflow-hidden">
       <div className="flex items-center animate-marquee whitespace-nowrap">
         {[...marketData, ...marketData].map((data, index) => (
           <div key={index} className="mx-4 flex items-center text-sm">

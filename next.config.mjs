@@ -21,6 +21,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true, // Ignore TypeScript errors during build
   },
+  useFileSystemPublicRoutes: false,
 };
 
 export default nextConfig;
