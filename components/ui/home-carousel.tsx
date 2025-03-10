@@ -4,24 +4,46 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 
 const HeroCarousel: React.FC = () => {
-  const [banners, setBanners] = useState<any[]>([]);
+  const banners = [
+    {
+      id: 1,
+      title: "Click here for Online Share Statement",
+      file_path: "/images/banner1.png",
+      clickable_link: "https://rsebl.org.bt/#/OnlineShareStmt/1",
+    },
+    {
+      id: 2,
+      title: "Click here to Renew McAms",
+      file_path: "/images/banner.png",
+      clickable_link: "https://rsebl.org.bt/#/OnlineRenew/1",
+    },
+    {
+      id: 3,
+      title: "Click here to Register for McAms",
+      file_path: "/images/banner1.png",
+      clickable_link: "https://rsebl.org.bt/#/onlineTerminal/1",
+    },
+  ];
+
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Function to change slide automatically
+  const autoSlide = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
+  };
 
   useEffect(() => {
-    const fetchBanners = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/fetch-banners`
-        );
-        const data = await response.json();
-        setBanners(data);
-      } catch (error) {
-        console.error("Error fetching banners:", error);
+    // Start the interval when the component mounts
+    const interval = setInterval(() => {
+      if (!isHovered) {
+        autoSlide();
       }
-    };
+    }, 3000); // Change slide every 3 seconds
 
-    fetchBanners();
-  }, []);
+    // Clear the interval when the component is unmounted or when hover occurs
+    return () => clearInterval(interval);
+  }, [isHovered]);
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
@@ -34,18 +56,20 @@ const HeroCarousel: React.FC = () => {
   };
 
   return (
-    <div className="xl:container rounded-lg xl:mx-auto relative w-full h-64 md:h-96 overflow-hidden">
+    <div
+      className="xl:container rounded-lg xl:mx-auto relative w-full h-64 md:h-96 overflow-hidden"
+      onMouseEnter={() => setIsHovered(true)} // Stop the animation when hovered
+      onMouseLeave={() => setIsHovered(false)} // Resume the animation when mouse leaves
+    >
       {banners.map((banner, index) => (
         <div
           key={banner.id}
-          className={`absolute inset-0 transition-opacity duration-1000 ${
-            index === currentIndex
-              ? "opacity-100 pointer-events-auto"
-              : "opacity-0 pointer-events-none"
+          className={`absolute inset-0 transition-all duration-1000 ease-in-out transform ${
+            index === currentIndex ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
           }`}
         >
           <Image
-            src={`${process.env.NEXT_PUBLIC_BASE_URL}${banner.file_path}`}
+            src={banner.file_path}
             alt={banner.title}
             layout="fill"
             objectFit="cover"
@@ -80,9 +104,7 @@ const HeroCarousel: React.FC = () => {
         {banners.map((_, index) => (
           <button
             key={index}
-            className={`w-3 h-3 rounded-full ${
-              index === currentIndex ? "bg-white" : "bg-gray-400"
-            }`}
+            className={`w-3 h-3 rounded-full ${index === currentIndex ? "bg-white" : "bg-gray-400"}`}
             onClick={() => setCurrentIndex(index)}
           />
         ))}

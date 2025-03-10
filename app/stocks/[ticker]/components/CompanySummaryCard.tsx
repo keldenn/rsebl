@@ -1,33 +1,21 @@
-import { Card, CardContent } from "../../../../components/ui/card"
-import ReadMoreText from "../../../../components/ui/read-more-text"
-import Link from "next/link"
+import { Card, CardContent } from "../../../../components/ui/card";
+import ReadMoreText from "../../../../components/ui/read-more-text";
+import Link from "next/link";
 
-export default async function CompanySummaryCard({
-  ticker,
-}: {
-  ticker: string
-}) {
+export default async function CompanySummaryCard({ ticker }: { ticker: string }) {
   // Fetch data from the custom API
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/fetch-single-script/${ticker}`
-  )
-  const data = await response.json()
+  );
+  const data = await response.json();
 
   if (!data || data.length === 0) {
-    return null
+    return null;
   }
 
   // Extract relevant fields
-  const companyData = data[0]
-  const {
-    name,
-    sector,
-    address,
-    paid_up_shares,
-    website_link,
-    date_of_est,
-    logo_path,
-  } = companyData
+  const companyData = data[0];
+  const { name, sector, address, paid_up_shares, details, website_link, date_of_est, logo_path } = companyData;
 
   return (
     <Card className="group relative min-h-max overflow-hidden">
@@ -36,13 +24,17 @@ export default async function CompanySummaryCard({
       <CardContent className="z-50 flex h-full w-full flex-col items-start justify-center gap-6 py-10 text-sm lg:flex-row">
         <div className="z-50 max-w-2xl text-pretty font-medium">
           <ReadMoreText
-            text={`Learn more about ${name}. Established in ${date_of_est}.`}
-            truncateLength={500}
+            // text={`Learn more about ${name}. Established in ${date_of_est}.`}
+            text={details}
+            truncateLength={300}
           />
         </div>
 
         {sector && address && paid_up_shares && website_link && (
           <div className="z-50 min-w-fit font-medium text-muted-foreground">
+            <div>
+              Established: <span className="text-foreground">{date_of_est}</span>
+            </div>
             <div>
               Sector: <span className="text-foreground">{sector}</span>
             </div>
@@ -50,14 +42,10 @@ export default async function CompanySummaryCard({
               Address: <span className="text-foreground">{address}</span>
             </div>
             <div>
-              Paid-up Shares:{" "}
-              <span className="text-foreground">
-                {parseInt(paid_up_shares).toLocaleString("en-US")}
-              </span>
+              Paid-up Shares: <span className="text-foreground">{parseInt(paid_up_shares).toLocaleString("en-US")}</span>
             </div>
             <div>
-              Website:{" "}
-              <span className="text-foreground">
+              Website: <span className="text-foreground">
                 {website_link && (
                   <Link
                     href={website_link}
@@ -72,5 +60,5 @@ export default async function CompanySummaryCard({
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
