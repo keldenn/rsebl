@@ -46,7 +46,7 @@ export default function MarketSentiment() {
 
   const sentimentBackground =
     marketSentiment === "bullish" ? "bg-green-500/10" :
-    marketSentiment === "bearish" ? "bg-red-300/50 dark:bg-red-950/50" :
+    marketSentiment === "bearish" ? "bg-red-500/10" :
     "bg-neutral-500/10"
 
   return (

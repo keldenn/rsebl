@@ -39,7 +39,7 @@ const HeroCarousel: React.FC = () => {
       if (!isHovered) {
         autoSlide();
       }
-    }, 3000); // Change slide every 3 seconds
+    }, 7000); // Change slide every 3 seconds
 
     // Clear the interval when the component is unmounted or when hover occurs
     return () => clearInterval(interval);
