@@ -1,0 +1,5 @@
+Error preparing Next.js app: RangeError [ERR_SOCKET_BAD_PORT]: options.port should be >= 0 and < 65536. Received type number (NaN).
+    at Server.listen (node:net:2088:5)
+    at file:///C:/inetpub/wwwroot/rsebl/server.js:20:6 {
+  code: 'ERR_SOCKET_BAD_PORT'
+}
