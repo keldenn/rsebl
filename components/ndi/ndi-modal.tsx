@@ -41,7 +41,7 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
 
         const data = await response.json();
 
-
+        
         setProofRequestURL(data.proofRequest.proofRequestURL);
         setProofRequestThreadId(data.proofRequest.proofRequestThreadId);
       } catch (error) {
@@ -99,13 +99,18 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
         <Card className="border-3 border-[#5AC994] rounded-lg mx-11 flex justify-center">
         <CardContent className="flex justify-center items-center p-0 ">
             {loading ? (
-              <p>Loading..</p>
+              <div className="flex justify-center items-center w-[300px] h-[300px]">
+              <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-[#5AC994]"></div>
+            </div>
             ) : qrCodeDataUrl ? (
                 <div>
                  <img src={qrCodeDataUrl} alt="QR Code"  width={300} height={300} />
                 </div>
             ) : (
-              <p>No QR code available</p>
+                <div className="flex justify-center items-center w-[300px] h-[300px]">
+                       <p>No QR code available</p>
+              </div>
+       
             )}
           </CardContent>
         </Card>
