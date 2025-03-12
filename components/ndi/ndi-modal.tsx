@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import QRCode from 'qrcode';
-
+const API_BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://new-rsebl.vercel.app"
+    : ""; // Empty means relative path in development
+    
 const BhutanNDIButton = ({ text, onClick }) => {
   return (
     <Button onClick={onClick} style={{ pointerEvents: "auto" }} className="w-[250px] h-[50px] bg-[#124143] hover:bg-[#124143] text-white text-md font-semibold flex items-center justify-center space-x-2 shadow-md">
@@ -121,7 +125,7 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
       interval = setInterval(async () => {
         try {
     
-          const res = await fetch(`/api/ndi?threadId=${proofRequestThreadId}`);
+          const res = await fetch(`${API_BASE_URL}/api/ndi?threadId=${proofRequestThreadId}`);
           const data = await res.json();
           // 🔹 Log verification data
 
@@ -134,7 +138,7 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
         } catch (error) {
           console.error('Error fetching proof status:', error);
         }
-      }, 2000); // Poll every 3 seconds
+      }, 3000); // Poll every 3 seconds
     }
 
     return () => clearInterval(interval);
