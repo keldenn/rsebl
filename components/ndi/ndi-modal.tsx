@@ -61,9 +61,49 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
 
     if (proofRequestURL && proofRequestThreadId) {
       // Generate QR code from proofRequestURL
-      QRCode.toDataURL(proofRequestURL)
-        .then((url) => setQrCodeDataUrl(url))
-        .catch((err) => console.error('Error generating QR code:', err));
+      QRCode.toDataURL(proofRequestURL, {
+        width: 300,
+        margin: 1,
+        color: {
+          dark: "#000000",
+          light: "#ffffff",
+        }
+      }).then(qrUrl => {
+        // Create img elements instead of using `new Image()`
+        const qrImage = document.createElement("img");
+        const logoImage = document.createElement("img");
+      
+        qrImage.src = qrUrl;
+        logoImage.src = "/images/ndi_qr_logo.png"; // Ensure this path is correct
+      
+        // Wait for both images to load before drawing
+        qrImage.onload = () => {
+          logoImage.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+      
+            canvas.width = 300;
+            canvas.height = 300;
+      
+            // Draw QR code on canvas
+            ctx.drawImage(qrImage, 0, 0, 300, 300);
+      
+            // Draw logo at the center of the QR code
+            const logoSize = 75; // Adjust as needed
+            const x = (canvas.width - logoSize) / 2;
+            const y = (canvas.height - logoSize) / 2;
+            ctx.drawImage(logoImage, x, y, logoSize, logoSize);
+      
+            // Convert the final image to a Data URL
+            setQrCodeDataUrl(canvas.toDataURL());
+          };
+        };
+      
+        qrImage.onerror = (err) => console.error("Error loading QR code image:", err);
+        logoImage.onerror = (err) => console.error("Error loading logo image:", err);
+      }).catch(err => console.error("Error generating QR code:", err));
+      
+      
 
       // Start polling for proof verification
       interval = setInterval(async () => {
@@ -103,7 +143,7 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
               <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-[#5AC994]"></div>
             </div>
             ) : qrCodeDataUrl ? (
-                <div>
+                <div className='p-4'>
                  <img src={qrCodeDataUrl} alt="QR Code"  width={300} height={300} />
                 </div>
             ) : (
