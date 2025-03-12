@@ -88,11 +88,21 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
             // Draw QR code on canvas
             ctx.drawImage(qrImage, 0, 0, 300, 300);
       
-            // Draw logo at the center of the QR code
-            const logoSize = 75; // Adjust as needed
-            const x = (canvas.width - logoSize) / 2;
-            const y = (canvas.height - logoSize) / 2;
-            ctx.drawImage(logoImage, x, y, logoSize, logoSize);
+            // Define logo size and white border size
+            const logoSize = 60; // Logo size
+            const borderSize = 80; // White circular border size
+      
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+      
+            // Draw white circular border
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, borderSize / 2, 0, Math.PI * 2);
+            ctx.fillStyle = "#ffffff"; // White color
+            ctx.fill();
+      
+            // Draw logo at the center
+            ctx.drawImage(logoImage, centerX - logoSize / 2, centerY - logoSize / 2, logoSize, logoSize);
       
             // Convert the final image to a Data URL
             setQrCodeDataUrl(canvas.toDataURL());
@@ -102,6 +112,7 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
         qrImage.onerror = (err) => console.error("Error loading QR code image:", err);
         logoImage.onerror = (err) => console.error("Error loading logo image:", err);
       }).catch(err => console.error("Error generating QR code:", err));
+      
       
       
 
