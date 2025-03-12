@@ -21,6 +21,7 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
   const [proofRequestThreadId, setProofRequestThreadId] = useState();
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [deepLinkURL, setDeeplinkURL] = useState();
 
   // Fetch proofRequestURL on popup open
   useEffect(() => {
@@ -41,7 +42,7 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
 
         const data = await response.json();
 
-
+        setDeeplinkURL(data.proofRequest.deepLinkURL);
         setProofRequestURL(data.proofRequest.proofRequestURL);
         setProofRequestThreadId(data.proofRequest.proofRequestThreadId);
       } catch (error) {
@@ -92,7 +93,7 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md p-6 rounded-lg shadow-lg">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-center">
+          <DialogTitle className="text-lg text-center">
             Scan with <span className="text-[#5AC994]"> Bhutan NDI</span> Wallet
           </DialogTitle>
         </DialogHeader>
@@ -110,12 +111,28 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
           </CardContent>
         </Card>
         <div className="flex items-center justify-center">
-          <p className="text-gray-400 text-sm text-center mb-2">
+          <p className="text-gray-400 text-sm text-center mb-2 mr-2">
             1. Open Bhutan NDI Wallet on your phone
             <br />
             2. Tap the Scan button and capture the code
           </p>
           <Image src="/images/ndi_scanqr.png" alt="Scan QR" width={25} height={25} />
+        </div>
+        <div className="flex items-center my-2 mx-6">
+          <hr className="flex-grow border-gray-300 dark:border-white" />
+          <span className="mx-2 text-gray-500 dark:text-white font-medium">OR</span>
+          <hr className="flex-grow border-gray-300 dark:border-white" />
+        </div>
+
+        <div className="text-center text-gray-400 text-sm">
+          Open{" "}
+          <span className="text-[#5AC994] font-semibold">Bhutan NDI</span> Wallet{" "}
+          <a
+            href= {`${deepLinkURL}`}
+            className="text-blue-600 underline hover:text-blue-800"
+          >
+            here
+          </a>
         </div>
 
         <div className="w-full flex items-center justify-center">
