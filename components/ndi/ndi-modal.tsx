@@ -96,19 +96,21 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
             Scan with <span className="text-[#5AC994]"> Bhutan NDI</span> Wallet
           </DialogTitle>
         </DialogHeader>
-        <Card className="border-2 border-[#5AC994] rounded-lg p-4 flex justify-center">
-          <CardContent className="flex justify-center">
+        <Card className="border-3 border-[#5AC994] rounded-lg mx-11 flex justify-center">
+        <CardContent className="flex justify-center items-center p-0 ">
             {loading ? (
-              <p>Loading QR Code...</p>
+              <p>Loading..</p>
             ) : qrCodeDataUrl ? (
-              <img src={qrCodeDataUrl} alt="QR Code" width={200} height={200} />
+                <div>
+                 <img src={qrCodeDataUrl} alt="QR Code"  width={300} height={300} />
+                </div>
             ) : (
               <p>No QR code available</p>
             )}
           </CardContent>
         </Card>
         <div className="flex items-center justify-center">
-          <p className="text-gray-400 text-sm text-center mt-4 mb-2">
+          <p className="text-gray-400 text-sm text-center mb-2">
             1. Open Bhutan NDI Wallet on your phone
             <br />
             2. Tap the Scan button and capture the code
