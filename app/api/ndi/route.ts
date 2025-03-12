@@ -5,7 +5,7 @@ import { connect, StringCodec, nkeyAuthenticator } from "nats";
 const NDI_AUTH_URL = "https://staging.bhutanndi.com/authentication/v1/authenticate";
 const NDI_PROOF_REQUEST_URL = "https://demo-client.bhutanndi.com/verifier/v1/proof-request";
 const NATS_URL = "wss://natsdemoclient.bhutanndi.com";
-const SEED = "SUAPXY7TJFUFE3IX3OEMSLE3JFZJ3FZZRSRSOGSG2ANDIFN77O2MIBHWUM"; // Keep this secret!
+const SEED = "SUAPXY7TJFUFE3IX3OEMSLE3JFZJ3FZZRSRSOGSG2ANDIFN77O2MIBHWUM";
 
 // Function to get Access Token
 async function getAccessToken(): Promise<string> {

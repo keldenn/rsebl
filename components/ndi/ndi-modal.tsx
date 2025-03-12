@@ -62,9 +62,60 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
 
     if (proofRequestURL && proofRequestThreadId) {
       // Generate QR code from proofRequestURL
-      QRCode.toDataURL(proofRequestURL)
-        .then((url) => setQrCodeDataUrl(url))
-        .catch((err) => console.error('Error generating QR code:', err));
+      QRCode.toDataURL(proofRequestURL, {
+        width: 300,
+        margin: 1,
+        color: {
+          dark: "#000000",
+          light: "#ffffff",
+        }
+      }).then(qrUrl => {
+        // Create img elements instead of using `new Image()`
+        const qrImage = document.createElement("img");
+        const logoImage = document.createElement("img");
+      
+        qrImage.src = qrUrl;
+        logoImage.src = "/images/ndi_qr_logo.png"; // Ensure this path is correct
+      
+        // Wait for both images to load before drawing
+        qrImage.onload = () => {
+          logoImage.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+      
+            canvas.width = 300;
+            canvas.height = 300;
+      
+            // Draw QR code on canvas
+            ctx.drawImage(qrImage, 0, 0, 300, 300);
+      
+            // Define logo size and white border size
+            const logoSize = 60; // Logo size
+            const borderSize = 80; // White circular border size
+      
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+      
+            // Draw white circular border
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, borderSize / 2, 0, Math.PI * 2);
+            ctx.fillStyle = "#ffffff"; // White color
+            ctx.fill();
+      
+            // Draw logo at the center
+            ctx.drawImage(logoImage, centerX - logoSize / 2, centerY - logoSize / 2, logoSize, logoSize);
+      
+            // Convert the final image to a Data URL
+            setQrCodeDataUrl(canvas.toDataURL());
+          };
+        };
+      
+        qrImage.onerror = (err) => console.error("Error loading QR code image:", err);
+        logoImage.onerror = (err) => console.error("Error loading logo image:", err);
+      }).catch(err => console.error("Error generating QR code:", err));
+      
+      
+      
 
       // Start polling for proof verification
       interval = setInterval(async () => {
@@ -100,13 +151,18 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
         <Card className="border-3 border-[#5AC994] rounded-lg mx-11 flex justify-center">
         <CardContent className="flex justify-center items-center p-0 ">
             {loading ? (
-              <p>Loading..</p>
+              <div className="flex justify-center items-center w-[300px] h-[300px]">
+              <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-[#5AC994]"></div>
+            </div>
             ) : qrCodeDataUrl ? (
-                <div>
+                <div className='p-4'>
                  <img src={qrCodeDataUrl} alt="QR Code"  width={300} height={300} />
                 </div>
             ) : (
-              <p>No QR code available</p>
+                <div className="flex justify-center items-center w-[300px] h-[300px]">
+                       <p>No QR code available</p>
+              </div>
+       
             )}
           </CardContent>
         </Card>
