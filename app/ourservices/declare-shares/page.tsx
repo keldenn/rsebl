@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/table";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import BhutanNDIComponent from "@/components/ndi/ndi-modal";
 
 export default function SharesDeclaration() {
   const [date, setDate] = useState<Date | undefined>();
@@ -50,29 +51,36 @@ export default function SharesDeclaration() {
   const [userDetails, setUserDetails] = useState(null);
   const [holdings, setHoldings] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [confirmDialog, setConfirmDialog] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [showOtpField, setShowOtpField] = useState(false)
   const [open, setOpen] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [orderNo, setOrderNo] = useState();
   const [amount, setAmount] = useState();
-  const [downloading, setDownloading] = useState(false)
+  const [downloading, setDownloading] = useState(false);
+  const [ndiSuccess, setNdiSuccess] = useState(false); // State for NDI success
+  const [ndiData, setNdiData] = useState(); // State for NDI data
 
   const { toast } = useToast();
 
   const validateAndProceed = async () => {
-    if (!date || !cid) {
+    if (!ndiData || !ndiData.idNumber) {
       toast({
         title: "Error",
-        description: "Both date and CID number are required.",
+        description: "CID number is required.",
         variant: "destructive",
       });
       return;
     }
-  
-    if (cid.length !== 11) {
+
+    if (!date) {
+      toast({
+        title: "Error",
+        description: "Date is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (ndiData.idNumber.length !== 11) {
       toast({
         title: "Error",
         description: "CID should be exactly 11 digits",
@@ -80,7 +88,7 @@ export default function SharesDeclaration() {
       });
       return;
     }
-  
+
     if (isAfter(date, new Date())) {
       toast({
         title: "Error",
@@ -89,315 +97,180 @@ export default function SharesDeclaration() {
       });
       return;
     }
-  
+
     try {
-      // Wait for user details before sending OTP
-      await fetchUserContactDetails();
+      // Directly proceed to fetch shareholding data
+      await handleSubmit();
     } catch (error) {
       console.error("Validation error:", error);
     }
   };
-  
-  // useEffect(() => {
-  //   if (userDetails && showOtpField) {
-  //     sendOtpOperation();
-  //   }
-  // }, [userDetails, showOtpField]);
-  
-  async function sendOtpOperation(data) {
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/sendOtpOperation`;
-    const body = JSON.stringify({
-      cidNo: cid,
-      phoneNo: data?.phone,
-      email: data?.email,
-    });
-
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: body,
-      });
-
-      const data = await response.json();
-
-      if (response.status === 200) {
-        setShowOtpField(true);
-        toast({
-          title: "Success",
-          description: "OTP send successfully",
-        });
-        return data; // Success
-      } else if(response.status === 204) {
-        toast({
-          title: "Error",
-          description: "No share holding data available",
-          variant: "destructive"
-        });
-      }
-      else {
-        throw new Error(data.message || "Error sending OTP");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      throw error; // Error handling
-    }
-  }
-  // Handles OTP verification
-  const verifyOtp = async () => {
-    if (!otp) {
-      toast({
-        description: "Please enter the OTP.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true); // Show loading state during OTP verification
-
-    const stmnt = {
-      cidNo: cid,
-      phoneNo: userDetails?.phone,
-      email: userDetails?.email,
-      otpNo: otp,
-    };
-
-    try {
-
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/verify_otp_for_sharestatement`; // API URL for OTP verification
-      const body = JSON.stringify(stmnt);
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: body,
-      });
-
-      const data = await response.json();
-      console.log(data);
-      if (data.status === 200) {
-        setOtpVerified(true);
-        toast({
-          title : "Success",
-          description: data.message,
-          duration: 1000
-        });
-        handleSubmit();
-        setLoading(false);
-      }
-      else if(data.status == 400){
-        setOpen(false);
-        toast({
-          description: data.message ,
-          variant: "destructive",
-        });
-        setLoading(false);
-      } 
-      else {
-     
-        toast({
-          description: data.message ,
-          variant: "destructive",
-        });
-        setLoading(false);
-      }
-
-    } catch (error) {
-      console.error("Error verifying OTP:", error);
-      toast({
-        description: "Error verifying OTP. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   useEffect(() => {
-    if (orderNo?.startsWith("DS")) {
-      handleSubmit();
+    if (ndiSuccess && ndiData) {
+      setCid(ndiData.idNumber); // Ensure cid is set from ndiData
     }
-  }, [orderNo]); // Runs whenever orderNo changes
+  }, [ndiSuccess, ndiData]);
+
   const handleSubmit = async () => {
     setLoading(true);
     setOpen(true);
-    setConfirmDialog(false);
 
-        const formattedDate = format(date, "yyyy-MM-dd");
+    const formattedDate = format(date, "yyyy-MM-dd");
 
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/check-client-holdings/${cid}/${formattedDate}`,
-          {
-            method: "GET", // Assuming GET is correct for fetching details
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/check-client-holdings/${cid}/${formattedDate}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      const data = await response.json();
+      setHoldings(Array.isArray(data) ? data : [data]);
+
+      const holding = data;
+
+      const payload = {
+        cidNo: holding.cidNo,
+        date: holding.date,
+        phoneNo: holding.phone,
+        email: holding.email,
+        amount: amount,
+        status: 0,
+        orderNo: orderNo,
+      };
+
+      if ((orderNo !== undefined && orderNo !== null) && (amount !== undefined && amount !== null)) {
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/insert-share-data`, {
+            method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-          }
-        );
-    
-        if (response.status === 200) {
-          const data = await response.json();
-          setHoldings(Array.isArray(data) ? data : [data]);
-
-          const holding = data;
-
-          // console.log(orderNo);
-          // console.log(amount);
-  
-          const payload = {
-              cidNo: holding.cidNo,
-              date: holding.date,
-              phoneNo: holding.phone,
-              email: holding.email,
-              amount: amount,
-              status: 0,
-              orderNo: orderNo,
-          };
-  
-          //console.log("Payload to be sent to API:", payload);
-          if ((orderNo !== undefined && orderNo !== null) && (amount !== undefined && amount !== null)){
-            try {
-              const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/insert-share-data`, {
-                  method: "POST",
-                  headers: {
-                      "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify(payload),
-              });
-  
-              const result = await response.json();
-              //console.log("API Response:", result);
-  
-              if (response.status === 200) {
-                  toast({
-                      title: "Success",
-                      description: result.message || "Data inserted successfully.",
-                  });
-              } else {
-                  toast({
-                      title: "Error",
-                      description: result.message || "Failed to insert data.",
-                      variant: "destructive",
-                  });
-              }
-          } catch (error) {
-              console.error("Error inserting shareholding data:", error);
-              toast({
-                  title: "Error",
-                  description: "Failed to insert data. Please try again.",
-                  variant: "destructive",
-              });
-          }
-          }
-
-        } else if (response.status === 204) {
-          toast({
-            description: "No shareholding data found.",
-            variant: "destructive"
+            body: JSON.stringify(payload),
           });
-        } else {
-          const errorData = await response.json();
-          toast(errorData.message || "An error occurred.");
-        }
 
-        setLoading(false);
-};
+          const result = await response.json();
 
-
-useEffect(() => {
-  if (paymentSuccess && orderNo) {
-    setOpen(false); // Close the drawer when payment is successful
-    const formattedDate = format(date, "yyyy-MM-dd");
-
-    // Step 1: Update Payment Status First
-    const updatePaymentStatus = async () => {
-      try {
-        const paymentResponse = await fetch("https://rsebl.org.bt/agm/api/update-payment-status-DS", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ orderNo }),
-        });
-
-        const paymentResult = await paymentResponse.json();
-        //console.log("Payment Update Response:", paymentResult);
-
-        if (paymentResult.status !== 200) {
-          toast({
-            title: "Payment Update Failed",
-            description: paymentResult.message || "Something went wrong",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Step 2: Fetch Share Declarations after successful payment update
-        fetchShareDeclarations(cid, formattedDate).then(async (data) => {
-          if (!data || data.length === 0) {
+          if (response.status === 200) {
+            toast({
+              title: "Success",
+              description: result.message || "Data inserted successfully.",
+            });
+          } else {
             toast({
               title: "Error",
-              description: "No share holding data available",
+              description: result.message || "Failed to insert data.",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error("Error inserting shareholding data:", error);
+          toast({
+            title: "Error",
+            description: "Failed to insert data. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }
+    } else if (response.status === 204) {
+      toast({
+        description: "No shareholding data found.",
+        variant: "destructive",
+      });
+    } else {
+      const errorData = await response.json();
+      toast(errorData.message || "An error occurred.");
+    }
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (paymentSuccess && orderNo) {
+      setOpen(false); // Close the drawer when payment is successful
+      const formattedDate = format(date, "yyyy-MM-dd");
+
+      const updatePaymentStatus = async () => {
+        try {
+          const paymentResponse = await fetch("https://rsebl.org.bt/agm/api/update-payment-status-DS", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ orderNo }),
+          });
+
+          const paymentResult = await paymentResponse.json();
+
+          if (paymentResult.status !== 200) {
+            toast({
+              title: "Payment Update Failed",
+              description: paymentResult.message || "Something went wrong",
               variant: "destructive",
             });
             return;
           }
 
-          setHoldings(data);
-          setLoading(false);
+          fetchShareDeclarations(cid, formattedDate).then(async (data) => {
+            if (!data || data.length === 0) {
+              toast({
+                title: "Error",
+                description: "No share holding data available",
+                variant: "destructive",
+              });
+              return;
+            }
 
-          // Prepare data for API
-          const payloadACC = {
-            name: `${data[0].f_name} ${data[0].l_name}`,  // Combine first and last name
-            cid: data[0].ID,                             // ID as the customer ID
-            data: data.map(item => ({
-              symbol: item.symbol,                   // Symbol name as 'symbol'
-              companyname: item.symbol_name,         // Use the symbol name as company name
-              total_vol: item.total_vol              // Total volume
-            }))
-          };
+            setHoldings(data);
+            setLoading(false);
 
-          //console.log("Payload for Push Data API:", payloadACC);
+            const payloadACC = {
+              name: `${data[0].f_name} ${data[0].l_name}`,
+              cid: data[0].ID,
+              data: data.map(item => ({
+                symbol: item.symbol,
+                companyname: item.symbol_name,
+                total_vol: item.total_vol,
+              })),
+            };
 
-          try {
-            const response = await fetch("https://adsndi.itechnologies.cloud/api/push-data/", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(payloadACC),
-            });
+            try {
+              const response = await fetch("https://adsndi.itechnologies.cloud/api/push-data/", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payloadACC),
+              });
 
-            const result = await response.json();
-            //console.log("Push Data API Response:", result);
-          } catch (error) {
-            console.error("Error posting data:", error);
-          }
-        });
+              const result = await response.json();
+            } catch (error) {
+              console.error("Error posting data:", error);
+            }
+          });
+        } catch (error) {
+          console.error("Error updating payment status:", error);
+          toast({
+            title: "Network Error",
+            description: "Failed to update payment status",
+            variant: "destructive",
+          });
+        }
+      };
 
-      } catch (error) {
-        console.error("Error updating payment status:", error);
-        toast({
-          title: "Network Error",
-          description: "Failed to update payment status",
-          variant: "destructive",
-        });
-      }
-    };
-
-    updatePaymentStatus(); // Call the function
-  }
-}, [paymentSuccess, orderNo]);
-
-  
-  
+      updatePaymentStatus(); // Call the function
+    }
+  }, [paymentSuccess, orderNo]);
 
   const downloadStatement = () => {
     setDownloading(true);
     const input = document.getElementById("pdf-content");
-  
+
     if (!input) {
       toast({
         title: "Error",
@@ -408,43 +281,44 @@ useEffect(() => {
       setDownloading(false);
       return;
     }
-  
+
     const originalWidth = input.style.width;
     input.style.width = "1228px"; // Simulate a larger screen width
-  
-    document.fonts.ready.then(() => {
-      return html2canvas(input, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: "#FFFFFF",
-        logging: true, // Debugging
-      });
-    })
+
+    document.fonts.ready
+      .then(() => {
+        return html2canvas(input, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: "#FFFFFF",
+          logging: true, // Debugging
+        });
+      })
       .then((canvas) => {
         if (!canvas) {
           throw new Error("Canvas is null or not created.");
         }
-  
+
         const imgData = canvas.toDataURL("image/png");
-  
+
         if (imgData.length < 5000) {
           throw new Error("Generated PNG is too small, possibly corrupt.");
         }
-  
+
         const pdf = new jsPDF({
           orientation: "portrait",
           unit: "mm",
           format: "a4",
         });
-  
+
         const imgWidth = 210;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-  
+
         const clientID = cid || "unknown-cid";
         const formattedDate = date instanceof Date ? format(date, "yyyy-MM-dd") : new Date().toISOString().split("T")[0];
-  
+
         const filename = `Shares_Declaration_${clientID}_${formattedDate}.pdf`;
         pdf.save(filename);
       })
@@ -462,190 +336,137 @@ useEffect(() => {
         setDownloading(false);
       });
   };
-  
-  
-  const fetchUserContactDetails = async () => {
-    setLoading(true);
-  
-    try {
-      if (!cid || !date) {
-        toast({
-          description: "Please enter CID and select a date.",
-          variant: "destructive"
-        });
-        setLoading(false);
-        return;
-      }
-  
-      // Format the date before sending it to the API
-      const formattedDate = format(date, "yyyy-MM-dd");
-  
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/check-client-holdings/${cid}/${formattedDate}`,
-        {
-          method: "GET", // Assuming GET is correct for fetching details
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-  
-      if (response.status === 200) {
-        const data = await response.json();
-        setUserDetails(data);
-        sendOtpOperation(data); // Send OTP only if data is found
-      } else if (response.status === 204) {
-        toast({
-          description: "No shareholding data found.",
-          variant: "destructive"
-        });
-      } else {
-        const errorData = await response.json();
-        toast(errorData.message || "An error occurred.");
-      }
-    } catch (err) {
-      toast(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
 
- // console.log('holdings:', holdings);
-  
   return (
     <div className="w-full flex flex-col justify-between items-center p-6 ">
-      {!orderNo && (
-      <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-xl text-center">Shares Declaration</CardTitle>
-        <CardDescription className="text-center">Enter details to proceed declaring your holdings</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form>
-          <div className="grid w-full items-center gap-4">
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="date">Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    initialFocus
+      {!ndiSuccess && (
+        <Card>
+          <CardHeader>
+            <div className="flex justify-center"> 
+            <img src="	https://rsebl.org.bt/agm/storage/serviceLogo/LITEBd7Ju48CHdYjXWaWqTFkIwJR4Hzve8x2lJEp.png" alt="" className="w-20 h-20"/>
+            </div>
+            <CardTitle className="flex justify-center">
+              Asset Declaration (ACC)
+              </CardTitle>
+            <CardDescription className="flex justify-center">Declare your shares</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <BhutanNDIComponent
+              btnText={"Receive Credentials"}
+              setNdiSuccess={setNdiSuccess}
+              setNdiData={setNdiData}
+            />
+          </CardContent>
+        </Card>
+
+      )}
+
+      {!orderNo && ndiSuccess && ndiData && (
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle className="text-xl text-center">Shares Declaration</CardTitle>
+            <CardDescription className="text-center">Enter details to proceed declaring your holdings</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form>
+              <div className="grid w-full items-center gap-4">
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="date">Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="cid">CID Number</Label>
+                  <Input
+                    type="number"
+                    id="cid"
+                    placeholder="Enter CID Number"
+                    value={ndiData.idNumber}
+                    onChange={(e) => setCid(e.target.value)}
                   />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="cid">CID Number</Label>
-              <Input
-                type="number"
-                id="cid"
-                placeholder="Enter CID Number"
-                value={cid}
-                onChange={(e) => setCid(e.target.value)}
-              />
-            </div>
-          {
-            showOtpField && (
-              <>
-                              <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="otp">RSEB OTP</Label>
-              <Input id="otp" type="number" placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
-            </div>
-            <Button onClick={verifyOtp} disabled={loading}>Verify OTP</Button>
-            
-              </>
+                </div>
+              </div>
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <Button onClick={validateAndProceed} disabled={loading}>
+              {loading ? "Processing..." : "Proceed"}
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
 
-            )
-          }
-
-          </div>
-        </form>
-      </CardContent>
-      <CardFooter className="flex justify-end">
-        {/* <Button variant="outline" disabled={loading}>Cancel</Button> */}
-        {!showOtpField && (
-    <Button onClick={validateAndProceed} disabled={loading}>
-    {loading ? "Verifying..." : "Verify"}
-  </Button>
-        )}
-  
-      </CardFooter>
-      </Card>
-      )
-      }
-
-
-      {paymentSuccess && orderNo &&(
-        <Card className="mt-4 w-full mx-auto shadow-lg rounded-xl py-2" >
-
+      {paymentSuccess && orderNo && (
+        <Card className="mt-4 w-full mx-auto shadow-lg rounded-xl py-2">
           <CardContent id="pdf-content">
-          
-          <CardHeader className="flex flex-row justify-center">
-            <div className="flex justify-center items-center">  <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width={113}
-                height={40}
-                viewBox="0 0 153 138"
-                fill="none"
-              >
-                <path
-                  d="M87.4225 91.3752L65.3705 70.9525C64.0985 69.7752 64.0985 67.8659 65.3705 66.6885L126.916 9.6912C128.187 8.51387 130.248 8.51387 131.518 9.6912L193.064 66.6885C194.336 67.8659 194.336 69.7752 193.064 70.9525L131.518 127.95C130.248 129.127 128.187 129.127 126.916 127.95L111.918 114.062"
-                  // stroke="#205A8A"
-                  className="stroke-[#205A8A] dark:stroke-white"
-                  strokeWidth="16.6253"
-                  strokeMiterlimit={10}
-                />
-                <mask
-                  id="mask0_2363_2582"
-                  style={{ maskType: "luminance" }}
-                  maskUnits="userSpaceOnUse"
-                  x={0}
-                  y={1}
-                  width={147}
-                  height={137}
+            <CardHeader className="flex flex-row justify-center">
+              <div className="flex justify-center items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width={113}
+                  height={40}
+                  viewBox="0 0 153 138"
+                  fill="none"
                 >
-                  <path d="M0 0.999996H146.227V137.652H0V0.999996Z" fill="white" />
-                </mask>
-                <g mask="url(#mask0_2363_2582)">
                   <path
-                    d="M114.908 46.7712L136.96 67.1939C138.232 68.3712 138.232 70.2805 136.96 71.4579L75.4147 128.455C74.1441 129.633 72.0827 129.633 70.8121 128.455L9.26674 71.4579C7.99474 70.2805 7.99474 68.3712 9.26674 67.1939L70.8121 10.1965C72.0827 9.01921 74.1441 9.01921 75.4147 10.1965L90.4121 24.0845"
-                    // stroke="#382E7A"
-                    className="stroke-[#382E7A] dark:stroke-white"
+                    d="M87.4225 91.3752L65.3705 70.9525C64.0985 69.7752 64.0985 67.8659 65.3705 66.6885L126.916 9.6912C128.187 8.51387 130.248 8.51387 131.518 9.6912L193.064 66.6885C194.336 67.8659 194.336 69.7752 193.064 70.9525L131.518 127.95C130.248 129.127 128.187 129.127 126.916 127.95L111.918 114.062"
+                    className="stroke-[#205A8A] dark:stroke-white"
                     strokeWidth="16.6253"
                     strokeMiterlimit={10}
                   />
-                </g>
-              </svg></div>
-            <div>
-            <h3 className="text-center text-xl font-bold mb-2">
-              Royal Securities Exchange of Bhutan
-            </h3>
-             <p className=" text-gray-500 text-sm mb-4">
-              Report generated on: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
-            </p>
-            </div>
-        
-          </CardHeader>
-            
+                  <mask
+                    id="mask0_2363_2582"
+                    style={{ maskType: "luminance" }}
+                    maskUnits="userSpaceOnUse"
+                    x={0}
+                    y={1}
+                    width={147}
+                    height={137}
+                  >
+                    <path d="M0 0.999996H146.227V137.652H0V0.999996Z" fill="white" />
+                  </mask>
+                  <g mask="url(#mask0_2363_2582)">
+                    <path
+                      d="M114.908 46.7712L136.96 67.1939C138.232 68.3712 138.232 70.2805 136.96 71.4579L75.4147 128.455C74.1441 129.633 72.0827 129.633 70.8121 128.455L9.26674 71.4579C7.99474 70.2805 7.99474 68.3712 9.26674 67.1939L70.8121 10.1965C72.0827 9.01921 74.1441 9.01921 75.4147 10.1965L90.4121 24.0845"
+                      className="stroke-[#382E7A] dark:stroke-white"
+                      strokeWidth="16.6253"
+                      strokeMiterlimit={10}
+                    />
+                  </g>
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-center text-xl font-bold mb-2">
+                  Royal Securities Exchange of Bhutan
+                </h3>
+                <p className="text-gray-500 text-sm mb-4">
+                  Report generated on: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
+                </p>
+              </div>
+            </CardHeader>
             <div className="bg-gray-100 p-4 rounded-lg mb-6">
               <p className="text-sm font-medium">CID/DISN/CD CODE: <span className="font-semibold">{holdings[0]?.ID}</span></p>
               <p className="text-sm font-medium">NAME: <span className="font-semibold">{holdings[0]?.f_name} {holdings[0]?.l_name}</span></p>
               <p className="text-sm font-medium">Email: <span className="font-semibold">{holdings[0]?.email}</span></p>
               <p className="text-sm font-medium">Phone: <span className="font-semibold">{holdings[0]?.phone}</span></p>
             </div>
-            
             <Table className="w-full border rounded-lg overflow-hidden">
               <TableHeader className="bg-custom-1 ">
                 <TableRow>
@@ -664,120 +485,108 @@ useEffect(() => {
                 ))}
               </TableBody>
             </Table>
-            
             <hr className="my-6" />
             <p className="text-center text-sm text-gray-500">
               THIS IS A COMPUTER-GENERATED REPORT AND REQUIRES NO SIGNATORY
             </p>
-          
           </CardContent>
-
           <div className="hidden w-[1228px] mx-auto">
-          <CardContent id="pdf-content-lg">
-          
-          <CardHeader className="flex flex-row justify-center">
-            <div className="flex justify-center items-center">  <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width={113}
-                height={40}
-                viewBox="0 0 153 138"
-                fill="none"
-              >
-                <path
-                  d="M87.4225 91.3752L65.3705 70.9525C64.0985 69.7752 64.0985 67.8659 65.3705 66.6885L126.916 9.6912C128.187 8.51387 130.248 8.51387 131.518 9.6912L193.064 66.6885C194.336 67.8659 194.336 69.7752 193.064 70.9525L131.518 127.95C130.248 129.127 128.187 129.127 126.916 127.95L111.918 114.062"
-                  // stroke="#205A8A"
-                  className="stroke-[#205A8A] dark:stroke-white"
-                  strokeWidth="16.6253"
-                  strokeMiterlimit={10}
-                />
-                <mask
-                  id="mask0_2363_2582"
-                  style={{ maskType: "luminance" }}
-                  maskUnits="userSpaceOnUse"
-                  x={0}
-                  y={1}
-                  width={147}
-                  height={137}
-                >
-                  <path d="M0 0.999996H146.227V137.652H0V0.999996Z" fill="white" />
-                </mask>
-                <g mask="url(#mask0_2363_2582)">
-                  <path
-                    d="M114.908 46.7712L136.96 67.1939C138.232 68.3712 138.232 70.2805 136.96 71.4579L75.4147 128.455C74.1441 129.633 72.0827 129.633 70.8121 128.455L9.26674 71.4579C7.99474 70.2805 7.99474 68.3712 9.26674 67.1939L70.8121 10.1965C72.0827 9.01921 74.1441 9.01921 75.4147 10.1965L90.4121 24.0845"
-                    // stroke="#382E7A"
-                    className="stroke-[#382E7A] dark:stroke-white"
-                    strokeWidth="16.6253"
-                    strokeMiterlimit={10}
-                  />
-                </g>
-              </svg></div>
-            <div>
-            <h3 className="text-center text-xl font-bold mb-2">
-              Royal Securities Exchange of Bhutan
-            </h3>
-             <p className=" text-gray-500 text-sm mb-4">
-              Report generated on: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
-            </p>
-            </div>
-        
-          </CardHeader>
-            
-            <div className="bg-gray-100 p-4 rounded-lg mb-6">
-              <p className="text-sm font-medium">CID/DISN/CD CODE: <span className="font-semibold">{holdings[0]?.ID}</span></p>
-              <p className="text-sm font-medium">NAME: <span className="font-semibold">{holdings[0]?.f_name} {holdings[0]?.l_name}</span></p>
-              <p className="text-sm font-medium">Email: <span className="font-semibold">{holdings[0]?.email}</span></p>
-              <p className="text-sm font-medium">Phone: <span className="font-semibold">{holdings[0]?.phone}</span></p>
-            </div>
-            
-            <Table className="w-full border rounded-lg overflow-hidden">
-              <TableHeader className="bg-custom-1 ">
-                <TableRow>
-                  <TableHead className="text-left text-white px-4 py-2">Sl#</TableHead>
-                  <TableHead className="text-left text-white px-4 py-2">Symbol</TableHead>
-                  <TableHead className="text-left text-white px-4 py-2">Total Volume</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {holdings.map((holding, index) => (
-                  <TableRow key={index} className="border-b hover:bg-gray-100">
-                    <TableCell className="px-4 py-2">{index + 1}</TableCell>
-                    <TableCell className="px-4 py-2">{holding.symbol_name}</TableCell>
-                    <TableCell className="px-4 py-2 font-semibold">{holding?.total_vol}</TableCell>
+            <CardContent id="pdf-content-lg">
+              <CardHeader className="flex flex-row justify-center">
+                <div className="flex justify-center items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width={113}
+                    height={40}
+                    viewBox="0 0 153 138"
+                    fill="none"
+                  >
+                    <path
+                      d="M87.4225 91.3752L65.3705 70.9525C64.0985 69.7752 64.0985 67.8659 65.3705 66.6885L126.916 9.6912C128.187 8.51387 130.248 8.51387 131.518 9.6912L193.064 66.6885C194.336 67.8659 194.336 69.7752 193.064 70.9525L131.518 127.95C130.248 129.127 128.187 129.127 126.916 127.95L111.918 114.062"
+                      className="stroke-[#205A8A] dark:stroke-white"
+                      strokeWidth="16.6253"
+                      strokeMiterlimit={10}
+                    />
+                    <mask
+                      id="mask0_2363_2582"
+                      style={{ maskType: "luminance" }}
+                      maskUnits="userSpaceOnUse"
+                      x={0}
+                      y={1}
+                      width={147}
+                      height={137}
+                    >
+                      <path d="M0 0.999996H146.227V137.652H0V0.999996Z" fill="white" />
+                    </mask>
+                    <g mask="url(#mask0_2363_2582)">
+                      <path
+                        d="M114.908 46.7712L136.96 67.1939C138.232 68.3712 138.232 70.2805 136.96 71.4579L75.4147 128.455C74.1441 129.633 72.0827 129.633 70.8121 128.455L9.26674 71.4579C7.99474 70.2805 7.99474 68.3712 9.26674 67.1939L70.8121 10.1965C72.0827 9.01921 74.1441 9.01921 75.4147 10.1965L90.4121 24.0845"
+                        className="stroke-[#382E7A] dark:stroke-white"
+                        strokeWidth="16.6253"
+                        strokeMiterlimit={10}
+                      />
+                    </g>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-center text-xl font-bold mb-2">
+                    Royal Securities Exchange of Bhutan
+                  </h3>
+                  <p className="text-gray-500 text-sm mb-4">
+                    Report generated on: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
+                  </p>
+                </div>
+              </CardHeader>
+              <div className="bg-gray-100 p-4 rounded-lg mb-6">
+                <p className="text-sm font-medium">CID/DISN/CD CODE: <span className="font-semibold">{holdings[0]?.ID}</span></p>
+                <p className="text-sm font-medium">NAME: <span className="font-semibold">{holdings[0]?.f_name} {holdings[0]?.l_name}</span></p>
+                <p className="text-sm font-medium">Email: <span className="font-semibold">{holdings[0]?.email}</span></p>
+                <p className="text-sm font-medium">Phone: <span className="font-semibold">{holdings[0]?.phone}</span></p>
+              </div>
+              <Table className="w-full border rounded-lg overflow-hidden">
+                <TableHeader className="bg-custom-1 ">
+                  <TableRow>
+                    <TableHead className="text-left text-white px-4 py-2">Sl#</TableHead>
+                    <TableHead className="text-left text-white px-4 py-2">Symbol</TableHead>
+                    <TableHead className="text-left text-white px-4 py-2">Total Volume</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            
-            <hr className="my-6" />
-            <p className="text-center text-sm text-gray-500">
-              THIS IS A COMPUTER-GENERATED REPORT AND REQUIRES NO SIGNATORY
-            </p>
-          
-          </CardContent>
+                </TableHeader>
+                <TableBody>
+                  {holdings.map((holding, index) => (
+                    <TableRow key={index} className="border-b hover:bg-gray-100">
+                      <TableCell className="px-4 py-2">{index + 1}</TableCell>
+                      <TableCell className="px-4 py-2">{holding.symbol_name}</TableCell>
+                      <TableCell className="px-4 py-2 font-semibold">{holding?.total_vol}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <hr className="my-6" />
+              <p className="text-center text-sm text-gray-500">
+                THIS IS A COMPUTER-GENERATED REPORT AND REQUIRES NO SIGNATORY
+              </p>
+            </CardContent>
           </div>
-          <CardFooter  className="flex justify-end">
-  
-              <Button variant={"outline"} onClick={downloadStatement}>Download Statement</Button>
-      
+          <CardFooter className="flex justify-end">
+            <Button variant={"outline"} onClick={downloadStatement}>Download Statement</Button>
           </CardFooter>
         </Card>
       )}
       <Drawer open={open} onOpenChange={setOpen}>
-
-      <DrawerTrigger>
-        {/* <Button variant="outline">Open Drawer</Button> */}
-      </DrawerTrigger>
-      <DrawerContent>
-        <div className="mx-auto w-full max-w-lg p-5 p-0-md">
-          <DrawerHeader className="m-0 px-0 flex flex-col justify-center items-center">
-            <DrawerTitle>Payment Portal</DrawerTitle>
-            <DrawerDescription>Royal Securities Exchange of Bhutan</DrawerDescription>
-          </DrawerHeader>
-          <div className="h-[290px]">
-            <PaymentGateway service_code={"DS"} setPaymentSuccess={setPaymentSuccess} setOrderNo ={setOrderNo} setAmount={setAmount}  MERCHANT_CHECKOUT_URL={"http://localhost:3000/ourservices/declare-shares"}/>
+        <DrawerTrigger>
+          {/* <Button variant="outline">Open Drawer</Button> */}
+        </DrawerTrigger>
+        <DrawerContent>
+          <div className="mx-auto w-full max-w-lg p-5 p-0-md">
+            <DrawerHeader className="m-0 px-0 flex flex-col justify-center items-center">
+              <DrawerTitle>Payment Portal</DrawerTitle>
+              <DrawerDescription>Royal Securities Exchange of Bhutan</DrawerDescription>
+            </DrawerHeader>
+            <div className="h-[290px]">
+              <PaymentGateway service_code={"DS"} setPaymentSuccess={setPaymentSuccess} setOrderNo={setOrderNo} setAmount={setAmount} MERCHANT_CHECKOUT_URL={"http://localhost:3000/ourservices/declare-shares"} />
+            </div>
           </div>
-        </div>
-      </DrawerContent>
+        </DrawerContent>
       </Drawer>
     </div>
   );

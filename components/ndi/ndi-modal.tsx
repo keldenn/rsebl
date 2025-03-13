@@ -9,7 +9,7 @@ import QRCode from 'qrcode';
 
 const BhutanNDIButton = ({ text, onClick }) => {
   return (
-    <Button onClick={onClick} style={{ pointerEvents: "auto" }} className="w-[250px] h-[50px] bg-[#124143] hover:bg-[#124143] text-white text-md font-semibold flex items-center justify-center space-x-2 shadow-md">
+    <Button type="button" onClick={onClick} style={{ pointerEvents: "auto" }} className="h-[50px] bg-[#124143] hover:bg-[#124143] text-white text-md font-semibold flex items-center justify-center space-x-2 shadow-md">
       <img src="/images/ndi_logo.png" alt="Bhutan NDI Logo" className="h-6 w-6" />
       <span>{text}</span>
     </Button>
@@ -134,7 +134,7 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
         } catch (error) {
           console.error('Error fetching proof status:', error);
         }
-      }, 2000); // Poll every 3 seconds
+      }, 6000); // Poll every 3 seconds
     }
 
     return () => clearInterval(interval);
@@ -215,16 +215,20 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
   );
 };
 
-const BhutanNDIComponent = ({ setNdiSuccess, setNdiData }) => {
+const BhutanNDIComponent = ({ setNdiSuccess, setNdiData, btnText }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
-
-
   return (
-    <div className="flex flex-col items-center space-y-4 mt-10">
+    <div className="flex flex-col items-center">
       <Dialog>
         <DialogTrigger asChild>
-          <BhutanNDIButton text="Login with Bhutan NDI" onClick={() => setIsPopupOpen(true)} />
+        <BhutanNDIButton
+            text={btnText}
+            onClick={(e) => {
+              e.preventDefault(); // Prevent default behavior
+              setIsPopupOpen(true);
+            }}
+          />
         </DialogTrigger>
       </Dialog>
       <BhutanNDIPopup setIsPopupOpen={setIsPopupOpen} setNdiData={setNdiData} setNdiSuccess={setNdiSuccess} isOpen={isPopupOpen} onClose={() => setIsPopupOpen(false)} />

@@ -4,6 +4,7 @@ import NewsCard from "@/components/ui/news-card";
 import Modal from "@/components/ui/modal";
 import { Button } from "@/components/ui/button"; // Assuming you have a Button component
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 
 const ITEMS_PER_PAGE = 6; // Number of articles per page
 
@@ -19,6 +20,7 @@ const NewsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loadingNews, setLoadingNews] = useState(true);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
+  const [searchTerm, setSearchTerm] = useState(""); 
 
   const fetchNews = async () => {
     try {
@@ -27,7 +29,11 @@ const NewsPage: React.FC = () => {
       const data = await response.json();
       const formattedNews = data.map((item: any) => ({
         title: item.title,
-        description: item.content.replace(/<[^>]+>/g, ""), // Strip HTML tags
+        description: item.content
+        .replace(/<\/?[^>]+(>|$)/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim(),
         date: new Date(item.year).toDateString(),
         imageUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${item.file_path}`,
         pdfUrl: null,
@@ -47,7 +53,11 @@ const NewsPage: React.FC = () => {
       const data = await response.json();
       const formattedAnnouncements = data.map((item: any) => ({
         title: item.title,
-        description: item.announcement.replace(/<[^>]+>/g, ""), // Strip HTML tags
+        description: item.announcement
+        .replace(/<\/?[^>]+(>|$)/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim(),
         date: new Date(item.created_at).toDateString(),
         imageUrl: null, // Announcements don't seem to have images
         pdfUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${item.file_path}`,
@@ -60,15 +70,26 @@ const NewsPage: React.FC = () => {
     }
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+  const filterArticles = (articles: any[]) => {
+    return articles.filter((article) =>
+      article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      article.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
   useEffect(() => {
     fetchNews();
     fetchAnnouncements();
   }, []);
 
-  const totalPages = (data: typeof newsArticles) => Math.ceil(data.length / ITEMS_PER_PAGE);
+  const totalPages = (data: any[]) => Math.ceil(filterArticles(data).length / ITEMS_PER_PAGE);
 
   const paginatedArticles = (data: typeof newsArticles) =>
-    data.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+    filterArticles(data).slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const openModal = (article: {
     title: string;
@@ -94,7 +115,8 @@ const NewsPage: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Tabs */}
-      <Tabs defaultValue="news">
+      <Tabs defaultValue="news" className="w-full">
+        <div className="flex justify-between items-center">
         <TabsList>
           <TabsTrigger value="news" onClick={() => setCurrentPage(1)}>
             News
@@ -103,6 +125,14 @@ const NewsPage: React.FC = () => {
             Announcements
           </TabsTrigger>
         </TabsList>
+        <Input
+            type="text"
+            placeholder="Search..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="w-64 border border-gray-300 p-2 rounded-md"
+          />
+          </div>
 
         {/* News Tab */}
         <TabsContent value="news">
