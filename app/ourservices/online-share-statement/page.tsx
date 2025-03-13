@@ -18,8 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-
+import BhutanNDIComponent from "@/components/ndi/ndi-modal";
 export default function OnlineShareStatement() {
   const [open, setOpen] = useState(false);
   const [accountType, setAccountType] = useState(""); // Account type: Individual or Corporate
@@ -34,10 +33,17 @@ export default function OnlineShareStatement() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [orderNo, setOrderNo] = useState();
   const [amount, setAmount] = useState();
+    const[ndiSuccess, setNdiSuccess]=useState(false);
+    const[ndiData, setNdiData]=useState();
   const { toast } = useToast();
 
   const handleAccountTypeChange = (e) => {
-    setAccountType(e?.target?.value ?? e); // Update account type based on dropdown selection
+    const newAccountType = e?.target?.value ?? e; // Update account type based on dropdown selection
+    setAccountType(newAccountType);
+  
+    if (newAccountType === "I" && ndiData) {
+      setOpen(true); // Open payment gateway directly for Individual
+    }
   };
   const handleCidChange = (e) => {
     setCidNo(e?.target?.value ?? e); // Update CID number
@@ -139,11 +145,9 @@ export default function OnlineShareStatement() {
     setLoading(true); // Show loading state during OTP verification
 
     const stmnt = {
-      cidNo: accountType === "I" ? cidNo : disnNo,
+      cidNo: accountType === "I" ? ndiData.idNumber : disnNo,  // Use ndiData.idNumber for Individual
       phoneNo: phone,
-      // email: email,
-      otpNo: otp,
-      // orderNo: orderNo,
+      email: email,
     };
 
     try {
@@ -275,7 +279,10 @@ export default function OnlineShareStatement() {
       setLoading(false);
     }
   };
+  useEffect(()=>{
 
+    setCidNo(ndiData?.idNumber);
+  }, [ndiData, ndiSuccess])
   useEffect(() => {
     if (orderNo?.startsWith("SS")) {
       afterBankInsert();
@@ -308,12 +315,21 @@ export default function OnlineShareStatement() {
       </SelectContent>
     </Select>
 
-    {accountType === "I" && (
-      <><Label>CID No</Label><Input className="mb-3"placeholder="Enter your CID number" value={cidNo} onChange={handleCidChange} /></>
+    {accountType === "I" && ndiData && ndiSuccess && (
+       <>
+       <Label>CID No</Label>
+       <Input
+      className="mb-3"
+      placeholder="CID Number"
+      value={ndiData.idNumber}  // Set the CID number from ndiData
+      readOnly  // Disable editing
+    />
+     </>
     )}
     {accountType === "J" && (
       <><Label>DISN No</Label><Input className="mb-3"placeholder="Enter DISN number" value={disnNo} onChange={handleDisnChange} /></>
     )}
+
 
     {fieldsVisible && !paymentSuccess && (
       <>
@@ -333,20 +349,62 @@ export default function OnlineShareStatement() {
       </CardContent>
 
       <CardFooter className="flex justify-center">
-      <Button
-        variant="outline"
-        size="lg"
-        className="my-1"
-        onClick={fieldsVisible ? (otpVerified ? verifyOtp : handleSubmit) : fetchData}
-        disabled={loading}
-      >
-        {loading ? (fieldsVisible ? (otpVerified ? "Verifying OTP..." : "Sending OTP...") : "Fetching...") : (fieldsVisible ? (otpVerified ? "Verify OTP" : "Send OTP") : "Fetch")}
-      </Button>
+      {loading ? (
+          <Button
+            variant="outline"
+            size="lg"
+            className="my-1"
+            disabled
+          >
+            {fieldsVisible
+              ? otpVerified || accountType === "I"
+                ? "Processing..."
+                : "Sending OTP..."
+              : "Fetching..."}
+          </Button>
+        ) : fieldsVisible ? (
+          otpVerified || accountType === "I" ? (
+            <Button
+              variant="outline"
+              size="lg"
+              className="my-1"
+              onClick={afterBankInsert}
+            >
+              Proceed to Payment
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="lg"
+              className="my-1"
+              onClick={handleSubmit}
+            >
+              Send OTP
+            </Button>
+          )
+        ) : accountType === "I" && !ndiSuccess ? (
+          // Show BhutanNDIComponent if accountType is "I" and ndiSuccess is false
+          <BhutanNDIComponent
+            setNdiSuccess={setNdiSuccess}
+            setNdiData={setNdiData}
+          />
+        ) : (
+          // Show Fetch button for other cases (including when ndiSuccess is true)
+          <Button
+            variant="outline"
+            size="lg"
+            className="my-1"
+            onClick={fetchData}
+          >
+            Fetch
+          </Button>
+        )}
       </CardFooter>
     </Card>
 )     }
-
-{/* <ShareStatement order_no={"SS2025021411432467aed8193acef"} /> */}
+      {/* {!paymentSuccess && !orderNo && accountType === "I" && !ndiSuccess &&  (
+       <BhutanNDIComponent setNdiSuccess={setNdiSuccess} setNdiData={setNdiData} />
+      )} */}
       {paymentSuccess && orderNo && (
         <ShareStatement order_no={orderNo} />
     )}

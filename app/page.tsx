@@ -1,4 +1,6 @@
 import { DataTable } from "@/components/stocks/markets/data-table"
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -17,7 +19,11 @@ import StatsSection from "@/components/ui/stats-section"
 import StockTabs from "@/components/ui/stocks-tabs"
 import LogoCarousel from "@/components/ui/logo-carousel"
 import MarketSentiment from "@/components/stocks/MarketSentiment"  // ✅ Import new component
-
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 function isMarketOpen() {
   const now = new Date()
   const options: Intl.DateTimeFormatOptions = {
@@ -121,9 +127,93 @@ export default async function Home({
   const selectedStock = resultsWithTitles.find((stock) => stock.symbol === ticker)
   const selectedStockHistory = selectedStock?.history || []
 
-  const agmResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-agm-with-sym`)
-  const agmData = await agmResponse.json()
-  const latestAGM = agmData.length > 0 ? agmData[0] : null
+  const agmResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-agm-with-sym`);
+  const agmData = await agmResponse.json();
+
+  // Filter and sort AGMs to find the nearest upcoming one
+  const now = new Date(); // Current date and time
+  
+  const upcomingAGMs = agmData
+    .filter((agm: { date: string }) => new Date(agm.date) > now) // Filter out past AGMs
+    .sort((a: { date: string }, b: { date: string }) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Sort by date
+
+// Filter past AGMs
+const pastAGMs = agmData
+  .filter(agm => new Date(agm.date).getTime() < now.getTime()) // Keep only past AGMs
+  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Sort by latest date first
+  
+const latestFinishedAGM = pastAGMs.length > 0 ? pastAGMs[0] : null;
+
+  const nearestAGM = upcomingAGMs.length > 0 ? upcomingAGMs[0] : latestFinishedAGM;
+
+// Function to calculate the difference in days
+const getDaysDifference = (dateString: string) => {
+  const agmDate = new Date(dateString);
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0); // Normalize current date to start of day
+  agmDate.setHours(0, 0, 0, 0); // Normalize AGM date to start of day
+
+  const timeDifference = agmDate.getTime() - currentDate.getTime();
+  const daysDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
+
+  return daysDifference;
+};
+
+// Function to get the label based on the date difference
+const getBadgeLabel = (dateString: string) => {
+  const daysDifference = getDaysDifference(dateString);
+
+  if (daysDifference < 0) {
+    return "Completed";
+  } else if (daysDifference === 0) {
+    return "Today";
+  } else if (daysDifference === 1) {
+    return "Tomorrow";
+  } else if (daysDifference === 2) {
+    return "In two days";
+  } else if (daysDifference === 3) {
+    return "In three days";
+  } else {
+    return "Upcoming";
+  }
+};
+
+// Function to get the badge variant and class based on the date difference
+const getBadgeVariantAndClass = (dateString: string) => {
+  const daysDifference = getDaysDifference(dateString);
+
+  if (daysDifference < 0) {
+    return {
+      variant: "destructive" as const,
+      className: "bg-gray-500 dark:text-white hover:bg-gray-600",
+    };
+  } else if (daysDifference === 0) {
+    return {
+      variant: "default" as const,
+      className: "bg-blue-500 dark:text-white hover:bg-blue-600",
+    };
+  } else if (daysDifference === 1) {
+    return {
+      variant: "default" as const,
+      className: "bg-green-500 dark:text-white hover:bg-green-600",
+    };
+  } else if (daysDifference === 2) {
+    return {
+      variant: "default" as const,
+      className: "bg-yellow-500 dark:text-white hover:bg-yellow-600",
+    };
+  }else if (daysDifference === 3) {
+    return {
+      variant: "default" as const,
+      className: "bg-custom-2 dark:text-white hover:bg-custom-2",
+    };
+  } else {
+    return {
+      variant: "default" as const,
+      className: "bg-custom-1 dark:text-white hover:bg-custom-1",
+    };
+  }
+};
 
 
   return (
@@ -137,18 +227,48 @@ export default async function Home({
             <CardHeader>
               <MarketSentiment />  {/* ✅ Replace old sentiment logic with the new component */}
             </CardHeader>
-
-            {latestAGM && (
-              <CardFooter className="flex-col items-start">
-                <p className="mb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-500">What you need to know</p>
-                <p className="text-base font-semibold">{latestAGM.agm_name}</p>
-                <Link prefetch={false} href={`/stocks/${encodeURIComponent(latestAGM.symbol)}`} className="text-sm font-medium">
-                  {latestAGM.name}
-                </Link>
-                <p className="text-sm text-neutral-700 dark:text-neutral-400">{latestAGM.venue}</p>
-                <p className="text-sm text-neutral-700 dark:text-neutral-400">{latestAGM.date}</p>
-              </CardFooter>
-            )}
+              {nearestAGM && (
+                <CardFooter className="flex-col items-start">
+                  <div className="mb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-500">What you need to know</div>
+                 <div className="text-base font-semibold me-2">
+                    {nearestAGM.agm_name + "             "} 
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <span>
+                          <Badge variant={getBadgeVariantAndClass(nearestAGM.date).variant} className={cn(getBadgeVariantAndClass(nearestAGM.date).className)}>
+                            {getBadgeLabel(nearestAGM.date)}
+                          </Badge>
+                        </span>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-100">
+                          <div className="space-y-2">
+                            {upcomingAGMs.length > 0 ? (
+                              upcomingAGMs.slice(1).map((agm) => (
+                                <div key={agm.symbol} className="flex items-center justify-between">
+                                  <span className="text-sm font-semibold text-custom-1">{agm.symbol}</span>
+                                  <span className="text-sm font-medium mx-4">{agm.agm_name}</span>
+                                  <Badge variant={getBadgeVariantAndClass(agm.date).variant} className={cn(getBadgeVariantAndClass(agm.date).className)}>
+                                    {getBadgeLabel(agm.date)}
+                                  </Badge>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                                No Upcoming AGMs
+                              </div>
+                            )}
+                          </div>
+                        </HoverCardContent>
+                    </HoverCard>
+                  </div>
+                  <Link prefetch={false} href={`/stocks/${encodeURIComponent(nearestAGM.symbol)}`} className="text-sm font-medium">
+                    {nearestAGM.name}
+                  </Link>
+                  <p className="text-sm text-neutral-700 dark:text-neutral-400">{nearestAGM.venue}</p>
+                  <p className="text-sm text-neutral-700 dark:text-neutral-400">{nearestAGM.date}</p>
+                 
+                </CardFooter>
+              )}
           </Card>
         </div>
 

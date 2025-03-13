@@ -98,6 +98,12 @@ const downloadStatement = () => {
   // ✅ Temporarily enlarge the component
   const originalWidth = input.style.width;
   input.style.width = "1228px"; // Simulating a large-screen width
+ // ✅ Temporarily override the text color for TableCell elements
+    const tableCells = input.querySelectorAll('.dark\\:text-white');
+    tableCells.forEach(cell => {
+      cell.classList.remove('dark:text-white');
+      cell.classList.add('text-gray-900');
+    });
 
   html2canvas(input, {
     scale: 2, // Increase resolution
@@ -119,7 +125,7 @@ const downloadStatement = () => {
       pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
 
       const formattedDate = date ? format(date, "yyyy-MM-dd") : new Date().toISOString().split("T")[0];
-      const filename = `Shares_Declaration_${shareData?.client.ID || "unknown-cid"}_${formattedDate}.pdf`;
+      const filename = `Online_Share_Statement_${shareData?.client.ID || "unknown-cid"}_${formattedDate}.pdf`;
 
       pdf.save(filename);
     })

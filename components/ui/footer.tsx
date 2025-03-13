@@ -7,9 +7,9 @@ export default function Footer() {
   return (
     <footer className="py-16" role="contentinfo" aria-label="Site footer">
       <div className="container mx-auto px-6 flex flex-col space-y-8">
-
+      <hr className="border-gray-300 dark:border-white" />
         {/* Navigation Sections */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 text-center sm:text-left">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 text-center sm:text-left ">
           {/* Logo Section */}
           <div className="flex justify-center">
             <a href="/" aria-label="Home">

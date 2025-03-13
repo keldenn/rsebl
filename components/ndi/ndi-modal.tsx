@@ -225,7 +225,7 @@ const BhutanNDIComponent = ({ setNdiSuccess, setNdiData }) => {
 
 
   return (
-    <div className="flex flex-col items-center space-y-4 mt-10">
+    <div className="flex flex-col items-center space-y-4 ">
       <Dialog>
         <DialogTrigger asChild>
           <BhutanNDIButton text="Login with Bhutan NDI" onClick={() => setIsPopupOpen(true)} />
