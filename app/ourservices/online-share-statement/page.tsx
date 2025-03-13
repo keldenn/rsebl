@@ -385,6 +385,7 @@ export default function OnlineShareStatement() {
         ) : accountType === "I" && !ndiSuccess ? (
           // Show BhutanNDIComponent if accountType is "I" and ndiSuccess is false
           <BhutanNDIComponent
+            btnText={"Receive Credentials"}
             setNdiSuccess={setNdiSuccess}
             setNdiData={setNdiData}
           />
