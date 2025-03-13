@@ -26,8 +26,12 @@ const NewsSection: React.FC = () => {
       const announcementsData = announcements.map((item: any) => ({
         id: item.id,
         title: item.title,
-        description: item.announcement.replace(/<\/?[^>]+(>|$)/g, ''), // Strip HTML tags
-        date: item.created_at, // Use raw date for sorting
+        description: item.announcement
+        .replace(/<\/?[^>]+(>|$)/g, '') // Remove HTML tags
+        .replace(/&nbsp;/g, ' ') // Replace &nbsp; with a space
+        .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
+        .trim(), // Remove leading/trailing spaces
+        date: new Date(item.created_at).toDateString(),
         pdfUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${item.file_path}`,
         imageUrl: '/images/defaultbg.png', // Fallback image
       }));
@@ -39,11 +43,14 @@ const NewsSection: React.FC = () => {
       const timelineArticles = timelineData.data.map((item: any) => ({
         id: item.id,
         title: item.title,
-        description: item.content.replace(/<\/?[^>]+(>|$)/g, ''), // Strip HTML tags
-        date: item.year, // Use raw date for sorting
+        description: item.content
+          .replace(/<\/?[^>]+(>|$)/g, '')
+          .replace(/&nbsp;/g, ' ')
+          .replace(/\s+/g, ' ') 
+          .trim(),
+          date: new Date(item.year).toDateString(),
         imageUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${item.file_path}`,
       }));
-
       // Combine and sort by date (descending)
       const combinedData = [...announcementsData, ...timelineArticles];
       combinedData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -80,7 +87,7 @@ const NewsSection: React.FC = () => {
               key={article.id}
               title={article.title}
               description={article.description}
-              date={new Date(article.date).toLocaleDateString()} // Format date for display
+              date={article.date}
               imageUrl={article.imageUrl}
               pdfUrl={article.pdfUrl}
               onMore={() => openModal(article)}
