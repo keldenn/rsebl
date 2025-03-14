@@ -125,13 +125,15 @@ const NewsPage: React.FC = () => {
             Announcements
           </TabsTrigger>
         </TabsList>
-        <Input
-            type="text"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="w-64 border border-gray-300 p-2 rounded-md"
-          />
+        <div className="w-full md:w-1/3">
+            <Input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full border border-gray-300 p-2 rounded-md"
+            />
+          </div>
           </div>
 
         {/* News Tab */}
