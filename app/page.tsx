@@ -185,32 +185,32 @@ const getBadgeVariantAndClass = (dateString: string) => {
   if (daysDifference < 0) {
     return {
       variant: "destructive" as const,
-      className: "bg-gray-500 dark:text-white hover:bg-gray-600",
+      className: "bg-gray-500 dark:text-gray-500 hover:bg-gray-600",
     };
   } else if (daysDifference === 0) {
     return {
       variant: "default" as const,
-      className: "bg-blue-500 dark:text-white hover:bg-blue-600",
+      className: "bg-blue-500 dark:text-blue-500 hover:bg-blue-600",
     };
   } else if (daysDifference === 1) {
     return {
       variant: "default" as const,
-      className: "bg-green-500 dark:text-white hover:bg-green-600",
+      className: "bg-green-500 dark:text-green-500 hover:bg-green-600",
     };
   } else if (daysDifference === 2) {
     return {
       variant: "default" as const,
-      className: "bg-yellow-500 dark:text-white hover:bg-yellow-600",
+      className: "bg-yellow-500 dark:text-yellow-500 hover:bg-yellow-600",
     };
   }else if (daysDifference === 3) {
     return {
       variant: "default" as const,
-      className: "bg-custom-2 dark:text-white hover:bg-custom-2",
+      className: "bg-custom-2 dark:text-custom-2 hover:bg-custom-2",
     };
   } else {
     return {
       variant: "default" as const,
-      className: "bg-custom-1 dark:text-white hover:bg-custom-1",
+      className: "bg-custom-1 dark:text-custom-1 hover:bg-custom-1",
     };
   }
 };
@@ -244,13 +244,15 @@ const getBadgeVariantAndClass = (dateString: string) => {
                           <div className="space-y-2">
                             {upcomingAGMs.length > 0 ? (
                               upcomingAGMs.slice(1).map((agm) => (
-                                <div key={agm.symbol} className="flex items-center justify-between">
-                                  <span className="text-sm font-semibold text-custom-1">{agm.symbol}</span>
+                                <Link key={agm.symbol} href={`/stocks/${agm.symbol}`} passHref>
+                                <div className="flex items-center justify-between py-1 cursor-pointer">
+                                  <span className="text-sm font-semibold text-custom-1 dark:text-white">{agm.symbol}</span>
                                   <span className="text-sm font-medium mx-4">{agm.agm_name}</span>
                                   <Badge variant={getBadgeVariantAndClass(agm.date).variant} className={cn(getBadgeVariantAndClass(agm.date).className)}>
                                     {getBadgeLabel(agm.date)}
                                   </Badge>
                                 </div>
+                              </Link>
                               ))
                             ) : (
                               <div className="text-sm text-neutral-500 dark:text-neutral-400">
