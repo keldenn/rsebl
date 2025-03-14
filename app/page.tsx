@@ -132,10 +132,21 @@ export default async function Home({
 
   // Filter and sort AGMs to find the nearest upcoming one
   const now = new Date(); // Current date and time
-  
+  // Function to create Date object with end of day if time is missing
+  const parseAGMDate = (dateString: string) => {
+    if (dateString.includes("AM") || dateString.includes("PM")) {
+      return new Date(dateString);
+    } else {
+      // No time specified, set to end of day
+      return new Date(`${dateString} 23:59:59`);
+    }
+  };
   const upcomingAGMs = agmData
-    .filter((agm: { date: string }) => new Date(agm.date) > now) // Filter out past AGMs
-    .sort((a: { date: string }, b: { date: string }) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Sort by date
+  .filter((agm: { date: string }) => {
+    const agmDate = parseAGMDate(agm.date);
+    return agmDate > now;
+  })
+  .sort((a, b) => parseAGMDate(a.date).getTime() - parseAGMDate(b.date).getTime());
 
 // Filter past AGMs
 const pastAGMs = agmData
