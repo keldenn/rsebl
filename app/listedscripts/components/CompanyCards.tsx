@@ -36,7 +36,7 @@ const CompanyCards: React.FC<CompanyCardProps> = ({
   };
 
   return (
-    <Card className="rounded-xl shadow-lg border flex-auto min-w-[300px]">
+    <Card className="rounded-xl shadow-lg border flex-auto min-w-[300px] flex flex-col justify-between ">
       <CardHeader className="flex flex-row justify-between items-center pb-2">
         <div className="flex flex-col flex-1">
           <CardTitle className="text-base font-bold">{title}</CardTitle>
