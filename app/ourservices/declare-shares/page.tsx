@@ -240,7 +240,7 @@ export default function SharesDeclaration() {
             };
 
             try {
-              const response = await fetch("https://adsndi.itechnologies.cloud/api/push-data/", {
+              const response = await fetch("https://ads.acc.org.bt/api/push-data/", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
