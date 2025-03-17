@@ -71,7 +71,7 @@ export default function OnlineShareStatement() {
 
     setLoading(true);
     try {
-      const apiURL = `https://rsebl.org.bt/agm/api/checkshareExistNew?${accountType === "I" ? `cidNo=${cidNo}` : `cidNo=${disnNo}`}&accType=${accountType}`;
+      const apiURL = `${process.env.NEXT_PUBLIC_API_URL}/checkshareExistNew?${accountType === "I" ? `cidNo=${cidNo}` : `cidNo=${disnNo}`}&accType=${accountType}`;
 
       const response = await fetch(apiURL);
       const data = await response.json();

@@ -163,7 +163,7 @@ export default function Page() {
 
       const submitPaymentSuccess = async () => {
         try {
-          const response = await fetch('https://rsebl.org.bt/agm/api/paymentSuccessOT', {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/paymentSuccessOT`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

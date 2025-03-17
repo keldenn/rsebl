@@ -136,7 +136,7 @@ export default function PaymentGateway({service_code, setPaymentSuccess, setOrde
   useEffect(() => {
     async function fetchBanks() {
       try {
-        const response = await fetch("https://rsebl.org.bt/agm/api/fetch-all-banks");
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fetch-all-banks`);
         const data = await response.json();
         setBanks(data);
       } catch (error) {

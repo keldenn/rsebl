@@ -197,7 +197,7 @@ export default function SharesDeclaration() {
 
       const updatePaymentStatus = async () => {
         try {
-          const paymentResponse = await fetch("https://rsebl.org.bt/agm/api/update-payment-status-DS", {
+          const paymentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/update-payment-status-DS`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

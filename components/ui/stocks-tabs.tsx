@@ -83,11 +83,14 @@ const StockTabs = () => {
         defaultValue="risers"
         onValueChange={(value) => setSelectedTab(value)} // Track selected tab
       >
-        <TabsList>
-          <TabsTrigger value="risers">Risers</TabsTrigger>
-          <TabsTrigger value="fallers">Fallers</TabsTrigger>
-          <TabsTrigger value="volumeLeaders">Volume Leaders</TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto scroll-smooth flex space-x-2 px-2">
+          <TabsList>
+            <TabsTrigger value="risers">Risers</TabsTrigger>
+            <TabsTrigger value="fallers">Fallers</TabsTrigger>
+            <TabsTrigger value="volumeLeaders">Volume Leaders</TabsTrigger>
+          </TabsList>
+        </div>
+
 
         <TabsContent value="risers">
           <StockTable stocks={data.risers} selectedTab={selectedTab} />

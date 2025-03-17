@@ -10,32 +10,32 @@ import ServicesCards from "./components/ServicesCards";
 const servicesData = [
   {
     description: "Online Client Terminal(mCaMs)",
-    image: "	https://rsebl.org.bt/agm/storage/serviceLogo/acIVXa07xjQtrDGxNNWBS7B92PbGXaIC6ghdSRnx.png",
+    image: `${process.env.NEXT_PUBLIC_BASE_URL}/serviceLogo/acIVXa07xjQtrDGxNNWBS7B92PbGXaIC6ghdSRnx.png`,
     link: "/ourservices/m-cams",
   },
   {
     description: "Bhutan CrowdFunding",
-    image: "https://rsebl.org.bt/agm/storage/serviceLogo/m3nZXM2akeYjqnW4LJfYc70imFhQrxxElJE0F6AZ.png",
+    image: `${process.env.NEXT_PUBLIC_BASE_URL}/serviceLogo/m3nZXM2akeYjqnW4LJfYc70imFhQrxxElJE0F6AZ.png`,
     link: "https://bhutancrowdfunding.rsebl.org.bt/",
   },
   { 
     description: "Agricultural Commodities Market Initiative",
-    image: "https://rsebl.org.bt/agm/storage/serviceLogo/XSwvhhZIi5gvwXjnJVlsMVPdTnIETI3hjTmZfmnB.png",
+    image: `${process.env.NEXT_PUBLIC_BASE_URL}/serviceLogo/XSwvhhZIi5gvwXjnJVlsMVPdTnIETI3hjTmZfmnB.png`,
     link: "https://www.services.rsebl.org.bt/BCMI/public/index.php",
   },
   {
     description: "Bhutan Commodity Exchange",
-    image: "https://rsebl.org.bt/agm/storage/serviceLogo/BP0ZllBQcwcEDiw4ufjITCwU1cXULc3fSYpFIxHs.png",
+    image: `${process.env.NEXT_PUBLIC_BASE_URL}/serviceLogo/BP0ZllBQcwcEDiw4ufjITCwU1cXULc3fSYpFIxHs.png`,
     link: "https://www.services.rsebl.org.bt/BCE/login.php",
   },
   {
     description: "e-Property Auction",
-    image: "https://rsebl.org.bt/agm/storage/serviceLogo/IV9Fn6XC66KtZOKEvsAvWyv1GAFuRY54H0LPweha.png",
+    image: `${process.env.NEXT_PUBLIC_BASE_URL}/serviceLogo/IV9Fn6XC66KtZOKEvsAvWyv1GAFuRY54H0LPweha.png`,
     link: "https://www.services.rsebl.org.bt/auction/index.php",
   },
   {
     description: "Online Share Statement",
-    image: "https://rsebl.org.bt/agm/storage/serviceLogo/ailCgaN14Y12UzZefNYlHhLW3AgIO0gYrOCCmGSu.png",
+    image: `${process.env.NEXT_PUBLIC_BASE_URL}/serviceLogo/ailCgaN14Y12UzZefNYlHhLW3AgIO0gYrOCCmGSu.png`,
     link: "/ourservices/online-share-statement",
   }
 ];
@@ -66,12 +66,12 @@ export default async function ServicesPage() {
 //   useEffect(() => {
 //     const fetchServices = async () => {
 //       try {
-//         const response = await fetch("https://rsebl.org.bt/agm/api/fetch-active-services");
+//         const response = await fetch("process.env.NEXT_PUBLIC_API_URL}//fetch-active-services");
 //         const data = await response.json();
 
 //         const formattedData = data.map((service: any) => ({
 //           description: service.name,
-//           image: `https://rsebl.org.bt/agm/storage/${service.logo}`,
+//           image: `{process.env.NEXT_PUBLIC_BASE_URL}/${service.logo}`,
 //           link: service.link,
 //         }));
 
