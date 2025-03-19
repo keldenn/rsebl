@@ -30,7 +30,7 @@ const keysToDisplay = [
     title: "Div yield",
     format: (data: number) => `${(data * 100).toFixed(2)}%`,
   },
-  { key: "beta", title: "Beta" },
+  // { key: "beta", title: "Beta" },
   { key: "trailingEps", title: "EPS", section: "defaultKeyStatistics" },
 ]
 
