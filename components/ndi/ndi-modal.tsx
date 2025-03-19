@@ -34,7 +34,7 @@ const BhutanNDIPopup = ({ isOpen, onClose, setNdiSuccess, setNdiData, setIsPopup
       try {
         // 🔹 Log when fetch starts
 
-        const response = await fetch('/api/ndi', {
+        const response = await fetch(`${API_BASE_URL}/api/ndi`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}),
