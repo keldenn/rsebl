@@ -38,7 +38,7 @@ const [messages, setMessages] = useState([
             const shouldStream = currentInput.length > 100;
             
             if (shouldStream) {
-              const response = await fetch("http://127.0.0.1:8000/chat/", {
+              const response = await fetch("http://127.0.0.1:5000", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: currentInput, stream: true }),
