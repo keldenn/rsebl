@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils"
 import { CalendarDays } from "lucide-react"
+import { TrendingUp } from "lucide-react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 
 // Fetch sector-specific performance data
@@ -119,6 +120,7 @@ const allSectors = {
                 <h4 className="text-sm font-semibold">
                   {sector.sector_type}
                 </h4>
+                
                 <p className="text-sm">
                   <strong>Current Index:</strong>{" "}
                   <span
@@ -162,11 +164,44 @@ const allSectors = {
                   </span>
                 </p>
                 <div className="flex items-center pt-2">
+                  {sector.sector_type !== "ALL" && sector.sector_type !== "ALL SECTORS" && (
+                    <>
+                      <TrendingUp className="mr-2 h-4 w-4 opacity-70" />{" "}
+                      <span className="text-xs text-muted-foreground">
+                        {sector.sector_type === "MANUFACTURING"
+                          ? "Started with Market Cap 125824147.92"
+                          : sector.sector_type === "INSURANCE"
+                          ? "Started with Market Cap 203376493.10"
+                          : sector.sector_type === "BANKING"
+                          ? "Started with Market Cap 229932442.94"
+                          : sector.sector_type === "TOURISM"
+                          ? "Started with Market Cap 14334058.20"
+                          : sector.sector_type === "PUBLISHING"
+                          ? "Started with Market Cap 1700000.00"
+                          : sector.sector_type === "DISTRIBUTION"
+                          ? "Started with Market Cap 12757630.88"
+                          : sector.sector_type === "TRADING"
+                          ? "Started with Market Cap 883319.58"
+                          : ""}
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {sector.sector_type !== "ALL" && sector.sector_type !== "ALL SECTORS" && (
+                <div className="flex items-center pt-2">
+                  <CalendarDays className="mr-2 h-4 w-4 opacity-70" />{" "}
+                  <span className="text-xs text-muted-foreground">
+                    Started on Feb 7, 2025
+                  </span>
+                </div>
+              )}
+                {/* <div className="flex items-center pt-2">
                   <CalendarDays className="mr-2 h-4 w-4 opacity-70" />{" "}
                   <span className="text-xs text-muted-foreground">
                     Updated on {formatDate(sector.created_date)}
                   </span>
-                </div>
+                </div> */}
               </div>
             </div>
           </HoverCardContent>
