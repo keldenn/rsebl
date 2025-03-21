@@ -1,70 +1,69 @@
+import { fetchQuoteSummaryNew } from "@/lib/yahoo-finance/fetchQuoteSummaryNew";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
-import { fetchQuoteSummaryNew } from "@/lib/yahoo-finance/fetchQuoteSummaryNew"
-
-function formatNumber(num: number) {
+function formatNumber(num) {
   if (num >= 1e12) {
-    return `${(num / 1e12).toFixed(2)}T`
+    return `${(num / 1e12).toFixed(2)}T`;
   } else if (num >= 1e9) {
-    return `${(num / 1e9).toFixed(2)}B`
+    return `${(num / 1e9).toFixed(2)}B`;
   } else if (num >= 1e6) {
-    return `${(num / 1e6).toFixed(2)}M`
+    return `${(num / 1e6).toFixed(2)}M`;
   } else {
-    return num.toString()
+    return num.toString();
   }
 }
+
 const keysToDisplay = [
-  {
-    key: "open",
-    title: "Open",
-  },
-  { key: "weekHigh", title: "High" },
-  { key: "weekLow", title: "Low" },
-  { key: "volume", title: "Vol", format: formatNumber },
-  { key: "trailingPE", title: "P/E" },
-  { key: "marketCap", title: "Mkt cap", format: formatNumber },
-  { key: "fiftyTwoWeekHigh", title: "52W H" },
-  { key: "fiftyTwoWeekLow", title: "52W L" },
-  { key: "averageVolume", title: "Avg Vol", format: formatNumber },
+  { key: "open", title: "Open", description: "The opening price of the day." },
+  { key: "weekHigh", title: "High", description: "Highest price of the stock this week." },
+  { key: "weekLow", title: "Low", description: "Lowest price of the stock this week." },
+  { key: "volume", title: "Vol", format: formatNumber, description: "Total shares traded this week." },
+  { key: "trailingPE", title: "P/E", description: "Price-to-Earnings ratio." },
+  { key: "marketCap", title: "Mkt cap", format: formatNumber, description: "Market capitalization." },
+  { key: "fiftyTwoWeekHigh", title: "52W H", description: "Highest price in the last 52 weeks." },
+  { key: "fiftyTwoWeekLow", title: "52W L", description: "Lowest price in the last 52 weeks." },
+  { key: "averageVolume", title: "Avg Vol", format: formatNumber, description: "Average daily trading volume over last 30 days." },
   {
     key: "dividendYield",
     title: "Div yield",
-    format: (data: number) => `${(data * 100).toFixed(2)}%`,
+    format: (data) => `${(data * 100).toFixed(2)}%`,
+    description: "Annual dividend yield percentage."
   },
-  // { key: "beta", title: "Beta" },
-  { key: "trailingEps", title: "EPS", section: "defaultKeyStatistics" },
-]
+  { key: "trailingEps", title: "EPS", section: "defaultKeyStatistics", description: "Earnings per share." },
+];
 
-export default async function FinanceSummary({ ticker }: { ticker: string }) {
-  let financeSummaryData = await fetchQuoteSummaryNew(ticker)
-  // Ensure we have marketPrice and EPS before calculating P/E
-  const marketPrice = parseFloat(financeSummaryData?.marketPrice || "0")
-  const eps = parseFloat(financeSummaryData?.trailingEps || "0")
+export default async function FinanceSummary({ ticker }) {
+  let financeSummaryData = await fetchQuoteSummaryNew(ticker);
+  const marketPrice = parseFloat(financeSummaryData?.marketPrice || "0");
+  const eps = parseFloat(financeSummaryData?.trailingEps || "0");
 
-  // Calculate trailingPE and append to the data
   financeSummaryData = {
     ...financeSummaryData,
     trailingPE: eps > 0 ? (marketPrice / eps).toFixed(2) : "N/A",
-  }
+  };
+
   return (
     <div className="grid grid-flow-col grid-rows-6 gap-4 md:grid-rows-3">
-      {keysToDisplay.map((item) => {  
-        const data = financeSummaryData?.[item.key] ?? undefined
-        let formattedData = "N/A"
+      {keysToDisplay.map((item) => {
+        const data = financeSummaryData?.[item.key] ?? undefined;
+        let formattedData = "N/A";
 
         if (data !== undefined && !isNaN(data)) {
-          formattedData = item.format ? item.format(data) : data
+          formattedData = item.format ? item.format(data) : data;
         }
+
         return (
-          <div
-            key={item.key}
-            className="flex flex-row items-center justify-between font-medium"
-          >
-            <span className="text-muted-foreground">{item.title}</span>
-            <span>{formattedData}</span>
-          </div>
-        )
+          <HoverCard key={item.key}>
+            <HoverCardTrigger className="flex flex-row items-center justify-between font-medium cursor-pointer">
+              <span className="text-muted-foreground">{item.title}</span>
+              <span>{formattedData}</span>
+            </HoverCardTrigger>
+            <HoverCardContent className="p-2 text-sm text-muted-foreground bg-white shadow-lg rounded-lg">
+              {item.description}
+            </HoverCardContent>
+          </HoverCard>
+        );
       })}
     </div>
-     
-  )
+  );
 }
