@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import QRCode from 'qrcode';
 const API_BASE_URL =
   process.env.NODE_ENV === "production"
-    ? "http://192.168.10.5:70/"
+    ? "http://newrsebl.org.bt:8080"
     : ""; // Empty means relative path in development
     
 const BhutanNDIButton = ({ text, onClick }) => {
