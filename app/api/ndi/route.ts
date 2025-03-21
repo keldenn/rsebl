@@ -7,6 +7,9 @@ const NDI_PROOF_REQUEST_URL = "https://demo-client.bhutanndi.com/verifier/v1/pro
 const NATS_URL = "wss://natsdemoclient.bhutanndi.com";
 const SEED = "SUAPXY7TJFUFE3IX3OEMSLE3JFZJ3FZZRSRSOGSG2ANDIFN77O2MIBHWUM";
 
+
+
+
 // Function to get Access Token
 async function getAccessToken(): Promise<string> {
   const response = await axios.post(
