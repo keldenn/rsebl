@@ -291,7 +291,7 @@ const getBadgeVariantAndClass = (dateString: string) => {
               <CardTitle className="text-lg">Sector Performance</CardTitle>
             </CardHeader>
             <CardContent>
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense>
                 <SectorPerformance />
               </Suspense>
             </CardContent>
@@ -309,12 +309,12 @@ const getBadgeVariantAndClass = (dateString: string) => {
       <div className="flex flex-col gap-4">
         <Card className="flex flex-col gap-4 p-6 lg:flex-row">
           <div className="w-full lg:w-1/2">
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense>
               <DataTable columns={columns} data={resultsWithTitles} />
             </Suspense>
           </div>
           <div className="w-full lg:w-1/2">
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense>
               <MarketsChart data={selectedStockHistory} ticker={ticker} />
             </Suspense>
           </div>

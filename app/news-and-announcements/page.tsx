@@ -139,7 +139,7 @@ const NewsPage: React.FC = () => {
         {/* News Tab */}
         <TabsContent value="news">
           {loadingNews ? (
-            <div>Loading news...</div>
+            <div></div>
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -177,7 +177,7 @@ const NewsPage: React.FC = () => {
         {/* Announcements Tab */}
         <TabsContent value="announcements">
           {loadingAnnouncements ? (
-            <div>Loading announcements...</div>
+            <div></div>
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
