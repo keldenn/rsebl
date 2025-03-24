@@ -42,9 +42,9 @@ export default function BrokersPage() {
     fetchBrokers();
   }, []);
 
-  if (loading) {
-    return <p className="text-center">Loading...</p>;
-  }
+  // if (loading) {
+  //   return <p className="text-center">Loading...</p>;
+  // }
 
   if (brokersData.length === 0) {
     return <p className="text-center">No brokers found.</p>;

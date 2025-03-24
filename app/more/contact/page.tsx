@@ -199,7 +199,7 @@ export default function ContactUs() {
 
         {/* Dynamically Rendered Contact Cards */}
         {isLoading ? (
-          <p className="text-center col-span-3">Loading...</p>
+          <p className="text-center col-span-3"></p>
         ) : (
           contactDetails.map((detail) => (
             <Card key={detail.id} className="w-full">

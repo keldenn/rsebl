@@ -31,7 +31,7 @@ export default function AccordionDemo() {
   }, []);
 
   if (loading) {
-    return <div className="text-center my-5">Loading FAQs...</div>;
+    return <div className="text-center my-5"></div>;
   }
 
   return (

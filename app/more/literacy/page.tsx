@@ -35,7 +35,7 @@ const VideoGrid = () => {
   }, []);
 
   if (loading) {
-    return <div className="text-center my-5">Loading videos...</div>;
+    return <div className="text-center my-5"></div>;
   }
 
   return (

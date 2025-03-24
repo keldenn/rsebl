@@ -41,7 +41,7 @@ export default async function StocksPage({ params, searchParams }: Props) {
           <Suspense
             fallback={
               <div className="flex h-[27.5rem] items-center justify-center text-muted-foreground ">
-                Loading...
+                {/* Loading... */}
               </div>
             }
           >
@@ -50,7 +50,7 @@ export default async function StocksPage({ params, searchParams }: Props) {
           <Suspense
             fallback={
               <div className="flex h-[10rem] items-center justify-center text-muted-foreground ">
-                Loading...
+                {/* Loading... */}
               </div>
             }
           >
@@ -59,7 +59,7 @@ export default async function StocksPage({ params, searchParams }: Props) {
           <Suspense
             fallback={
               <div className="flex h-[10rem] items-center justify-center text-muted-foreground ">
-                Loading...
+                {/* Loading... */}
               </div>
             }
           >
@@ -69,7 +69,7 @@ export default async function StocksPage({ params, searchParams }: Props) {
           <Suspense
             fallback={
               <div className="flex h-[20rem] items-center justify-center text-muted-foreground ">
-                Loading...
+                {/* Loading... */}
               </div>
             }
           >
@@ -86,7 +86,7 @@ export default async function StocksPage({ params, searchParams }: Props) {
           <Suspense
             fallback={
               <div className="flex h-[10rem] items-center justify-center text-muted-foreground ">
-                Loading...
+                {/* Loading... */}
               </div>
             }
           >

@@ -36,9 +36,9 @@ export default function Page() {
     setVisibleCount((prevCount) => prevCount + 4);
   };
 
-  if (loading) {
-    return <div className="text-center">Loading...</div>;
-  }
+  // if (loading) {
+  //   return <div className="text-center">Loading...</div>;
+  // }
 
   if (error) {
     return <div className="text-center text-red-500">{error}</div>;
