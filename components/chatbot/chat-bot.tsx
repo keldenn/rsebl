@@ -26,16 +26,16 @@ const [messages, setMessages] = useState([
 
     const formatMessage = (message) => {
         // Check if the message has a numbered list (ordered list)
-        const orderedListRegex = /^(\d+)\.\s/;
-        const unorderedListRegex = /[-•]\s/;
+        const orderedListRegex = /^\d+\.\s/;
+        const unorderedListRegex = /^[•-]\s/;
     
         if (orderedListRegex.test(message)) {
             // Split the message into an ordered list
             const listItems = message.split('\n').filter(item => orderedListRegex.test(item)).map(item => item.replace(orderedListRegex, '').trim());
             return (
-                <ol className="list-decimal pl-5 space-y-2 text-sm">
+                <ol className="list-decimal pl-5 space-y-2 text-xs">
                     {listItems.map((item, index) => (
-                        <li key={index} className="text-gray-800">{item}</li>
+                        <li key={index} >{item}</li>
                     ))}
                 </ol>
             );
@@ -43,17 +43,18 @@ const [messages, setMessages] = useState([
             // Split the message into an unordered list
             const listItems = message.split('\n').filter(item => unorderedListRegex.test(item)).map(item => item.replace(unorderedListRegex, '').trim());
             return (
-                <ul className="list-disc pl-5 space-y-2 text-sm">
+                <ul className="list-disc pl-5 space-y-2 text-xs">
                     {listItems.map((item, index) => (
-                        <li key={index} className="text-gray-800">{item}</li>
+                        <li key={index}>{item}</li>
                     ))}
                 </ul>
             );
         } else {
             // Return message as plain text if no lists
-            return <p>{message}</p>;
+            return <p className="text-xs">{message}</p>;
         }
     };
+    
 
     const sendMessage = async (e) => {
         e.preventDefault();

@@ -12,7 +12,7 @@ import {
 function getMarketSentiment(ptChange: string) {
   const change = parseFloat(ptChange)
   if (change === 0) return "Neutral"
-  return change > 0 ? "bullish" : "bearish"
+  return change > 0 ? "increased" : "decreased"
 }
 
 export default function MarketSentiment() {
@@ -40,19 +40,19 @@ export default function MarketSentiment() {
   }, [])
 
   const sentimentColor =
-    marketSentiment === "bullish" ? "text-green-500" :
-    marketSentiment === "bearish" ? "text-red-500" :
+    marketSentiment === "increased" ? "text-green-500" :
+    marketSentiment === "decreased" ? "text-red-500" :
     "text-neutral-500"
 
   const sentimentBackground =
-    marketSentiment === "bullish" ? "bg-green-500/10" :
-    marketSentiment === "bearish" ? "bg-red-500/10" :
+    marketSentiment === "increased" ? "bg-green-500/10" :
+    marketSentiment === "decreased" ? "bg-red-500/10" :
     "bg-neutral-500/10"
 
   return (
     <>
     <CardTitle className=" w-fit rounded-full px-4 py-2 font-medium dark:bg-neutral-100/5">
-    The markets are <strong className={sentimentColor}>{marketSentiment}</strong>
+    Bhutan Stock Index <strong className={sentimentColor}>{marketSentiment}</strong>
   </CardTitle>
   <div className={`pointer-events-none absolute inset-0 z-0 h-[95%] w-[85%] -translate-x-[10%] -translate-y-[30%] rounded-full blur-3xl ${sentimentBackground}`} />
   </>

@@ -1,0 +1,16 @@
+(node:15744) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ⚠ The "images.domains" configuration is deprecated. Please use "images.remotePatterns" configuration instead.
+ ⚠ For production Image Optimization with Next.js, the optional 'sharp' package is strongly recommended. Run 'npm i sharp', and Next.js will use it automatically for Image Optimization.
+Read more: https://nextjs.org/docs/messages/sharp-missing-in-production
+Error forwarding request: SyntaxError: Unexpected token '<', "<!doctype "... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5738:19)
+    at successSteps (node:internal/deps/undici/undici:5719:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4609:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async consumeBody (node:internal/deps/undici/undici:5728:7)
+    at async i (C:\inetpub\wwwroot\rsebl\.next\server\app\api\chat\route.js:1:848)
+    at async C:\inetpub\wwwroot\rsebl\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
+    at async e_.execute (C:\inetpub\wwwroot\rsebl\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:27880)
+    at async e_.handle (C:\inetpub\wwwroot\rsebl\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:39943)
