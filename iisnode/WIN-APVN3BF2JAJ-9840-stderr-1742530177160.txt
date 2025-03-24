@@ -1,0 +1,5 @@
+Application has thrown an uncaught exception and is terminated:
+Error: Could not find a production build in the '.next' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id
+    at setupFsCheck (C:\inetpub\wwwroot\rsebl\node_modules\next\dist\server\lib\router-utils\filesystem.js:151:19)
+    at async initialize (C:\inetpub\wwwroot\rsebl\node_modules\next\dist\server\lib\router-server.js:62:23)
+    at async NextCustomServer.prepare (C:\inetpub\wwwroot\rsebl\node_modules\next\dist\server\next.js:242:28)
