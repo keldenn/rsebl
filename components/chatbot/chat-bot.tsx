@@ -24,37 +24,68 @@ const [messages, setMessages] = useState([
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isLoading]);
 
+    const formatMessage = (message) => {
+        // Check if the message has a numbered list (ordered list)
+        const orderedListRegex = /^(\d+)\.\s/;
+        const unorderedListRegex = /[-•]\s/;
+    
+        if (orderedListRegex.test(message)) {
+            // Split the message into an ordered list
+            const listItems = message.split('\n').filter(item => orderedListRegex.test(item)).map(item => item.replace(orderedListRegex, '').trim());
+            return (
+                <ol className="list-decimal pl-5 space-y-2 text-sm">
+                    {listItems.map((item, index) => (
+                        <li key={index} className="text-gray-800">{item}</li>
+                    ))}
+                </ol>
+            );
+        } else if (unorderedListRegex.test(message)) {
+            // Split the message into an unordered list
+            const listItems = message.split('\n').filter(item => unorderedListRegex.test(item)).map(item => item.replace(unorderedListRegex, '').trim());
+            return (
+                <ul className="list-disc pl-5 space-y-2 text-sm">
+                    {listItems.map((item, index) => (
+                        <li key={index} className="text-gray-800">{item}</li>
+                    ))}
+                </ul>
+            );
+        } else {
+            // Return message as plain text if no lists
+            return <p>{message}</p>;
+        }
+    };
+
     const sendMessage = async (e) => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
-
+    
         const userMessage = { sender: 'user', text: input };
         const currentInput = input;
         setInput('');
         setMessages((prev) => [...prev, userMessage]);
         setIsLoading(true);
-
+    
         try {
             const shouldStream = currentInput.length > 100;
-            
+    
             if (shouldStream) {
-              const response = await fetch("http://127.0.0.1:5000/chat/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: currentInput, stream: true }),
-            });
-
+                const response = await fetch("http://127.0.0.1:5000/chat/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: currentInput, stream: true }),
+                });
+    
                 const reader = response.body.getReader();
                 let partialResponse = '';
                 setMessages((prev) => [...prev, { sender: 'bot', text: '' }]);
-
+    
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
-
+    
                     const chunk = new TextDecoder().decode(value);
                     partialResponse += chunk;
-
+    
                     setMessages((prev) => [
                         ...prev.slice(0, -1),
                         { sender: 'bot', text: partialResponse }
@@ -67,13 +98,14 @@ const [messages, setMessages] = useState([
                     body: JSON.stringify({ message: currentInput, stream: false })
                 });
                 const { response: botReply } = await response.json();
-                setMessages((prev) => [...prev, { sender: 'bot', text: botReply }]);
+                const formattedMessage = formatMessage(botReply); // Format the response message
+                setMessages((prev) => [...prev, { sender: 'bot', text: formattedMessage }]);
             }
         } catch (error) {
             console.error('Error:', error);
             setMessages((prev) => [...prev, { sender: 'bot', text: 'Error: Unable to get response.' }]);
         }
-
+    
         setIsLoading(false);
     };
 
@@ -105,10 +137,11 @@ const [messages, setMessages] = useState([
                 }`}
                 style={{ display: 'inline-block', maxWidth: '55%', wordBreak: 'break-word' }}
             >
-                {msg.text}
+                <div>{msg.text}</div> {/* This will render the formatted message */}
             </div>
         </div>
     ));
+    
     
     
 
