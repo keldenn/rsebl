@@ -18,7 +18,7 @@ import MarketTicker from "./market-ticker"
 
 const NAVIGATION = [
   { title: "Home", href: "/" },
-  { title: "Screener", href: "/screener" },
+  { title: "Market Watch", href: "/screener" },
   { title: "Listed Scripts", href: "/listedscripts" },
   { title: "Our Services", href: "/ourservices" },
   { title: "Debt Securities", href: "/debt-securities" },

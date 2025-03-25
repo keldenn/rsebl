@@ -1,16 +1,15 @@
 import { fetchQuoteSummaryNew } from "@/lib/yahoo-finance/fetchQuoteSummaryNew";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
-function formatNumber(num) {
+function formatNumber(num: number) {
   if (num >= 1e12) {
     return `${(num / 1e12).toFixed(2)}T`;
   } else if (num >= 1e9) {
     return `${(num / 1e9).toFixed(2)}B`;
   } else if (num >= 1e6) {
     return `${(num / 1e6).toFixed(2)}M`;
-  } else {
-    return num.toString();
   }
+  return num.toString();
 }
 
 const keysToDisplay = [
@@ -26,13 +25,18 @@ const keysToDisplay = [
   {
     key: "dividendYield",
     title: "Div yield",
-    format: (data) => `${(data * 100).toFixed(2)}%`,
+    format: (data: number) => `${data}%`,
     description: "Annual dividend yield percentage."
   },
-  { key: "trailingEps", title: "EPS", section: "defaultKeyStatistics", description: "Earnings per share." },
+  { key: "beta", title: "Book Val", description: "Annual Book Value" },
+  { key: "trailingEps", title: "EPS", description: "Earnings per share." },
 ];
 
-export default async function FinanceSummary({ ticker }) {
+interface FinanceSummaryProps {
+  ticker: string;
+}
+
+export default async function FinanceSummary({ ticker }: FinanceSummaryProps) {
   let financeSummaryData = await fetchQuoteSummaryNew(ticker);
   const marketPrice = parseFloat(financeSummaryData?.marketPrice || "0");
   const eps = parseFloat(financeSummaryData?.trailingEps || "0");
@@ -48,8 +52,13 @@ export default async function FinanceSummary({ ticker }) {
         const data = financeSummaryData?.[item.key] ?? undefined;
         let formattedData = "N/A";
 
-        if (data !== undefined && !isNaN(data)) {
-          formattedData = item.format ? item.format(data) : data;
+        if (data !== undefined && !isNaN(Number(data))) {
+          const numValue = Number(data);
+          if (numValue === 0) {
+            formattedData = "N/A";
+          } else {
+            formattedData = item.format ? item.format(numValue) : numValue.toString();
+          }
         }
 
         return (

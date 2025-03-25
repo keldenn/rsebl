@@ -52,7 +52,7 @@ const OrderBook: React.FC<OrderBookProps> = ({ symbol }) => {
               {orderBook.length > 0 ? (
                 orderBook.map((order, index) => (
                   <TableRow key={index}>
-                    <TableCell className={`text-left ${order.BuyVol > 0 ? "text-green-800 dark:text-green-400" : "text-gray-400"} ${
+                    <TableCell className={`text-left ${order.BuyVol > 0 ? "text-green-600 dark:text-green-800" : "text-gray-400"} ${
                         order.Discovered == order.Price ? "bg-custom-1  text-white dark:bg-custom-1 dark:text-white font-bold" : ""
                       }`}>
                       {order.BuyVol}
@@ -64,7 +64,7 @@ const OrderBook: React.FC<OrderBookProps> = ({ symbol }) => {
                     >
                       {order.Price}
                     </TableCell>
-                    <TableCell className={`text-right ${order.SellVol > 0 ? "text-red-800 dark:text-red-400" : "text-gray-400"} ${
+                    <TableCell className={`text-right ${order.SellVol > 0 ? "text-red-600 dark:text-red-400" : "text-gray-400"} ${
                         order.Discovered == order.Price ? "bg-custom-1  text-white dark:bg-custom-1 dark:text-white font-bold" : ""
                       }`}>
                       {order.SellVol}
