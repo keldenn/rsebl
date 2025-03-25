@@ -12,7 +12,7 @@ import {
 function getMarketSentiment(ptChange: string) {
   const change = parseFloat(ptChange)
   if (change === 0) return "Neutral"
-  return change > 0 ? "increased" : "decreased"
+  return change > 0 ? "Increased" : "Decreased"
 }
 
 export default function MarketSentiment() {
@@ -40,13 +40,13 @@ export default function MarketSentiment() {
   }, [])
 
   const sentimentColor =
-    marketSentiment === "increased" ? "text-green-500" :
-    marketSentiment === "decreased" ? "text-red-500" :
+    marketSentiment === "Increased" ? "text-green-500" :
+    marketSentiment === "Decreased" ? "text-red-500" :
     "text-neutral-500"
 
   const sentimentBackground =
-    marketSentiment === "increased" ? "bg-green-500/10" :
-    marketSentiment === "decreased" ? "bg-red-500/10" :
+    marketSentiment === "Increased" ? "bg-green-500/10" :
+    marketSentiment === "Decreased" ? "bg-red-500/10" :
     "bg-neutral-500/10"
 
   return (

@@ -100,7 +100,7 @@ const allSectors = {
           <HoverCardTrigger asChild>
             <div className="flex w-full flex-row items-center justify-between text-sm cursor-pointer">
               <span className="font-medium">{sector.sector_type}</span>
-              <span
+              {/* <span
                 className={cn(
                   "w-[4rem] min-w-fit rounded-md px-2 py-0.5 text-right transition-colors",
                   parseFloat(sector.percentageChange) > 0
@@ -111,6 +111,18 @@ const allSectors = {
                 )}
               >
                 {parseFloat(sector.percentageChange).toFixed(2) + "%"}
+              </span> */}
+              <span
+                className={cn(
+                  "w-[4rem] min-w-fit rounded-md px-2 py-0.5 text-right transition-colors",
+                  parseFloat(sector.percentageChange) > 0
+                    ? "bg-gradient-to-l from-green-300 text-green-800 dark:from-green-950 dark:text-green-400"
+                    : parseFloat(sector.percentageChange) < 0
+                    ? "bg-gradient-to-l from-red-300 text-red-800 dark:from-red-950 dark:text-red-500"
+                    : "bg-gradient-to-l from-gray-300 text-gray-800 dark:from-gray-950 dark:text-gray-500"
+                )}
+              >
+                {parseFloat(sector.current_index).toFixed(2)}
               </span>
             </div>
           </HoverCardTrigger>
