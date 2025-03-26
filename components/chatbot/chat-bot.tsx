@@ -24,37 +24,87 @@ const [messages, setMessages] = useState([
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isLoading]);
 
+    // const formatMessage = (message) => {
+    //     // Check if the message has a numbered list (ordered list)
+    //     const orderedListRegex = /^\d+\.\s/;
+    //     const unorderedListRegex = /^[•-]\s/;
+    
+    //     if (orderedListRegex.test(message)) {
+    //         // Split the message into an ordered list
+    //         const listItems = message.split('\n').filter(item => orderedListRegex.test(item)).map(item => item.replace(orderedListRegex, '').trim());
+    //         return (
+    //             <ol className="list-decimal pl-5 space-y-2 text-xs">
+    //                 {listItems.map((item, index) => (
+    //                     <li key={index} >{item}</li>
+    //                 ))}
+    //             </ol>
+    //         );
+    //     } else if (unorderedListRegex.test(message)) {
+    //         // Split the message into an unordered list
+    //         const listItems = message.split('\n').filter(item => unorderedListRegex.test(item)).map(item => item.replace(unorderedListRegex, '').trim());
+    //         return (
+    //             <ul className="list-disc pl-5 space-y-2 text-xs">
+    //                 {listItems.map((item, index) => (
+    //                     <li key={index}>{item}</li>
+    //                 ))}
+    //             </ul>
+    //         );
+    //     } else {
+    //         // Return message as plain text if no lists
+    //         return <p className="text-xs">{message}</p>;
+    //     }
+    // };
     const formatMessage = (message) => {
-        // Check if the message has a numbered list (ordered list)
-        const orderedListRegex = /^\d+\.\s/;
-        const unorderedListRegex = /^[•-]\s/;
+        // First process bold text (**text**)
+        const processBoldText = (text) => {
+            const parts = text.split(/(\*\*.+?\*\*)/g);
+            return parts.map((part, i) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                    return <strong key={`bold-${i}`}>{part.slice(2, -2)}</strong>;
+                }
+                return part;
+            });
+        };
     
-        if (orderedListRegex.test(message)) {
-            // Split the message into an ordered list
-            const listItems = message.split('\n').filter(item => orderedListRegex.test(item)).map(item => item.replace(orderedListRegex, '').trim());
-            return (
-                <ol className="list-decimal pl-5 space-y-2 text-xs">
-                    {listItems.map((item, index) => (
-                        <li key={index} >{item}</li>
-                    ))}
-                </ol>
-            );
-        } else if (unorderedListRegex.test(message)) {
-            // Split the message into an unordered list
-            const listItems = message.split('\n').filter(item => unorderedListRegex.test(item)).map(item => item.replace(unorderedListRegex, '').trim());
-            return (
-                <ul className="list-disc pl-5 space-y-2 text-xs">
-                    {listItems.map((item, index) => (
-                        <li key={index}>{item}</li>
-                    ))}
-                </ul>
-            );
-        } else {
-            // Return message as plain text if no lists
-            return <p className="text-xs">{message}</p>;
-        }
+        // Split message into paragraphs
+        const paragraphs = message.split('\n').filter(p => p.trim() !== '');
+    
+        return (
+            <div className="space-y-2 text-xs">
+                {paragraphs.map((paragraph, paraIndex) => {
+                    // Check for numbered list (1., 2., etc.)
+                    if (/^\d+\.\s.+/.test(paragraph)) {
+                        const match = paragraph.match(/^(\d+)\.\s(.+)/);
+                        if (match) {
+                            return (
+                                <div key={`para-${paraIndex}`} className="flex">
+                                    <span className="mr-2">{match[1]}.</span>
+                                    <span>{processBoldText(match[2])}</span>
+                                </div>
+                            );
+                        }
+                    }
+                    // Check for bulleted list (•, -, *)
+                    else if (/^[•*-]\s.+/.test(paragraph)) {
+                        return (
+                            <div key={`para-${paraIndex}`} className="flex">
+                                <span className="mr-2">•</span>
+                                <span>{processBoldText(paragraph.slice(2))}</span>
+                            </div>
+                        );
+                    }
+                    // Regular paragraph
+                    else {
+                        return (
+                            <p key={`para-${paraIndex}`} className="whitespace-pre-wrap">
+                                {processBoldText(paragraph)}
+                            </p>
+                        );
+                    }
+                })}
+            </div>
+        );
     };
-    
 
     const sendMessage = async (e) => {
         e.preventDefault();
@@ -123,22 +173,20 @@ const [messages, setMessages] = useState([
     }, [isOpen]);
     const Message = React.memo(({ msg }) => (
         <div className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} items-start gap-3`}>
-            {/* Bot Avatar (shown on the left) */}
             {msg.sender !== 'user' && (
                 <Avatar className='border w-8 h-8'>
                     <AvatarImage src="https://github.com/shadcn.png" alt="Bot Avatar" />
                     <AvatarFallback>Bot</AvatarFallback>
                 </Avatar>
             )}
-    
-            {/* Message Bubble */}
+            
             <div
-                className={`flex flex-col gap-2 rounded-lg px-3 py-2 text-xs ${
-                    msg.sender === 'user' ? 'ml-auto bg-custom-1 text-white ' : 'bg-gray-200 dark:bg-gray-800'
+                className={`flex flex-col gap-2 rounded-lg px-3 py-2 ${
+                    msg.sender === 'user' ? 'ml-auto bg-custom-1 text-white' : 'bg-gray-200 dark:bg-gray-800'
                 }`}
                 style={{ display: 'inline-block', maxWidth: '55%', wordBreak: 'break-word' }}
             >
-                <div>{msg.text}</div> {/* This will render the formatted message */}
+                {typeof msg.text === 'string' ? formatMessage(msg.text) : msg.text}
             </div>
         </div>
     ));
