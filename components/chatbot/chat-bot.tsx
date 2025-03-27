@@ -55,8 +55,9 @@ const [messages, setMessages] = useState([
     //     }
     // };
     const formatMessage = (message) => {
-        // First process bold text (**text**)
+        // Process bold text (**text**)
         const processBoldText = (text) => {
+            if (typeof text !== 'string') return text;
             const parts = text.split(/(\*\*.+?\*\*)/g);
             return parts.map((part, i) => {
                 if (part.startsWith('**') && part.endsWith('**')) {
@@ -74,22 +75,19 @@ const [messages, setMessages] = useState([
                 {paragraphs.map((paragraph, paraIndex) => {
                     // Check for numbered list (1., 2., etc.)
                     if (/^\d+\.\s.+/.test(paragraph)) {
-                        const match = paragraph.match(/^(\d+)\.\s(.+)/);
-                        if (match) {
-                            return (
-                                <div key={`para-${paraIndex}`} className="flex">
-                                    <span className="mr-2">{match[1]}.</span>
-                                    <span>{processBoldText(match[2])}</span>
-                                </div>
-                            );
-                        }
+                        const text = paragraph.replace(/^\d+\.\s/, '');
+                        return (
+                            <div key={`para-${paraIndex}`} className="flex">
+                                <span>{processBoldText(text)}</span>
+                            </div>
+                        );
                     }
                     // Check for bulleted list (•, -, *)
                     else if (/^[•*-]\s.+/.test(paragraph)) {
+                        const text = paragraph.slice(2);
                         return (
                             <div key={`para-${paraIndex}`} className="flex">
-                                <span className="mr-2">•</span>
-                                <span>{processBoldText(paragraph.slice(2))}</span>
+                                <span>{processBoldText(text)}</span>
                             </div>
                         );
                     }
@@ -249,7 +247,7 @@ const [messages, setMessages] = useState([
             </Button>
 
             {isOpen && (
-              <Card className="absolute bottom-16 h-[490px] right-0 min-w-[300px] md:min-w-[400px] lg:min-w-[410px] rounded-xl border bg-card text-card-foreground shadow-lg p-4 flex flex-col">
+              <Card className="absolute bottom-16 h-[690px] right-0 min-w-[450px] md:min-w-[500px] lg:min-w-[610px] rounded-xl border bg-card text-card-foreground shadow-lg p-4 flex flex-col">
                 {/* Header */}
                 <div className="flex flex-row items-center pb-4">
                     <div className="flex items-center space-x-4">
