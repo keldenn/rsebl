@@ -247,7 +247,7 @@ const [messages, setMessages] = useState([
             </Button>
 
             {isOpen && (
-              <Card className="absolute bottom-16 h-[490px] right-0 min-w-[300px] md:min-w-[400px] lg:min-w-[410px] rounded-xl border bg-card text-card-foreground shadow-lg p-4 flex flex-col">
+              <Card className="absolute bottom-16 h-[690px] right-0 min-w-[450px] md:min-w-[500px] lg:min-w-[610px] rounded-xl border bg-card text-card-foreground shadow-lg p-4 flex flex-col">
                 {/* Header */}
                 <div className="flex flex-row items-center pb-4">
                     <div className="flex items-center space-x-4">

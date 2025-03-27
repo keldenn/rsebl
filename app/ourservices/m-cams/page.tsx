@@ -19,7 +19,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import BhutanNDIComponent from "@/components/ndi/ndi-modal"; // Import Bhutan NDI Component
+import BhutanNDIComponent from "@/components/ndi/ndi-modal";
 
 export default function Page() {
   const [cid, setCid] = useState('');
@@ -55,14 +55,20 @@ export default function Page() {
   const [detailsError, setDetailsError] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [brokerageFirms, setBrokerageFirms] = useState();
-  const [ndiSuccess, setNdiSuccess] = useState(false); // State for NDI success
-  const [ndiData, setNdiData] = useState(); // State for NDI data
+  const [ndiSuccess, setNdiSuccess] = useState(false);
+  const [ndiData, setNdiData] = useState();
+  const [useNDI, setUseNDI] = useState(true); // Track authentication method
+  const [showOtpField, setShowOtpField] = useState(false); // For non-NDI flow
+  const [otp, setOtp] = useState(''); // For non-NDI flow
+  const [otpVerified, setOtpVerified] = useState(false); // For non-NDI flow
 
   const { toast } = useToast();
 
-  // Fetch user details after NDI verification
+  // Fetch user details after NDI verification or manual CID entry
   const handleFetchDetails = async () => {
-    if (!ndiData || !ndiData.idNumber) {
+    const currentCid = useNDI ? ndiData?.idNumber : cid;
+    
+    if (!currentCid) {
       toast({
         title: "Error",
         description: "CID number is required.",
@@ -79,23 +85,48 @@ export default function Page() {
       return;
     }
 
+    if (!useNDI && !otpVerified) {
+      // For non-NDI flow, first send OTP
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/getUserDetails?cidNo=${currentCid}&broker=${selectedBroker}`
+        );
+        const data = await response.json();
+
+        if (data.status === "200" && data.data.length > 0) {
+          const user = data.data[0];
+          // Store user details temporarily for OTP verification
+          setUserDetails({
+            name: `${user.f_name} ${user.l_name}`,
+            phone: user.phone || "Not Available",
+            email: user.email || "Not Available",
+            address: user.address || "Not Available",
+            cd_code: user.cd_code || "Not Available",
+            user_name: user.user_name || "Not Available"
+          });
+          await sendOtpOperation(user);
+        } else {
+          handleFetchErrorResponse(data);
+        }
+      } catch (err) {
+        toast({
+          description: "Failed to fetch user details. Please try again.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+
+    // Proceed with normal flow for NDI or after OTP verification
     setDetailsError(null);
     setDetailsLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/getUserDetails?cidNo=${ndiData.idNumber}&broker=${selectedBroker}`
+        `${process.env.NEXT_PUBLIC_API_URL}/getUserDetails?cidNo=${currentCid}&broker=${selectedBroker}`
       );
       const data = await response.json();
 
-      if (data.status === "400" && data.message === "Please open a CD account with the selected Brokerage Firm.") {
-        toast({
-          description: "Please open a CD account with the selected Brokerage Firm.",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.reload();
-        }, 5000);
-      } else if (data.status === "200" && data.data.length > 0) {
+      if (data.status === "200" && data.data.length > 0) {
         const user = data.data[0];
         setUserDetails({
           name: `${user.f_name} ${user.l_name}`,
@@ -108,16 +139,8 @@ export default function Page() {
         toast({
           description: "This is the email registered with Broker, please update if it is incorrect.",
         });
-      } else if (data.status === "100" && data.message === "The mCaMS account already exists with the chosen Brokerage Firm.") {
-        toast({
-          description: "The mCaMS account already exists with the chosen Brokerage Firm.",
-          variant: "destructive",
-        });
       } else {
-        toast({
-          description: "No user details found for the provided CID and Brokerage firm.",
-          variant: "destructive",
-        });
+        handleFetchErrorResponse(data);
       }
     } catch (err) {
       toast({
@@ -126,6 +149,114 @@ export default function Page() {
       });
     } finally {
       setDetailsLoading(false);
+    }
+  };
+
+  const handleFetchErrorResponse = (data) => {
+    if (data.status === "400" && data.message === "Please open a CD account with the selected Brokerage Firm.") {
+      toast({
+        description: "Please open a CD account with the selected Brokerage Firm.",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.reload();
+      }, 5000);
+    } else if (data.status === "100" && data.message === "The mCaMS account already exists with the chosen Brokerage Firm.") {
+      toast({
+        description: "The mCaMS account already exists with the chosen Brokerage Firm.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        description: data.message || "No user details found for the provided CID and Brokerage firm.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // OTP operations for non-NDI flow
+  async function sendOtpOperation(user) {
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/sendOtpOperation`;
+    const body = JSON.stringify({
+      cidNo: cid,
+      phoneNo: user?.phone,
+      email: user?.email,
+    });
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: body,
+      });
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+        setShowOtpField(true);
+        toast({
+          title: "Success",
+          description: "OTP sent successfully",
+        });
+      } else {
+        throw new Error(data.message || "Error sending OTP");
+      }
+    } catch (error) {
+      toast({
+        description: "Failed to send OTP. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }
+
+  const verifyOtp = async () => {
+    if (!otp) {
+      toast({
+        description: "Please enter the OTP.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/verify_otp_for_sharestatement`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cidNo: cid,
+          phoneNo: userDetails.phone,
+          email: userDetails.email,
+          otpNo: otp,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.status === 200) {
+        setOtpVerified(true);
+        toast({
+          title: "Success",
+          description: data.message,
+        });
+        // After OTP verification, proceed with normal flow
+        await handleFetchDetails();
+      } else {
+        toast({
+          description: data.message || "Invalid OTP",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        description: "Error verifying OTP. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -146,9 +277,11 @@ export default function Page() {
   // Handle payment success
   useEffect(() => {
     if (paymentSuccess && orderNo) {
+      const currentCid = useNDI ? ndiData?.idNumber : cid;
+      
       const payload = {
         orderNo: orderNo,
-        cidNo: ndiData.idNumber,
+        cidNo: currentCid,
         cd_code: userDetails.cd_code,
         broker: selectedBroker,
         name: userDetails.name,
@@ -257,22 +390,18 @@ export default function Page() {
           description: "This is the email registered with Broker, please update if it is incorrect.",
         });
         
-      }else if (data.status === "100" && data.message === "Your mCaMS account is still active. Cannot renew before expires."){
+      } else if (data.status === "100" && data.message === "Your mCaMS account is still active. Cannot renew before expires.") {
         toast({
           description: "Your mCaMS account is still active. Cannot renew before expires.",
           variant: "destructive",
         });
-      }
-      
-      else {
-        //setDetailsError("No user details found for the provided username.");
+      } else {
         toast({
           description: "No user details found for the provided username.",
           variant: "destructive",
         });
       }
     } catch (err) {
-      //setDetailsError("Failed to fetch user details. Please try again.");
       toast({
         description: "Failed to fetch user details. Please try again.",
         variant: "destructive",
@@ -281,6 +410,7 @@ export default function Page() {
       setDetailsLoading(false);
     }
   };
+
   const handleFinalSubmitRenew = () => {
     if (!isCheckboxCheckedRenew) {
       toast({
@@ -290,12 +420,11 @@ export default function Page() {
       return;
     }
   
-    // Open the drawer first (no API call yet)
     setRenewOpen(true);
   };
   
   useEffect(() => {
-    if (renewopen && orderNo) { // Ensure orderNo is available
+    if (renewopen && orderNo) {
       const submitUserDetailsRenew = async () => {
         const payload = {
           cidNo: cid,
@@ -307,10 +436,8 @@ export default function Page() {
           name: userDetailsRenew.name,
           phoneNo: userDetailsRenew.phone,
           userName: userDetailsRenew.username,
-          orderNo: orderNo, // Add the orderNo here to be passed to the backend
+          orderNo: orderNo,
         };
-  
-        console.log(payload);
   
         try {
           const response = await fetch(
@@ -326,8 +453,7 @@ export default function Page() {
   
           const data = await response.json();
   
-          if (response.ok && data.status === "200") {
-          } else {
+          if (!response.ok || data.status !== "200") {
             toast({
               description: data.message || "Failed to submit application. Please try again.",
               variant: "destructive",
@@ -341,7 +467,6 @@ export default function Page() {
         }
       };
   
-      // Trigger the submission when the drawer opens and orderNo is set
       submitUserDetailsRenew();
     }
   }, [renewopen, orderNo]);
@@ -392,23 +517,51 @@ export default function Page() {
                 <CardDescription className='flex justify-center text-base'>Trading on your fingertips</CardDescription>
               </CardHeader>
               <CardContent>
-                {!ndiSuccess && (
-                  <BhutanNDIComponent
-                    btnText={"Register with Bhutan NDI"}
-                    setNdiSuccess={setNdiSuccess}
-                    setNdiData={setNdiData}
-                  />
+                {!ndiSuccess && useNDI && (
+                  <>
+                    <BhutanNDIComponent
+                      btnText={"Register with Bhutan NDI"}
+                      setNdiSuccess={setNdiSuccess}
+                      setNdiData={setNdiData}
+                    />
+                    <CardDescription className="flex justify-center pt-3">
+                      Don't have the NDI App? 
+                      <a 
+                      href="#" 
+                      onClick={(e) => {
+                        e.preventDefault(); // Prevent default anchor behavior
+                        setUseNDI(false);
+                      }} 
+                      className="px-1 text-blue-600 underline hover:text-blue-800"
+                    >
+                      Click here.
+                    </a>
+                    </CardDescription>
+                  </>
                 )}
 
-                {ndiSuccess && ndiData && (
+                {(!useNDI || (ndiSuccess && ndiData)) && (
                   <>
-                    <Input
-                      placeholder="Enter your CID number"
-                      type="number"
-                      value={ndiData.idNumber}
-                      disabled
-                      className="mb-4"
-                    />
+                    {!useNDI && (
+                      <Input
+                        placeholder="Enter your CID number"
+                        type="number"
+                        value={cid}
+                        onChange={(e) => setCid(e.target.value)}
+                        className="mb-4"
+                      />
+                    )}
+                    
+                    {useNDI && (
+                      <Input
+                        placeholder="Enter your CID number"
+                        type="number"
+                        value={ndiData?.idNumber || ''}
+                        disabled
+                        className="mb-4"
+                      />
+                    )}
+
                     <Select onValueChange={setSelectedBroker} value={selectedBroker}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select Brokerage Firm" />
@@ -421,9 +574,38 @@ export default function Page() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Button className="w-full mt-4" variant={'outline'} onClick={handleFetchDetails}>
-                      Fetch Details
-                    </Button>
+
+                    {!useNDI && showOtpField && (
+                      <>
+                        <Input 
+                          placeholder="Enter OTP"
+                          type="number"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          className="mt-4"
+                        />
+                        <Button 
+                          className="w-full mt-4" 
+                          variant={'outline'} 
+                          onClick={verifyOtp}
+                          disabled={loading}
+                        >
+                          {loading ? "Verifying..." : "Verify OTP"}
+                        </Button>
+                      </>
+                    )}
+
+                    {(!showOtpField || useNDI) && (
+                      <Button 
+                        className="w-full mt-4" 
+                        variant={'outline'} 
+                        onClick={handleFetchDetails}
+                        disabled={detailsLoading}
+                      >
+                        {detailsLoading ? "Fetching..." : "Fetch Details"}
+                      </Button>
+                    )}
+
                     {userDetails.name && (
                       <>
                         <Label>Name:</Label>
@@ -449,7 +631,11 @@ export default function Page() {
                             </a>{" "} of RSEB for processing Online Terminal.
                           </Label>
                         </div>
-                        <Button className="w-full mt-4" variant={'outline'} onClick={handleFinalSubmit}>
+                        <Button 
+                          className="w-full mt-4" 
+                          variant={'outline'} 
+                          onClick={handleFinalSubmit}
+                        >
                           Submit
                         </Button>
                       </>
