@@ -1,12 +1,6 @@
 // import type { Metadata } from "next";
 import ServicesCards from "./components/ServicesCards";
 //import Link from "next/link";
-
-// export const metadata: Metadata = {
-//   title: "Finly: Stock screener",
-//   description: "Find the best stocks to buy now with the Finly stock screener.",
-// };
-
 const servicesData = [
   {
     description: "Online Client Terminal(mCaMs)",

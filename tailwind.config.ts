@@ -77,6 +77,14 @@ const config = {
   					height: 'var(--radix-accordion-content-height)'
   				}
   			},
+			  spin: {
+				'0%': { transform: 'rotate(0deg)' },
+				'100%': { transform: 'rotate(360deg)' },
+			  },
+			  pulse: {
+				'0%, 100%': { opacity: '8' },
+				'50%': { opacity: '0.5' },
+			  },
   			'accordion-up': {
   				from: {
   					height: 'var(--radix-accordion-content-height)'
@@ -97,7 +105,9 @@ const config = {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out',
-  			marquee: 'marquee 40s linear infinite'
+  			marquee: 'marquee 40s linear infinite',
+			  spin: 'spin 1s linear infinite', // Define spin animation
+			  pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite', // Define pulse animation
   		},
   		backgroundSize: {
   			'size-200': '200% 200%'

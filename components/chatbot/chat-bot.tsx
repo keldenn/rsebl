@@ -55,8 +55,9 @@ const [messages, setMessages] = useState([
     //     }
     // };
     const formatMessage = (message) => {
-        // First process bold text (**text**)
+        // Process bold text (**text**)
         const processBoldText = (text) => {
+            if (typeof text !== 'string') return text;
             const parts = text.split(/(\*\*.+?\*\*)/g);
             return parts.map((part, i) => {
                 if (part.startsWith('**') && part.endsWith('**')) {
@@ -74,22 +75,19 @@ const [messages, setMessages] = useState([
                 {paragraphs.map((paragraph, paraIndex) => {
                     // Check for numbered list (1., 2., etc.)
                     if (/^\d+\.\s.+/.test(paragraph)) {
-                        const match = paragraph.match(/^(\d+)\.\s(.+)/);
-                        if (match) {
-                            return (
-                                <div key={`para-${paraIndex}`} className="flex">
-                                    <span className="mr-2">{match[1]}.</span>
-                                    <span>{processBoldText(match[2])}</span>
-                                </div>
-                            );
-                        }
+                        const text = paragraph.replace(/^\d+\.\s/, '');
+                        return (
+                            <div key={`para-${paraIndex}`} className="flex">
+                                <span>{processBoldText(text)}</span>
+                            </div>
+                        );
                     }
                     // Check for bulleted list (•, -, *)
                     else if (/^[•*-]\s.+/.test(paragraph)) {
+                        const text = paragraph.slice(2);
                         return (
                             <div key={`para-${paraIndex}`} className="flex">
-                                <span className="mr-2">•</span>
-                                <span>{processBoldText(paragraph.slice(2))}</span>
+                                <span>{processBoldText(text)}</span>
                             </div>
                         );
                     }
