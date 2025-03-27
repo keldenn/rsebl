@@ -33,14 +33,16 @@ export default function OnlineShareStatement() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [orderNo, setOrderNo] = useState();
   const [amount, setAmount] = useState();
-    const[ndiSuccess, setNdiSuccess]=useState(false);
-    const[ndiData, setNdiData]=useState();
+  const[ndiSuccess, setNdiSuccess]=useState(false);
+  const[ndiData, setNdiData]=useState();
+  const [fetched, setFetched] = useState(false); // Add this near your other states
+  const [accountSelected, setAccountSelected] = useState(false);
   const { toast } = useToast();
 
   const handleAccountTypeChange = (e) => {
     const newAccountType = e?.target?.value ?? e; // Update account type based on dropdown selection
     setAccountType(newAccountType);
-  
+    setAccountSelected(true); // Mark account as selected
     if (newAccountType === "I" && ndiData) {
       setOpen(true); // Open payment gateway directly for Individual
     }
@@ -53,9 +55,9 @@ export default function OnlineShareStatement() {
     // console.log("page", orderNo)
   }
   const fetchData = async () => {
-    if (accountType === "I" && !cidNo) {
+    if (accountType === "I" && !ndiData?.idNumber && !cidNo) {
       toast({
-        description: "CID number is required",
+        description: "Please provide CID via NDI or manual input",
         variant: "destructive",
       });
       return;
@@ -80,6 +82,7 @@ export default function OnlineShareStatement() {
         setPhone(data.phone || "");
         setEmail(data.email || "");
         setFieldsVisible(true);
+        setFetched(true);
         toast({
           description: "If your Phone number/Email is incorrect, please contact RSEB office/Broker to update.",
         });
@@ -145,16 +148,15 @@ export default function OnlineShareStatement() {
     setLoading(true); // Show loading state during OTP verification
 
     const stmnt = {
-      cidNo: accountType === "I" ? ndiData.idNumber : disnNo,  // Use ndiData.idNumber for Individual
+      cidNo: accountType === "I" ? (ndiData?.idNumber || cidNo) : disnNo,
       phoneNo: phone,
-      email: email,
+      otpNo: otp,
     };
 
     try {
 
       const url = `${process.env.NEXT_PUBLIC_API_URL}/verify_otp_for_sharestatement`; // API URL for OTP verification
       const body = JSON.stringify(stmnt);
-
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -200,7 +202,7 @@ export default function OnlineShareStatement() {
   const afterBankInsert = async () => {
 
     const stmnt = {
-      cidNo: accountType === "I" ? cidNo : disnNo,
+      cidNo: accountType === "I" ? (ndiData?.idNumber || cidNo) : disnNo,
       phoneNo: phone,
       email: email,
       amount: amount,
@@ -250,7 +252,7 @@ export default function OnlineShareStatement() {
   const handleSubmit = async () => {
     // Prepare statement object for sending OTP
     const stmnt = {
-      cidNo: accountType === "I" ? cidNo : disnNo,
+      cidNo: accountType === "I" ? (ndiData?.idNumber || cidNo) : disnNo, // ✅ Fallback
       phoneNo: phone,
       email: email,
     };
@@ -279,10 +281,13 @@ export default function OnlineShareStatement() {
       setLoading(false);
     }
   };
-  useEffect(()=>{
-
-    setCidNo(ndiData?.idNumber);
-  }, [ndiData, ndiSuccess])
+  useEffect(() => {
+    if (ndiData && ndiSuccess) {
+      setCidNo(ndiData.idNumber); // Auto-fill CID when NDI succeeds
+      setFetched(true);
+      setOpen(true);
+    }
+  }, [ndiData, ndiSuccess]);
   useEffect(() => {
     if (orderNo?.startsWith("SS")) {
       afterBankInsert();
@@ -305,7 +310,7 @@ export default function OnlineShareStatement() {
       </CardHeader>
     <CardContent className="">
     <Label>Account Type</Label>
-    <Select value={accountType} onValueChange={handleAccountTypeChange}>
+    <Select value={accountType} onValueChange={handleAccountTypeChange} disabled={fetched}>
       <SelectTrigger className="w-full mb-3">
         <SelectValue placeholder="Select Account Type" />
       </SelectTrigger>
@@ -315,17 +320,25 @@ export default function OnlineShareStatement() {
       </SelectContent>
     </Select>
 
-    {accountType === "I" && ndiData && ndiSuccess && (
-       <>
-       <Label>CID No</Label>
-       <Input
-      className="mb-3"
-      placeholder="CID Number"
-      value={ndiData.idNumber}  // Set the CID number from ndiData
-      readOnly  // Disable editing
-    />
-     </>
-    )}
+    {accountType === "I" && (
+  <>
+    <Label>CID No</Label>
+    <div className="flex gap-2 mb-3">
+      <Input
+        className="flex-1"
+        placeholder="Enter CID number"
+        value={cidNo}
+        onChange={handleCidChange}
+        disabled={fetched} 
+      />
+      {/* <BhutanNDIComponent
+        btnText="Fetch via NDI"
+        setNdiSuccess={setNdiSuccess}
+        setNdiData={setNdiData}
+      /> */}
+    </div>
+  </>
+)}
     {accountType === "J" && (
       <><Label>DISN No</Label><Input className="mb-3"placeholder="Enter DISN number" value={disnNo} onChange={handleDisnChange} /></>
     )}
@@ -334,9 +347,9 @@ export default function OnlineShareStatement() {
     {fieldsVisible && !paymentSuccess && (
       <>
       <Label>Phone No</Label>
-      <Input className="mb-3"placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <Input className="mb-3"placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)}    disabled={fetched}/>
       <Label>Email</Label>
-      <Input className="mb-3"placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <Input className="mb-3"placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)}  disabled={fetched} />
     </>
     )}
 
@@ -347,65 +360,51 @@ export default function OnlineShareStatement() {
     </>
     )}
       </CardContent>
-
-      <CardFooter className="flex justify-center">
-      {loading ? (
-          <Button
-            variant="outline"
-            size="lg"
-            className="my-1"
-            disabled
-          >
-            {fieldsVisible
-              ? otpVerified || accountType === "I"
-                ? "Processing..."
-                : "Sending OTP..."
-              : "Fetching..."}
-          </Button>
+      <CardFooter className="flex justify-center flex-col items-center gap-2">
+  {!accountSelected ? (
+    <p className="text-sm text-gray-500">Please select account type first</p>
+  ) : (
+    <>
+      <Button
+        variant="outline"
+        size="lg"
+        className="my-1 w-full max-w-xs"
+        onClick={fieldsVisible ? (otpVerified ? verifyOtp : handleSubmit) : fetchData}
+        disabled={loading}
+      >
+        {loading ? (
+          fieldsVisible ? (
+            otpVerified ? "Verifying OTP..." : "Sending OTP..."
+          ) : "Fetching..."
         ) : fieldsVisible ? (
-          otpVerified || accountType === "I" ? (
-            <Button
-              variant="outline"
-              size="lg"
-              className="my-1"
-              onClick={afterBankInsert}
-            >
-              Proceed to Payment
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="lg"
-              className="my-1"
-              onClick={handleSubmit}
-            >
-              Send OTP
-            </Button>
-          )
-        ) : accountType === "I" && !ndiSuccess ? (
-          // Show BhutanNDIComponent if accountType is "I" and ndiSuccess is false
+          otpVerified ? "Verify OTP" : "Send OTP"
+        ) : "Fetch"}
+      </Button>
+
+      {!fieldsVisible && accountType === "I" && (
+        <>
+      <div className="flex items-center w-full max-w-xs">
+        <div className="flex-grow border-t border-gray-300 dark:border-white"></div>
+        <span className="mx-2 text-sm text-gray-500 dark:text-white">OR</span>
+        <div className="flex-grow border-t border-gray-300 dark:border-white"></div>
+      </div>
+
+
           <BhutanNDIComponent
-            btnText={"Receive Credentials"}
-            setNdiSuccess={setNdiSuccess}
+            btnText="Receive Credentials"
+            setNdiSuccess={(success) => {
+              setNdiSuccess(success);
+              if (success) setOpen(true);
+            }}
             setNdiData={setNdiData}
           />
-        ) : (
-          // Show Fetch button for other cases (including when ndiSuccess is true)
-          <Button
-            variant="outline"
-            size="lg"
-            className="my-1"
-            onClick={fetchData}
-          >
-            Fetch
-          </Button>
-        )}
-      </CardFooter>
+        </>
+      )}
+    </>
+  )}
+</CardFooter>
     </Card>
 )     }
-      {/* {!paymentSuccess && !orderNo && accountType === "I" && !ndiSuccess &&  (
-       <BhutanNDIComponent setNdiSuccess={setNdiSuccess} setNdiData={setNdiData} />
-      )} */}
       {paymentSuccess && orderNo && (
         <ShareStatement order_no={orderNo} />
     )}
