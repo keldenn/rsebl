@@ -15,7 +15,7 @@ export default function page() {
       <h1 className="text-2xl font-bold mb-4">Bhutan NDI Authentication</h1>
 
       {/* Bhutan NDI Login Button */}
-      <BhutanNDIComponent setNdiSuccess={setNdiSuccess} setNdiData={setNdiData} />
+      <BhutanNDIComponent btnText={"LOGIN WITH NDI"}setNdiSuccess={setNdiSuccess} setNdiData={setNdiData} />
 
       {/* Show verification results when successful */}
       {ndiSuccess && ndiData && (

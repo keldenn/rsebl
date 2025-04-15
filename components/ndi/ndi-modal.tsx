@@ -9,7 +9,7 @@ import QRCode from 'qrcode';
 const API_BASE_URL =
   process.env.NODE_ENV === "production"
     ? "http://newrsebl.org.bt:8080"
-    : ""; // Empty means relative path in development
+    : "http://localhost:3000"; // Empty means relative path in development
     
 const BhutanNDIButton = ({ text, onClick }) => {
   return (

@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { connect, StringCodec, nkeyAuthenticator } from "nats";
 
-const NDI_AUTH_URL = "https://staging.bhutanndi.com/authentication/v1/authenticate";
-const NDI_PROOF_REQUEST_URL = "https://demo-client.bhutanndi.com/verifier/v1/proof-request";
-const NATS_URL = "wss://natsdemoclient.bhutanndi.com";
-const SEED = "SUAPXY7TJFUFE3IX3OEMSLE3JFZJ3FZZRSRSOGSG2ANDIFN77O2MIBHWUM";
 
+const NDI_NATS_SEED = process.env.NDI_NATS_SEED!;
+const NDI_AUTH_URL = process.env.NDI_AUTH_URL!;
+const NDI_PROOF_REQUEST_URL = process.env.NDI_PROOF_REQUEST_URL!;
+const NDI_NATS_URL = process.env.NDI_NATS_URL!;
+const NDI_CLIENT_ID = process.env.NDI_CLIENT_ID!;
+const NDI_CLIENT_SECRET = process.env.NDI_CLIENT_SECRET!;
+const NDI_SCHEMA_NAME = process.env.NDI_SCHEMA_NAME!;
 
 
 
@@ -15,8 +18,8 @@ async function getAccessToken(): Promise<string> {
   const response = await axios.post(
     NDI_AUTH_URL,
     {
-      client_id: process.env.NDI_CLIENT_ID,
-      client_secret: process.env.NDI_CLIENT_SECRET,
+      client_id: NDI_CLIENT_ID,
+      client_secret: NDI_CLIENT_SECRET,
       grant_type: "client_credentials",
     },
     {
@@ -36,11 +39,11 @@ async function createProofRequest(token: string) {
       proofAttributes: [
         {
           name: "ID Number",
-          restrictions: [{ schema_name: "https://dev-schema.ngotag.com/schemas/c7952a0a-e9b5-4a4b-a714-1e5d0a1ae076" }],
+          restrictions: [{ schema_name: NDI_SCHEMA_NAME }],
         },
         {
           name: "Full Name",
-          restrictions: [{ schema_name: "https://dev-schema.ngotag.com/schemas/c7952a0a-e9b5-4a4b-a714-1e5d0a1ae076" }],
+          restrictions: [{ schema_name: NDI_SCHEMA_NAME }],
         },
       ],
     },
@@ -55,8 +58,8 @@ const proofResults: Record<string, { ndiSuccess: boolean; proofData: any }> = {}
 // Function to Subscribe to NATS
 async function subscribeToNATS(threadId: string) {
     const nc = await connect({
-      servers: [NATS_URL],
-      authenticator: nkeyAuthenticator(new TextEncoder().encode(SEED)),
+      servers: [NDI_NATS_URL],
+      authenticator: nkeyAuthenticator(new TextEncoder().encode(NDI_NATS_SEED)),
     });
   
     const sc = StringCodec();

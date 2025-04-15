@@ -5,10 +5,16 @@ import Image from "next/image";
 
 const HeroCarousel: React.FC = () => {
   const banners = [
-    {
+    // {
+    //   id: 1,
+    //   title: "Click here for Online Share Statement",
+    //   file_path: "/images/banner1.png",
+    //   clickable_link: "https://rsebl.org.bt/#/OnlineShareStmt/1",
+    // },
+        {
       id: 1,
-      title: "Click here for Online Share Statement",
-      file_path: "/images/banner1.png",
+      title: "Invest now",
+      file_path: "/images/banner_gmc.png",
       clickable_link: "https://rsebl.org.bt/#/OnlineShareStmt/1",
     },
     {
